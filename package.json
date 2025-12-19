@@ -1,0 +1,11 @@
+{
+	"name": "bang-gia-nano",
+	"version": "1.0.0",
+	"description": "Bảng giá Pima Nano",
+	"scripts": {
+		"start": "npx serve ."
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC"
+}

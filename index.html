@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Bảng Giá Pima Nano</title>
+	<style>
+		:root {
+			--primary-bg: #FFD700;
+			--text-color: #333;
+			--table-header-bg: #2d3436;
+			--table-header-text: #FFD700;
+			--card-bg: #fff;
+			--price-color: #d63031;
+		}
+
+		body {
+			background-color: var(--primary-bg);
+			color: var(--text-color);
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			margin: 0;
+			padding: 40px 20px;
+			min-height: 100vh;
+			background-image: linear-gradient(135deg, #FFD700 0%, #FDB931 100%);
+			box-sizing: border-box;
+		}
+
+		/* Container Limit Width */
+		.main-container {
+			max-width: 1100px;
+			margin: 0 auto;
+			background: #ffffff;
+			border-radius: 12px;
+			box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+			padding: 30px;
+			overflow: hidden;
+			/* Contains floats/margins */
+		}
+
+		/* New Header Layout */
+		.header-container {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding-bottom: 20px;
+			margin-bottom: 20px;
+			border-bottom: 3px solid #FFD700;
+		}
+
+		.logo {
+			max-width: 220px;
+			height: auto;
+			filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+			transition: transform 0.3s;
+		}
+
+		.logo:hover {
+			transform: scale(1.05);
+		}
+
+		.page-title {
+			font-size: 2rem;
+			text-transform: uppercase;
+			color: #2d3436;
+			margin: 0;
+			font-weight: 800;
+			text-align: right;
+			letter-spacing: 1px;
+		}
+
+		/* Table Styling */
+		.table-responsive {
+			overflow-x: auto;
+			border-radius: 8px;
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+		}
+
+		th,
+		td {
+			padding: 15px;
+			text-align: left;
+			border-bottom: 1px solid #eee;
+			vertical-align: middle;
+		}
+
+		th {
+			background-color: var(--table-header-bg);
+			color: var(--table-header-text);
+			text-transform: uppercase;
+			font-size: 0.9rem;
+			letter-spacing: 0.05em;
+			font-weight: 600;
+		}
+
+		/* Fix corner radius for header */
+		th:first-child {
+			border-top-left-radius: 6px;
+		}
+
+		th:last-child {
+			border-top-right-radius: 6px;
+		}
+
+		tr:nth-child(even) {
+			background-color: #f8f9fa;
+		}
+
+		tr:hover {
+			background-color: #f1f2f6;
+		}
+
+		.product-img {
+			width: 70px;
+			height: 70px;
+			object-fit: cover;
+			border-radius: 6px;
+			border: 1px solid #ddd;
+			cursor: zoom-in;
+			transition: transform 0.3s ease;
+			background-color: #fff;
+		}
+
+		.product-img:hover {
+			transform: scale(1.5);
+			z-index: 100;
+			position: relative;
+			box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+		}
+
+		.price {
+			font-weight: 800;
+			color: var(--price-color);
+			font-size: 1.15em;
+			white-space: nowrap;
+		}
+
+		/* Footer Note */
+		.footer-note {
+			margin-top: 25px;
+			text-align: right;
+			color: #d63031;
+			font-style: italic;
+			font-weight: 600;
+			font-size: 0.95rem;
+			padding-top: 15px;
+			border-top: 1px dashed #ddd;
+		}
+
+		/* Lightbox */
+		.lightbox {
+			display: none;
+			position: fixed;
+			z-index: 10000;
+			/* Ensure on top of everything */
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background-color: rgba(0, 0, 0, 0.9);
+			justify-content: center;
+			align-items: center;
+			opacity: 0;
+			transition: opacity 0.3s ease;
+		}
+
+		.lightbox.active {
+			display: flex;
+			opacity: 1;
+		}
+
+		.lightbox-content {
+			max-width: 90%;
+			max-height: 90%;
+			border-radius: 4px;
+			box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+			transform: scale(0.9);
+			transition: transform 0.3s ease;
+		}
+
+		.lightbox.active .lightbox-content {
+			transform: scale(1);
+		}
+
+		.lightbox-close {
+			position: absolute;
+			top: 20px;
+			right: 30px;
+			color: #fff;
+			font-size: 40px;
+			font-weight: bold;
+			cursor: pointer;
+			transition: color 0.3s;
+			z-index: 10001;
+		}
+
+		.lightbox-close:hover {
+			color: #FFD700;
+		}
+
+		.loading {
+			text-align: center;
+			font-size: 1.2rem;
+			padding: 40px;
+			color: #333;
+		}
+
+		/* MOBILE RESPONSIVE */
+		@media screen and (max-width: 768px) {
+			body {
+				padding: 10px;
+			}
+
+			.main-container {
+				padding: 15px;
+				background: transparent;
+				box-shadow: none;
+			}
+
+			.header-container {
+				flex-direction: column;
+				gap: 15px;
+				text-align: center;
+				background: #fff;
+				padding: 20px;
+				border-radius: 12px;
+				margin-bottom: 20px;
+				box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+			}
+
+			.page-title {
+				text-align: center;
+				font-size: 1.5rem;
+			}
+
+			.footer-note {
+				text-align: center;
+				background: #fff;
+				padding: 15px;
+				border-radius: 8px;
+				margin-top: 10px;
+			}
+
+			/* Responsive Table/Card View */
+			.table-responsive {
+				background: transparent;
+				box-shadow: none;
+				overflow: visible;
+				border: none;
+				border-radius: 0;
+			}
+
+			thead {
+				display: none;
+			}
+
+			table,
+			tbody,
+			th,
+			td,
+			tr {
+				display: block;
+			}
+
+			tr {
+				background: #fff;
+				margin-bottom: 20px;
+				border-radius: 12px;
+				box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+				padding: 0;
+				overflow: hidden;
+				display: grid;
+				grid-template-columns: 110px 1fr;
+				grid-template-rows: auto auto 1fr auto;
+				gap: 0;
+				grid-template-areas:
+					"img name"
+					"img specs"
+					"img specs"
+					"price price";
+			}
+
+			td {
+				padding: 5px 15px;
+				border: none;
+				font-size: 0.9rem;
+				color: #555;
+			}
+
+			/* 1. Image Area */
+			td.img-cell {
+				grid-area: img;
+				padding: 15px 10px;
+				background: #f9f9f9;
+				display: flex;
+				align-items: flex-start;
+				justify-content: center;
+				border-right: 1px solid #eee;
+			}
+
+			td.img-cell .product-img {
+				width: 90px;
+				height: 90px;
+				margin: 0;
+			}
+
+			/* 2. Name Area */
+			td.name-cell {
+				grid-area: name;
+				font-weight: 700;
+				font-size: 1.05rem;
+				color: #333;
+				text-transform: uppercase;
+				padding-top: 15px;
+				padding-bottom: 8px;
+			}
+
+			/* 3. Specs Area */
+			td.spec-cell {
+				grid-column: 2;
+				padding: 2px 15px;
+				display: flex;
+				align-items: center;
+			}
+
+			td.spec-cell::before {
+				content: attr(data-label) ": ";
+				font-weight: 600;
+				color: #888;
+				font-size: 0.8rem;
+				margin-right: 5px;
+				min-width: 75px;
+			}
+
+			/* 4. Price Area */
+			td.price-cell {
+				grid-area: price;
+				background: #fff9e6;
+				text-align: right;
+				padding: 12px 15px;
+				border-top: 1px dashed #eee;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-top: 10px;
+			}
+
+			td.price-cell::before {
+				content: "GIÁ BÁN:";
+				font-weight: bold;
+				color: #333;
+				font-size: 0.9rem;
+			}
+
+			td.price-cell .price {
+				font-size: 1.4rem;
+			}
+		}
+	</style>
+</head>
+
+<body>
+
+	<div class="main-container">
+
+		<header class="header-container">
+			<img src="http://pima.com.vn/wp-content/uploads/2023/04/LOGO-PIMA-MAPMAU-2023-01.png" alt="Pima Logo"
+				class="logo">
+			<h1 class="page-title">BẢNG BÁO GIÁ NHỰA PIMA</h1>
+		</header>
+
+		<div class="table-responsive">
+			<table id="priceTable">
+				<thead>
+					<tr>
+						<th style="width: 100px;">Hình ảnh</th>
+						<th>Tên sản phẩm</th>
+						<th>Quy cách</th>
+						<th>Độ dày</th>
+						<th>Đóng gói</th>
+						<th>Trọng lượng (kg)</th>
+						<th>Giá HCM</th>
+					</tr>
+				</thead>
+				<tbody id="tableBody">
+					<tr>
+						<td colspan="7" class="loading">Đang tải dữ liệu...</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+
+		<div class="footer-note">
+			Lưu ý: Giá trên áp dụng tại Thành phố Hồ Chí Minh, giá chưa bao gồm thuế VAT
+		</div>
+
+	</div>
+
+	<!-- Lightbox outside main container to cover full screen -->
+	<div id="lightbox" class="lightbox" onclick="closeLightbox(event)">
+		<span class="lightbox-close" onclick="closeLightbox(event)">&times;</span>
+		<img class="lightbox-content" id="lightboxImg" src="" alt="Zoomed Image">
+	</div>
+
+	<script>
+		// Hàm chuyển đổi link Google Drive
+		function convertDriveLink(url) {
+			if (!url) return '';
+			const drivePattern = /drive\.google\.com\/file\/d\/([-_\w]+)/;
+			const match = url.match(drivePattern);
+			if (match && match[1]) {
+				return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+			}
+			const driveOpenPattern = /drive\.google\.com\/open\?id=([-_\w]+)/;
+			const matchOpen = url.match(driveOpenPattern);
+			if (matchOpen && matchOpen[1]) {
+				return `https://drive.google.com/uc?export=view&id=${matchOpen[1]}`;
+			}
+			return url;
+		}
+
+		// Hàm định dạng tiền tệ
+		function formatCurrency(amount) {
+			if (amount === undefined || amount === null || amount === "") return "";
+			return new Intl.NumberFormat('vi-VN', {
+				style: 'currency',
+				currency: 'VND'
+			}).format(amount);
+		}
+
+		// Hàm hiển thị Lightbox
+		function openLightbox(imgSrc) {
+			const lightbox = document.getElementById('lightbox');
+			const lightboxImg = document.getElementById('lightboxImg');
+			lightboxImg.src = imgSrc;
+			lightbox.classList.add('active');
+			document.body.style.overflow = 'hidden';
+		}
+
+		// Hàm đóng Lightbox
+		function closeLightbox(event) {
+			if (event.target.id === 'lightbox' || event.target.classList.contains('lightbox-close')) {
+				const lightbox = document.getElementById('lightbox');
+				lightbox.classList.remove('active');
+				document.body.style.overflow = 'auto';
+			}
+		}
+
+		// Hàm xử lý dữ liệu và render bảng
+		async function loadData() {
+			const tableBody = document.getElementById('tableBody');
+
+			try {
+				const response = await fetch('data/gia_web_nano.json');
+				if (!response.ok) {
+					throw new Error(`HTTP error! Status: ${response.status}`);
+				}
+				const data = await response.json();
+
+				tableBody.innerHTML = '';
+
+				data.forEach(item => {
+					const tr = document.createElement('tr');
+
+					// 1. Hình ảnh
+					const tdImg = document.createElement('td');
+					tdImg.className = 'img-cell';
+					tdImg.setAttribute('data-label', 'Hình ảnh');
+					const rawImg = item["image"] || '';
+					const displayImg = convertDriveLink(rawImg);
+					if (displayImg) {
+						const img = document.createElement('img');
+						img.src = displayImg;
+						img.className = 'product-img';
+						img.alt = item["tên sản phẩm"] || 'Sản phẩm';
+						img.onclick = () => openLightbox(displayImg);
+						tdImg.appendChild(img);
+					} else {
+						tdImg.innerHTML = '<span style="color:#ccc; font-size:0.8rem">No Image</span>';
+					}
+					tr.appendChild(tdImg);
+
+					// 2. Tên sản phẩm
+					const tdName = document.createElement('td');
+					tdName.className = 'name-cell';
+					tdName.setAttribute('data-label', 'Tên sản phẩm');
+					tdName.textContent = item["tên sản phẩm"] || '';
+					tr.appendChild(tdName);
+
+					// 3. Quy cách
+					const tdSpecs = document.createElement('td');
+					tdSpecs.className = 'spec-cell';
+					tdSpecs.setAttribute('data-label', 'Quy cách');
+					tdSpecs.textContent = item["quy cách"] || '';
+					tr.appendChild(tdSpecs);
+
+					// 4. Độ dày
+					const tdThickness = document.createElement('td');
+					tdThickness.className = 'spec-cell';
+					tdThickness.setAttribute('data-label', 'Độ dày');
+					tdThickness.textContent = item["độ dày"] || '';
+					tr.appendChild(tdThickness);
+
+					// 5. Đóng gói
+					const tdPacking = document.createElement('td');
+					tdPacking.className = 'spec-cell';
+					tdPacking.setAttribute('data-label', 'Đóng gói');
+					tdPacking.textContent = item["đóng gói"] || '';
+					tr.appendChild(tdPacking);
+
+					// 6. Trọng lượng
+					const tdWeight = document.createElement('td');
+					tdWeight.className = 'spec-cell';
+					tdWeight.setAttribute('data-label', 'Trọng lượng');
+					tdWeight.textContent = item["trọng lượng"] !== undefined ? item["trọng lượng"] + ' kg' : '';
+					tr.appendChild(tdWeight);
+
+					// 7. Giá HCM
+					const tdPrice = document.createElement('td');
+					tdPrice.className = 'price-cell';
+					tdPrice.setAttribute('data-label', 'Giá HCM');
+
+					const priceSpan = document.createElement('span');
+					priceSpan.className = 'price';
+					priceSpan.textContent = formatCurrency(item["giá hcm"]);
+					tdPrice.appendChild(priceSpan);
+
+					tr.appendChild(tdPrice);
+
+					tableBody.appendChild(tr);
+				});
+
+			} catch (error) {
+				console.error('Error loading data:', error);
+				tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: red; padding: 20px;">Lỗi tải dữ liệu: ${error.message}</td></tr>`;
+			}
+		}
+
+		document.addEventListener('DOMContentLoaded', loadData);
+	</script>
+</body>
+
+</html>
