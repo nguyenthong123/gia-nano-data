@@ -1,57 +1,12 @@
 [
   {
     "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
-    "tên sản phẩm": "Tấm ốp Nano (Nhựa nguyên sinh)",
-    "quy cách": "3000 x 400 mm",
-    "độ dày": "8 mm",
-    "đóng gói": "8 Tấm/thùng",
-    "trọng lượng": 4.8,
-    "giá hcm": 83000
-  },
-  {
-    "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
-    "tên sản phẩm": "Lam 3 Sóng (Cốt nhựa nguyên sinh)",
-    "quy cách": "3000 x 210 mm",
-    "độ dày": "12 mm",
-    "đóng gói": "15 Thanh/thùng",
-    "trọng lượng": 3.8,
-    "giá hcm": 83000
-  },
-  {
-    "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
-    "tên sản phẩm": "Lam 4 Sóng (Cốt nhựa nguyên sinh)",
-    "quy cách": "3000 x 152 mm",
-    "độ dày": "9 mm",
-    "đóng gói": "18 Thanh/thùng",
-    "trọng lượng": 2.7,
-    "giá hcm": 64000
-  },
-  {
-    "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
-    "tên sản phẩm": "Lam 4 Sóng Cao (Cốt nhựa nguyên sinh)",
-    "quy cách": "3000 x 160 mm",
-    "độ dày": "20 mm",
-    "đóng gói": "14 Thanh/thùng",
-    "trọng lượng": 3.5,
-    "giá hcm": 67000
-  },
-  {
-    "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
-    "tên sản phẩm": "Tấm Nhựa PVC Vân Đá (Trắng nguyên sinh)",
-    "quy cách": "1220 x 2440 mm",
-    "độ dày": "2,5 mm",
-    "đóng gói": "",
-    "trọng lượng": 15,
-    "giá hcm": 240000
-  },
-  {
-    "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
     "tên sản phẩm": "Alu Nội Thất Vietstar (Màu cơ bản 0.05)",
     "quy cách": "1220 x 2440 mm",
     "độ dày": "3 mm",
     "đóng gói": "",
     "trọng lượng": 10,
-    "giá hcm": 149000
+    "giá hcm": ""
   },
   {
     "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
@@ -60,7 +15,7 @@
     "độ dày": "3 mm",
     "đóng gói": "",
     "trọng lượng": 10.5,
-    "giá hcm": 198000
+    "giá hcm": ""
   },
   {
     "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
@@ -69,7 +24,7 @@
     "độ dày": "8 mm",
     "đóng gói": "",
     "trọng lượng": 16,
-    "giá hcm": 343000
+    "giá hcm": ""
   },
   {
     "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
@@ -78,7 +33,7 @@
     "độ dày": "17 mm",
     "đóng gói": "",
     "trọng lượng": 32,
-    "giá hcm": 671000
+    "giá hcm": ""
   },
   {
     "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
@@ -87,7 +42,7 @@
     "độ dày": "15 mm",
     "đóng gói": "Lỗ vuông",
     "trọng lượng": 30,
-    "giá hcm": 455000
+    "giá hcm": ""
   },
   {
     "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
@@ -96,7 +51,7 @@
     "độ dày": "17 mm",
     "đóng gói": "Lỗ tròn",
     "trọng lượng": 35,
-    "giá hcm": 550000
+    "giá hcm": ""
   },
   {
     "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
@@ -105,7 +60,7 @@
     "độ dày": "25 x 12 mm",
     "đóng gói": "50 Thanh",
     "trọng lượng": 1,
-    "giá hcm": 24000
+    "giá hcm": ""
   },
   {
     "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
@@ -114,7 +69,7 @@
     "độ dày": "25 x 12 mm",
     "đóng gói": "50 Thanh",
     "trọng lượng": 1,
-    "giá hcm": 24000
+    "giá hcm": ""
   },
   {
     "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
@@ -123,7 +78,7 @@
     "độ dày": "30 x 30 mm",
     "đóng gói": "50 Thanh",
     "trọng lượng": 0.9,
-    "giá hcm": 24000
+    "giá hcm": ""
   },
   {
     "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
@@ -132,7 +87,7 @@
     "độ dày": "33 x 14 mm",
     "đóng gói": "100 Thanh",
     "trọng lượng": 0.6,
-    "giá hcm": 27000
+    "giá hcm": ""
   },
   {
     "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
@@ -141,7 +96,7 @@
     "độ dày": "35 x 20 mm",
     "đóng gói": "50 Thanh",
     "trọng lượng": 0.9,
-    "giá hcm": 34000
+    "giá hcm": ""
   },
   {
     "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
@@ -150,7 +105,7 @@
     "độ dày": "45 x 20 mm",
     "đóng gói": "50 Thanh",
     "trọng lượng": 1.6,
-    "giá hcm": 37000
+    "giá hcm": ""
   },
   {
     "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
@@ -159,7 +114,7 @@
     "độ dày": "70 x 38 mm",
     "đóng gói": "50 Thanh",
     "trọng lượng": 1.6,
-    "giá hcm": 52000
+    "giá hcm": ""
   },
   {
     "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
@@ -168,7 +123,7 @@
     "độ dày": "100 x 17 mm",
     "đóng gói": "50 Thanh",
     "trọng lượng": 1.6,
-    "giá hcm": 60000
+    "giá hcm": ""
   },
   {
     "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
@@ -177,7 +132,7 @@
     "độ dày": "100 x 25 mm",
     "đóng gói": "50 Thanh",
     "trọng lượng": 1.6,
-    "giá hcm": 64000
+    "giá hcm": ""
   },
   {
     "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
@@ -186,7 +141,7 @@
     "độ dày": "",
     "đóng gói": "",
     "trọng lượng": "",
-    "giá hcm": 15000
+    "giá hcm": ""
   },
   {
     "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
@@ -195,7 +150,7 @@
     "độ dày": "",
     "đóng gói": "",
     "trọng lượng": "",
-    "giá hcm": 19000
+    "giá hcm": ""
   },
   {
     "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
@@ -204,7 +159,7 @@
     "độ dày": "",
     "đóng gói": "",
     "trọng lượng": "",
-    "giá hcm": 21000
+    "giá hcm": ""
   },
   {
     "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
@@ -213,7 +168,7 @@
     "độ dày": "",
     "đóng gói": "Thùng (24 chai)",
     "trọng lượng": 10,
-    "giá hcm": 488000
+    "giá hcm": ""
   },
   {
     "image": "https://www.dunvex.com/static/media/nano-11.4d530c644ccbf66cb1a2.png",
@@ -222,15 +177,51 @@
     "độ dày": "",
     "đóng gói": "",
     "trọng lượng": "",
-    "giá hcm": 350
+    "giá hcm": ""
   },
   {
-    "image": "https://drive.google.com/uc?export=view&id=1AtY_85ZxXVZmfgtcyPJzEMTmt_rwPnYZ",
-    "tên sản phẩm": "tấm trang trí chống cháy",
-    "quy cách": "200x2440",
-    "độ dày": "12mm",
-    "đóng gói": "5 thanh / hộp",
-    "trọng lượng": 12,
-    "giá hcm": 235000
+    "image": "https://drive.google.com/uc?export=view&id=1uTscQ1UE03rszkRMLgjGOTeqOW5lq2CZ",
+    "tên sản phẩm": "Tấm ốp Nano (Nhựa nguyên sinh)",
+    "quy cách": "3000 x 400 mm",
+    "độ dày": "8 mm",
+    "đóng gói": "8 Tấm/thùng",
+    "trọng lượng": 4.8,
+    "giá hcm": 83000
+  },
+  {
+    "image": "https://drive.google.com/uc?export=view&id=1NuQgvIUQT9w3oFPeY9AGTAYpZshdtCGD",
+    "tên sản phẩm": "Lam 3 Sóng (Cốt nhựa nguyên sinh)",
+    "quy cách": "3000 x 210 mm",
+    "độ dày": "12 mm",
+    "đóng gói": "15 Thanh/thùng",
+    "trọng lượng": 3.8,
+    "giá hcm": 83000
+  },
+  {
+    "image": "https://drive.google.com/uc?export=view&id=1bWLfmF_hFN8BOE52JhGBgcodrzuHe19z",
+    "tên sản phẩm": "Lam 4 Sóng (Cốt nhựa nguyên sinh)",
+    "quy cách": "3000 x 152 mm",
+    "độ dày": "9 mm",
+    "đóng gói": "18 Thanh/thùng",
+    "trọng lượng": 2.7,
+    "giá hcm": 64000
+  },
+  {
+    "image": "https://drive.google.com/uc?export=view&id=1kAMRFQ2cdrUPYzyoh5JTW7f3AEleCCBN",
+    "tên sản phẩm": "Lam 4 Sóng Cao (Cốt nhựa nguyên sinh)",
+    "quy cách": "3000 x 160 mm",
+    "độ dày": "20 mm",
+    "đóng gói": "14 Thanh/thùng",
+    "trọng lượng": 3.5,
+    "giá hcm": 67000
+  },
+  {
+    "image": "https://drive.google.com/uc?export=view&id=1q4RqrNsWnLaZZsYSQ7nJ-yOZyO8P5DOx",
+    "tên sản phẩm": "Tấm Nhựa PVC Vân Đá (Trắng nguyên sinh)",
+    "quy cách": "1220 x 2440 mm",
+    "độ dày": "2,5 mm",
+    "đóng gói": "",
+    "trọng lượng": 15,
+    "giá hcm": 240000
   }
 ]

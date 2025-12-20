@@ -1,0 +1,3656 @@
+[
+  {
+    "id_name": "8bd5e3cc",
+    "name": "Cơ khí sơn lâm",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "0e8e4fc9",
+    "name": "Cửa sắt hoàng sơn",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "91390dbe",
+    "name": "Cửa nhôm ngọc linh",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "6d892a62",
+    "name": "Anh vỹ cửa sắt",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "ae9da01f",
+    "name": "Anh phan anh thợ sắt",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "674e4b7d",
+    "name": "Vũ thịnh phát",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "a0d1f041",
+    "name": "Thiên phát lộc",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "7b98397d",
+    "name": "Nhà máy tôn tân hoà",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "d58e3070",
+    "name": "Cửa nhôm đăng lưu",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "3c9a8749",
+    "name": "Gạch men hải yến",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "d216cf76",
+    "name": "Nội thất nhựa anh quân",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "18fc2087",
+    "name": "Sắt thép trung thành",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "bf5ad8b1",
+    "name": "Gạch men tú châu",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "a64220b3",
+    "name": "Nội thất ban mê",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "b959a61f",
+    "name": "Thạch cao thành đạt",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "0195a3c3",
+    "name": "Nội thất thanh long",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "70f55890",
+    "name": "Cát tường",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "d5364151",
+    "name": "Trần gia",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "ada25666",
+    "name": "Trung nguyên stell",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "5c089c00",
+    "name": "Vn home",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "4418d4b8",
+    "name": "cửa sắt minh vương - nhân đạo",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "f58c4fac",
+    "name": "Cửa hàng thạch cao nguyễn kim",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "e7df7a3c",
+    "name": "Nội thất nhựa đắc lực",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "b820fb55",
+    "name": "thông nháp 2",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "be899d63",
+    "name": "thông33",
+    "phan_loai": "nhà máy tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "99627ac4",
+    "name": "thông 3",
+    "phan_loai": "Thầu Thợ",
+    "mail": "nbt1122@gmail.com"
+  },
+  {
+    "id_name": "08af3be1",
+    "name": "anh thông 3",
+    "phan_loai": "Nhà Phân Phối",
+    "mail": ""
+  },
+  {
+    "id_name": "391dbac4",
+    "name": "nhà máy tôn thành huy",
+    "phan_loai": "nhà máy tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "635bc841",
+    "name": "Hiệu phát",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "fdc93008",
+    "name": "Nhà máy tôn hoàng đang",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "1cb2f550",
+    "name": "Anh thành nmt ba màn",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "43581bf6",
+    "name": "Chị huệ - an thịnh phát",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "4381e9ce",
+    "name": "Chị thư",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "a1ecb649",
+    "name": "Nmt thanh cẩn",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "fca4fd0d",
+    "name": "Sắt thép đức nguyên",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "1c060dda",
+    "name": "Sắt thép thịnh phát",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "934a536c",
+    "name": "Cữa hàng kiều dung",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "5ebc6513",
+    "name": "Cửa hàng gia bảo",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "1fe6d1bc",
+    "name": "Công ty liêm lan - anh tùng",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "af82f865",
+    "name": "Công ty ngọc hiếu (",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "56c9ea0d",
+    "name": "Hoàng sa trụ sở chính",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": "hoangsadaklak@gmail.com"
+  },
+  {
+    "id_name": "5d54e3fc",
+    "name": "Kho tấm đại quang",
+    "phan_loai": "Đối Thủ",
+    "mail": ""
+  },
+  {
+    "id_name": "29140e5f",
+    "name": "Nhà máy tôn hoà bình",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "8e87298d",
+    "name": "Cửa hàng trường thọ",
+    "phan_loai": "Cửa Hàng",
+    "mail": "nguyenquangsonbmt285@gmail.com"
+  },
+  {
+    "id_name": "b2307c22",
+    "name": "Sắt thép đức thành",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "6485f15d",
+    "name": "Hồng hạnh 2",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "45b1047c",
+    "name": "Sắt thép thành tâm",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "7d4c0721",
+    "name": "Sắt thép văn hiển",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "8979d1ef",
+    "name": "Nhà máy tôn sắt phúc huy",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "56cf3a56",
+    "name": "Vlxd thuận thảo",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "09714d2b",
+    "name": "Show room KIM CANG",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "062135f8",
+    "name": "Cửa hàng ngọc tiến",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "1d19e52e",
+    "name": "Tôn thép quyên ngà",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "c3a9464c",
+    "name": "Nhà máy tôn liêm lan trụ sở chính",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "91d6d12b",
+    "name": "Tôn sắt dũng liên",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "e1e4840a",
+    "name": "Nhà máy tôn liêm lan 2",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "e25fb5f6",
+    "name": "Nmt hải anh",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "1bbbba91",
+    "name": "Sắt thép trung hiếu",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "18b99f18",
+    "name": "Tâm phát - đại quang",
+    "phan_loai": "Đối Thủ",
+    "mail": ""
+  },
+  {
+    "id_name": "9e42a6db",
+    "name": "Nhà máy tôn quang luận",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "6174f2d8",
+    "name": "Nhà máy tôn gia nguyễn",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "04dadd25",
+    "name": "Minh phát tiến",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "9eaa3337",
+    "name": "Show room tân sơn",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "086bb2cb",
+    "name": "Trâm an",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "24972a5d",
+    "name": "Nhà máy tôn nhân bình",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "75a5a2d9",
+    "name": "Nmt huy dung",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "c78cd403",
+    "name": "Vlxd ngọc linh",
+    "phan_loai": "Cửa Hàng",
+    "mail": "Vlxdngoclinh74@gmail.com"
+  },
+  {
+    "id_name": "31c48440",
+    "name": "Nmt đại lộc phát ( trụ sở chính dray bhang , ku kun )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "a71c5d7a",
+    "name": "Nhà máy tôn long vân",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "5eaa6552",
+    "name": "Nhà máy tôn phong phú",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "ec120c43",
+    "name": "Nhà máy tôn quang hảo",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "180725ba",
+    "name": "Nhà máy tôn hoàng lâm",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "304a0d32",
+    "name": "Nmt trâm an 4",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "67369a9d",
+    "name": "Nmt An thịnh phát",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "c2914ec0",
+    "name": "Nmt long vân chi nhanh",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "05ce4d3d",
+    "name": "Nmt đại lộc buôn đôn",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "d23c3932",
+    "name": "Nmt sỹ đằng",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "dd6c468a",
+    "name": "Đại lộc chi nhánh tp buôn ma thuật chị uyên",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "b8505735",
+    "name": "Nmt ba màn cs chính",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "2a8fc8b8",
+    "name": "Nhà máy tôn quốc hùng",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "02cf6b35",
+    "name": "Nhà máy tôn năm khoa",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "11d4960b",
+    "name": "Cửa hàng ngọc hà",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "10f79c96",
+    "name": "Cửa hàng đình ngọc",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "8c85b4c3",
+    "name": "Nhà máy tôn hoàng tân",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "ba8eefde",
+    "name": "Vlxd ngọc tăng 1",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "f4bb7fd1",
+    "name": "Sắt thép ngọc hạnh",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "3bf92019",
+    "name": "Vlxd Quang Tuyến",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "f3f1fe98",
+    "name": "Cửa hàng sắt thép thu nga",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "e369fac9",
+    "name": "Nhà máy tôn thành công",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "a8e63f98",
+    "name": "Nhà máy tôn hùng nam sơn",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "986393da",
+    "name": "Nhà máy tôn chung tín",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "d55a6d1a",
+    "name": "Nhà máy tôn thạch diễm",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "eb18de88",
+    "name": "Nhà máy tôn kiểm tịnh",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "ca73b5f3",
+    "name": "Cửa hàng sắt thép lập thành",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "1df078ae",
+    "name": "Nhà máy tôn nguyễn phước",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "95d26a0b",
+    "name": "Vlxd hà thu",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "ba0f31a0",
+    "name": "Vlxd vinh hoa",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "6e91cfb0",
+    "name": "Vlxd tiến phát",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "5f75205a",
+    "name": "Vlxd ngọc ánh",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "b7e26978",
+    "name": "Nhà máy tôn long vân huyện lắk",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": "Hakun342@gmail.com"
+  },
+  {
+    "id_name": "29d2533d",
+    "name": "Vlxd thiên thịnh",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "3f11c892",
+    "name": "Vlxd chú quýnh",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "ac05f432",
+    "name": "Vlxd sỹ lắk",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "fc4c7203",
+    "name": "Vlxd loan kiều",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "6d99523f",
+    "name": "Kho vlxd năm huân",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "00770ec8",
+    "name": "Năm huân trụ sở chính",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "a81e219f",
+    "name": "Nmt hiệp hưng",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "c112e5e2",
+    "name": "Nhà máy tôn đại lộc",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "4503160c",
+    "name": "Trường sa chi nhánh trường sa đông",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "ed584421",
+    "name": "Nmt ba màn km86",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "b2491b5e",
+    "name": "Nhà máy tôn huy hoàng",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "9e1dea8b",
+    "name": "Nhà máy tôn hồng phát km 67",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "b0fdce74",
+    "name": "Vlxd mạnh quỳnh",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "ff198d4c",
+    "name": "Hoàng sa (eka nốp )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "36c29d56",
+    "name": "Ba màn eakar",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "adf594cd",
+    "name": "Nhà máy tôn đức tài",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "4ae898df",
+    "name": "Vlxd hồng phát",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "4442a6e5",
+    "name": "Vật liệu xây dựng hiệp hải",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "2675185d",
+    "name": "Trường sa trụ sở chính",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "76228041",
+    "name": "Vlxd xuân hợi",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "a8b17ea2",
+    "name": "Vlxd minh chiến",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "52f2d454",
+    "name": "Nhà máy tôn năng lượng",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "b77abc91",
+    "name": "Vlxd thành nam",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "715b5447",
+    "name": "Nmt minh phát",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "477b7556",
+    "name": "Nhà máy tôn năng lượng cs chính",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "83c617b5",
+    "name": "Nhà máy tôn minh công",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "c5b0988e",
+    "name": "Vlxd Triều mai",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "c204f5a3",
+    "name": "Cửa hàng sắt thép chị tân",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "f892a372",
+    "name": "Nhà máy tôn hạnh nghà",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "2799e5ab",
+    "name": "Gỗ anh khoa",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "432d77e0",
+    "name": "Vật liệu xây dựng thanh hưng",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "a04fd438",
+    "name": "Nhà máy tôn ngọc anh",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "f3447df3",
+    "name": "Sơn thuỷ",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "33a939d6",
+    "name": "Anh lao thầu",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "c7bff856",
+    "name": "nhà máy tôn anh định",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "07b6b67b",
+    "name": "Sắt thép ngọc hoa",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "9e4c3c58",
+    "name": "Vật liệu xây dựng tuấn hoài",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "d1c9d997",
+    "name": "Công ty cp trending house",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "b2022177",
+    "name": "Vật liệu xây dựng thái sơn",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "30441d17",
+    "name": "Sắt thép phú hải",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "19290f00",
+    "name": "Nhà máy tôn huy dung cs 2",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "9b22d3dc",
+    "name": "Vlxd thân mơ",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "1890d93a",
+    "name": "Cửa hàng sắt thép tiến đạt",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "67573d87",
+    "name": "Vlxd mậu cúc",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "113d380b",
+    "name": "Vlxd minh châu",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "6ca589b6",
+    "name": "Anh thành vlxd hoàng chỉnh",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "c13f47e0",
+    "name": "Cửa hàng sắt thép long phát",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "fb982619",
+    "name": "Vlxd hải hưng",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "f308437d",
+    "name": "Vlxd anh pháp",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "1119d15f",
+    "name": "Vlxd ninh sâm",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "a6ea8193",
+    "name": "Sắt thép hoàng châu",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "74706ff8",
+    "name": "Sắt thép tấn phúc",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "e20f94a3",
+    "name": "Nhà máy tôn đại lộc anh hân",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "226b0c8a",
+    "name": "Vật liệu xây dựng phượng hồ",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "69878e9e",
+    "name": "Nhà máy tôn văn tám",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "4f34181d",
+    "name": "Nhà máy tôn tuyết linh",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "bce6fd9a",
+    "name": "Nhà máy tôn anh vũ",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "2a1ffd92",
+    "name": "Cửa hàng tý lộc",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "8b5a7282",
+    "name": "Nmt việt lâm trụ sở chính",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "2d6062dc",
+    "name": "Việt lâm kho phân phối",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "099e5faa",
+    "name": "Cơ khí đức mạnh",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "f6afecda",
+    "name": "Cửa hàng việt sương",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "31bfe053",
+    "name": "Kỹ nghệ sắt tiến thành",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "8e1171ed",
+    "name": "Cơ khí cửa sắt trần lực",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "6b5b8086",
+    "name": "Anh trưởng",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "61a69906",
+    "name": "Vlxd nguyễn khang",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "da836b5b",
+    "name": "Cửa hàng quyết thành",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "87d6bd0e",
+    "name": "Nhà máy tôn duy lâm",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "90398990",
+    "name": "Cơ khí trung quang",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "338a4634",
+    "name": "Nhà máy tôn huy hiền",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "9236415c",
+    "name": "Cơ khí tuấn dũng",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "8e5ee2c5",
+    "name": "Nmt thành lợi phương đắk nông",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "2f3daab2",
+    "name": "Kim lộc phát",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "19903939",
+    "name": "Nhà máy tôn nam phát",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "0a1fc418",
+    "name": "Anh hướng",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "407a8e2a",
+    "name": "Nhà máy tôn phụng hoàng",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "2746d0e9",
+    "name": "Vlxd ngọc danh",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "47570b71",
+    "name": "Sắt thép tuấn phát",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "f20ccf38",
+    "name": "Thép lộc phát",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "4f441688",
+    "name": "Cửa sắt văn trung",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "a0b16206",
+    "name": "Cửa hàng sắt thép thành danh",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "9c0437a3",
+    "name": "Vlxd huy thành phát",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "a3589a5a",
+    "name": "Anh trình thợ sắt xd",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "8f482ec2",
+    "name": "Cửa sắt hoà hiệp",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "01883e8b",
+    "name": "Vlxd nguyễn lê",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "5765ac8c",
+    "name": "Showroom việt thái",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "3f663e90",
+    "name": "Vlxd anh điệp",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "75ec3aa9",
+    "name": "Sắt thép khôi nguyên",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "a6792bc9",
+    "name": "Vlxd đại dương",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "5a6c587e",
+    "name": "Đoàn gia ( đắk r'tih )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "50d45bdf",
+    "name": "Xuân quỳnh ( tuy đức )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": "ctyngoctram4@gmail.com"
+  },
+  {
+    "id_name": "57203802",
+    "name": "Hoàng phước",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "561d6d1f",
+    "name": "Vlxd việt đức",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "291bb5f8",
+    "name": "Vlxd tường vy",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "ef814d76",
+    "name": "Vlxd huyền anh",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "9ea79973",
+    "name": "Nhà máy tôn phú quý",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "1e388e99",
+    "name": "Nhà máy tôn huy hiền- đắk mil",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "4acd1878",
+    "name": "Nmt lộc phát - đưc mạnh , đắk mil",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "20475c1c",
+    "name": "Nmt hoàng lộc",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "3ed35dbe",
+    "name": "Vlxd đăng thìn",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "079c4ecd",
+    "name": "Anh hồng",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "ca4cb5c0",
+    "name": "Sắt thép thu đông",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "8c09694a",
+    "name": "Nhà máy tôn nhân tín",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "d67e072f",
+    "name": "Sắt thép tâm oanh",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "4030b338",
+    "name": "Cơ khí hải thịnh",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "a8a8ea24",
+    "name": "Cửa sắt anh cường",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "85208deb",
+    "name": "Cửa sắt việt thắng",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "3a755aa9",
+    "name": "Cơ khí thành trí",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "652cb463",
+    "name": "Cửa hàng tâm phát",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "92a957cb",
+    "name": "Nội thất thiên vy",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "109bdc05",
+    "name": "Tôn liêm lan(ea hding, cư m'gar)",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "3dc0cb46",
+    "name": "Nhà máy tôn phúc thiện",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "5b5d0dae",
+    "name": "Nhà máy tôn nhân phát ( cư m'gar )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "565677f7",
+    "name": "Anh hiền",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "fe7e0194",
+    "name": "Sắt thép hữu hùng",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "eb55f005",
+    "name": "Tôn liêm lan ( ea kpam, cư m'gar)",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "9d0898aa",
+    "name": "Cơ khí thuỷ tiên",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "c1fbd9f6",
+    "name": "anh bắc thợ cửa sắt",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "26bb3be5",
+    "name": "Anh hoài",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "b3511ba2",
+    "name": "Anh thành",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "1bb5eb58",
+    "name": "Anh tuấn",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "3dd55c90",
+    "name": "Anh vũ vlxd",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "7fbf8cbf",
+    "name": "Anh hòa",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "4ba2e3a6",
+    "name": "Anh A",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "7a2e4172",
+    "name": "Anh hùng",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "f1de3861",
+    "name": "Anh tuyên thợ sắt",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "b93a9aab",
+    "name": "Anh đức thầu",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "88496b0a",
+    "name": "Anh tiến",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "b40b56af",
+    "name": "Anh doanh",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "a68a214e",
+    "name": "Anh quân",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "1d890a0a",
+    "name": "Anh trường thầu",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "bdcceaf6",
+    "name": "Chị hiền",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "ee52e76d",
+    "name": "Anh hạnh thợ xây",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "a739df16",
+    "name": "Anh đông thợ xây",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "9713cebf",
+    "name": "Anh quyế",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "c0e04d34",
+    "name": "Anh quang",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "b31750aa",
+    "name": "Anh bảng",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "00ff0476",
+    "name": "Vlxd khang thịnh",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "447e4b2b",
+    "name": "Anh quốc",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "818022b7",
+    "name": "Anh ba",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "be9f83cd",
+    "name": "Anh khoa",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "c807b2f1",
+    "name": "Anh bảy",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "b4d2b87e",
+    "name": "Cữa sắt ngọc vững",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "a700e1a5",
+    "name": "Container tây nguyên",
+    "phan_loai": "Thầu Thợ",
+    "mail": "vuthanhbinh.ctn@gmail.com"
+  },
+  {
+    "id_name": "ea90f229",
+    "name": "Vlxd đức lệ",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "7e7cd2f2",
+    "name": "Cửa hàng hưng thịnh",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "1804d9dc",
+    "name": "Nhà máy tôn đức phát 1 ( trần quý cáp )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "d9aea442",
+    "name": "Anh thiên",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "11a64a53",
+    "name": "Quốc cường",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "ba2c11fa",
+    "name": "Vlxd thanh phương",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "92f56a8b",
+    "name": "Vlxd hương tính",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "518d916a",
+    "name": "Anh thuỵ thầu",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "fe9cda62",
+    "name": "Nhà máy tôn sơn dung",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "eba83a8e",
+    "name": "Anh đạt thợ sắt",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "23b39b02",
+    "name": "Cơ khí xuân trung",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "ed8a53c2",
+    "name": "Vlxd huyền kiểu",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "33156de7",
+    "name": "Sắt thép du hiền",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "048e64e3",
+    "name": "Anh bình",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "1da89185",
+    "name": "Cơ khí trung sơn",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "58d2ca22",
+    "name": "Sắt thép minh hiếu",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "eeb30767",
+    "name": "Hk home",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "4ead9368",
+    "name": "Cơ khí tấn",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "fe312d70",
+    "name": "Cữa sắt hoàng em",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "3e84882a",
+    "name": "Anh nguyên",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "e7991065",
+    "name": "Anh thành thầu",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "3f83ac0d",
+    "name": "Vlxd cường bạch",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "69ecd81e",
+    "name": "Cửa sắt quang bắc",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "3db7b3af",
+    "name": "HK-Home ( anh Phong )",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "fdcfd61c",
+    "name": "Anh tùng thợ sắt",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "69ab058e",
+    "name": "Anh dủng điện nước",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "ee13da88",
+    "name": "Hoàng sa ea kar",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "4342c210",
+    "name": "Tôn sắt hiệp hưng",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "8a79c11b",
+    "name": "Anh hiệp thợ sât",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "91325897",
+    "name": "Anh toàn cửa sắt",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "694538bb",
+    "name": "Cơ khí anh khoa",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "085663c8",
+    "name": "Vlxd phú khá",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "2e059c4e",
+    "name": "Xuân huệ",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "950d2674",
+    "name": "Xuân huệ",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "60d7d8c5",
+    "name": "Anh vinh thợ sắt",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "0decb35f",
+    "name": "Anh long thầu xd",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "1ba9febb",
+    "name": "Vlxd hiền trung",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "c1ee4eb7",
+    "name": "Anh đông sắt",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "099db523",
+    "name": "Anh sơn",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "7b168108",
+    "name": "Anh tuấn",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "1ddeaac2",
+    "name": "Anh trường",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "0c27f430",
+    "name": "Anh tùng thợ sắt",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "a4b566cc",
+    "name": "Anh bình thợ sắt",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "2007c2ea",
+    "name": "Tôn sắt lê nguyễn",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "333af2af",
+    "name": "Cơ khí anh tý",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "f919496a",
+    "name": "Cơ khí hải dương",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "c8166efa",
+    "name": "Hoàng sa (cư kuin )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "a5378855",
+    "name": "Cửa sắt phú tài",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "85599851",
+    "name": "Vlxd trang lưu",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "b88f4de2",
+    "name": "Cửa nhôm nhật nam",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "50b6cfd5",
+    "name": "Vlxd thảo truyền",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "06e0a32d",
+    "name": "Vlxd minh quang",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "fd3f8ac3",
+    "name": "Nhà máy tôn long vân buôn đôn",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "a370a2b0",
+    "name": "Tôn sắt hương giang",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "8cb5597f",
+    "name": "Vlxd văn thuý",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "ce7b51a7",
+    "name": "Nhà thép tiền chế toàn thịnh",
+    "phan_loai": "Thầu Thợ",
+    "mail": "cokhitoanthinh64@yahoo.com"
+  },
+  {
+    "id_name": "9441fc67",
+    "name": "Anh cận thợ sắt",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "fd898452",
+    "name": "Cửa hàng văn thuỷ",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "fa57b995",
+    "name": "Lý trường",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "9df63d44",
+    "name": "Sắt thép trúc quyên",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "816af952",
+    "name": "Nhị thắng",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "d40248a4",
+    "name": "Nhà máy tôn nam nguyên",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "3e7ca586",
+    "name": "Ván gỗ song chi đắk min",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "5288b368",
+    "name": "Kiểm tịnh 2 đắk min anh thoại",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "11f70462",
+    "name": "Hoàng sa đắk nông",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "7bfa54ab",
+    "name": "Nhà máy tôn ngọc thanh",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "f20e0ba2",
+    "name": "Anh tý ( văn đức)",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "38e494df",
+    "name": "Thành lộc",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "67814267",
+    "name": "Chú vàng thợ sắt",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "aa962ca9",
+    "name": "Thành lộc 72",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "d74b1830",
+    "name": "Cơ khí đăng khôi",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "5da85ea9",
+    "name": "Vlxd đờn gia tuy đức",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "becafbd4",
+    "name": "Đoàn gia tuy đức",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "206d1eeb",
+    "name": "Vlxd ngọc long",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "62b1493f",
+    "name": "Vlxd kim sơn quảng sơn",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "d68e4aeb",
+    "name": "Nang gái kho 2",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "a15f5747",
+    "name": "Nmt nàng gái cs chính",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "d6af3753",
+    "name": "Cửa sắt minh hiểu",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "eeffc3b9",
+    "name": "Cửa sắt sài gòn",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "7d9520ba",
+    "name": "Cửa sắt sài gòn",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "91138ad9",
+    "name": "Vlxd thanh thuận- quảng sơn",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "30050bce",
+    "name": "Anh kiệt thợ sắt",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "11d4efcf",
+    "name": "Trọng tiến việt",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "3dfbd8f1",
+    "name": "Cữa sắt nghĩa",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "9c809502",
+    "name": "Anh hiểu thợ sắt đắk ha",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "ce47c79b",
+    "name": "Thu hường - đắk nông",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "1a3908a4",
+    "name": "Anh tin thợ sắt",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "dc2a7eca",
+    "name": "Chua Long thợ sắt nhân cơ",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "64e2c7fb",
+    "name": "Đức phát",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "f728207c",
+    "name": "Cơ khí tổng hợp thành tín",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "6044c294",
+    "name": "Vlxd thịnh thành",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "57a2613d",
+    "name": "Nhà máy tôn tây nguyên",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "4d3bf61d",
+    "name": "Nmt ngọc mân",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "18e7fd0d",
+    "name": "Nmt hoàng phát",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "738942c7",
+    "name": "Trường sa- ban mê thuật",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "ededa2c2",
+    "name": "Hoàng sa chi nhánh buôn mê thuật",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "ce294556",
+    "name": "Vlxd văn linh buôn đôn",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "8541bf8b",
+    "name": "Tân ngọc lan - ban mê thuật",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "11a62a84",
+    "name": "Hoàng sa (hoà đông, buôn ma thuật )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "6e7ec7c1",
+    "name": "Anh tuấn thầu nhà xưởng",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "0b074942",
+    "name": "Anh thanh",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "73f73f1d",
+    "name": "Quang đạt ( ea knop , eakar)",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "f2f1afd7",
+    "name": "Thành phát (tâm thắng , cư jut)",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "2563d0f7",
+    "name": "Sắt thép hoài giang",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "c1fc02fe",
+    "name": "Cửa sắt minh hoàng (đắk gằn)",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "36a494d2",
+    "name": "Kho hoàn thiện",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "45bbc019",
+    "name": "Vlxd mạnh thế",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "6f45d486",
+    "name": "Kho mạnh thế huyện lăks",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "9b2d102c",
+    "name": "Mạnh thế chính",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "ec7422e0",
+    "name": "Hoàng hoan",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "4df261d1",
+    "name": "Sắt thép thanh trung",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "79b1dada",
+    "name": "Nmt hà thu (kroong bông)",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "c2b1c1ae",
+    "name": "Cơ Sở Cơ Khí Hải Dương",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "7f794c1c",
+    "name": "Nhà máy tôn trung hiếu crong năng",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "5314a9ed",
+    "name": "Sắt thép kim ngân",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "9f6a5de8",
+    "name": "Nmt tân phước ( krong năng)",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": "tanphuocsteel.co.ltd@gmail.com"
+  },
+  {
+    "id_name": "624e58e9",
+    "name": "Vlxd nhà xinh",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "8aa61f50",
+    "name": "Nhà lắp ghép gl home",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "2d561d59",
+    "name": "Hoàng sa cuông đăng",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "1651fdba",
+    "name": "Kiểm tịnh đức mạnh đắk mil",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "206156ad",
+    "name": "Nhà máy tôn hồng yến (đức minh , đắk mil )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "bdf55881",
+    "name": "Nhà máy tôn hồng anh ( đức mạnh , đắk mil )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "c7b0ad1b",
+    "name": "Nhà máy tôn long vân (tiến đạt cư mgar)",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "7099eb91",
+    "name": "Anh hảo thợ sắt cưmga",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "00c77d68",
+    "name": "Nhà máy tôn châu thường ( tính hải kroong buk )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "636058d2",
+    "name": "Xưởng cán tôn hiệp mỹ ( cư m'gar)",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "6d39bb5c",
+    "name": "Nhà máy cán tôn hoàng phát ( cư m'gar)",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "3080b8af",
+    "name": "Tôn sắt thép hữu long( cư m'gar)",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "25cb6823",
+    "name": "Nhà máy tôn thanh thịnh (buôn mê thuật )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "09e3a0a8",
+    "name": "Liêm lan ( buôn cư , hoà cuân , ban mê thuật )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "394b73b0",
+    "name": "Nội thất nhựa hoàng phi ( krong mar, krong bông)",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "5868cf7a",
+    "name": "Trường sa chi nhánh nam yết (krong bông)",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "6da81aac",
+    "name": "Nhà máy tôn vlxd thu tâm ",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": "Thutamdaklak@gmail.com"
+  },
+  {
+    "id_name": "14c2d600",
+    "name": "Vlxd kiểm lài 2 (krong bông )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "90ed834e",
+    "name": "Điện nước minh khang (buôn đôn)",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "07c6280b",
+    "name": "Vlxd minh khang ( buôn đôn )",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "a747a3c6",
+    "name": "Nmt ngọc lan phương nam ( tân hoà , buôn đôn )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "ed0d1351",
+    "name": "Nmt đức thành(buôn đôn)",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": "Ducthanhbuondon@gmail.com"
+  },
+  {
+    "id_name": "51feb305",
+    "name": "Vlxd hoàng thân ( buôn đôn )",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "b02dfe96",
+    "name": "Nmt gia phát ( đạo nghĩa , đắk r'lấp )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "0a947d76",
+    "name": "Vlxd hồng tưới ( đắk sin , đắk r'lấp )",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "f531f998",
+    "name": "Cty xd khang thịnh phát",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "fad1eb9e",
+    "name": "Nhà máy tôn hoàng quang ( quảng tín , đắk r'lấp)",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "a7590a95",
+    "name": "Vlxd hoàng anh (quảng tân , tuy đức )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "211c2d15",
+    "name": "Anh lộc thợ sắt quảng tân",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "0b5fa8f7",
+    "name": "Xưởng cân tôn nguyên phúc (n'drung , đắk song)",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "8f589f63",
+    "name": "Nmt đại đức định ( đắk song)",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "50f9424a",
+    "name": "Nmt hoàng gia ( nam bình , đắk song)",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "b6ff8e27",
+    "name": "Huy hiền (nam bình , đắk song )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "d152fe9c",
+    "name": "Nhà máy cán tôn trung tín ( ear kar )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "e5899150",
+    "name": "Nhà máy tôn hùng phương ( phú xuân , krong năng )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "c9c3db5f",
+    "name": "Nhà máy tôn quốc dũng ( kroong năng )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "5b481c08",
+    "name": "Cửa hàng sắt thép long vân ( hoà thắng , buôn ma thuật )",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "238885d7",
+    "name": "Cửa hàng vlxd tân sự",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "5951f7df",
+    "name": "Nmt trâm an (ea bhok , cư kuin)",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "8500e4b2",
+    "name": "Vlxd xuân trường ( cư kuin )",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "a92baf56",
+    "name": "Panel huy phong",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "667c56aa",
+    "name": "Cửa hàng việt quân ( đắk g'long )",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "a9726fbc",
+    "name": "Trọng tiến việt cửa hàng gần chợ",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "57b15d68",
+    "name": "Vlxd thành công ( quảng sơn )",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "b3a7abd8",
+    "name": "Vlxd quý yến",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "00faf4bc",
+    "name": "Nhật trường phát nhà máy tôn",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "3ae13255",
+    "name": "Vlxd văn cường",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "84fb5f5a",
+    "name": "Nhac máy tôn đại lộc ( huyện lắc )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "de378c00",
+    "name": "Vlxd hà thu ( yangtao, huyện lăk)",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "e2da9e6c",
+    "name": "Hoàng sa ( krong jing , ma'dark)",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "509ab65b",
+    "name": "Vlxd phúc tài",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "9b44d5f7",
+    "name": "Hoàng sa ( buôn hồ )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "7e50020f",
+    "name": "Dũng liên trụ sở chính ( tp buôn ma thuật )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "d2bac66a",
+    "name": "Hà thu chi nhánh ( krong bông )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "b86ca1ca",
+    "name": "Nhựa gia khang",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "59f43ee4",
+    "name": "Nmt phúc thiện ( quảng tiến , cư m'gar)",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "21a68334",
+    "name": "Vlxd sương mến",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "84b45c94",
+    "name": "Xưởng cán tôn sang",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "a0524b1f",
+    "name": "Nhà máy tôn liêm lan (ea bông )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "7683f289",
+    "name": "Ba màn ( hoà khánh , ban mê thuật )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "f082be37",
+    "name": "Hoàng phước trụ sở chính",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "92390ed3",
+    "name": "Vlxd phúc thái",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "66e5c3e4",
+    "name": "Sắt thép sơn nam",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "3e9e049f",
+    "name": "Nhà máy tôn tiến dũng ( cư jut)",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "6355b130",
+    "name": "Sắt thép kỳ anh ( nam dong )",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "e753a33b",
+    "name": "Nmt thành phát ( nam dong )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "9633ed07",
+    "name": "Anh vinh thợ sắt",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "e484e586",
+    "name": "Tôn đại lộc ( ea kar)",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "d888cfa5",
+    "name": "Nhà máy tôn long vân  ( ea kar)",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "adc2718b",
+    "name": "Nhà máy tôn long vân ( krong bông )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "26d801c6",
+    "name": "Nmt phú an",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "cb8d9fe4",
+    "name": "Nmt xuân quang",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "4be38931",
+    "name": "Nhà máy tôn phú cư",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "0febeee0",
+    "name": "Nhà máy tôn phú cường",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "15fe4b9b",
+    "name": "Thanh ngọc phát",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "f78ee734",
+    "name": "Cửa hàng sắt thép hiền hương",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "2a23cbb3",
+    "name": "Nhà máy tôn hoàng thịnh ( đắk liêng )",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "ed2be5dd",
+    "name": "Cửa hàng sắt thép tường vân",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "b6c12671",
+    "name": "Trường phát",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "25a5b917",
+    "name": "Việt nam phát",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "0958509b",
+    "name": "kho dủng phát",
+    "phan_loai": "Nhà Phân Phối",
+    "mail": ""
+  },
+  {
+    "id_name": "f5f77ab7",
+    "name": "Sắt thép hoa quế",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "76977ae0",
+    "name": "Cửa hàng anh quốc",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "090d7951",
+    "name": "Thu sang cs cư kuin",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "873e265a",
+    "name": "Thu sang ts chính",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "f554a7cb",
+    "name": "Chú tùng",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "2a2f1ac2",
+    "name": "Thạch cao nhọc ánh",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "9fb49f6c",
+    "name": "Nhà máy cân tôn quảng khê",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "ff9a17cb",
+    "name": "Cửa hàng tấn phát",
+    "phan_loai": "Cửa Hàng",
+    "mail": "maiminhphat987@gmail.com"
+  },
+  {
+    "id_name": "0b0f3515",
+    "name": "Cửa hàng thuận thái",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "cb003296",
+    "name": "Kho vlxd việt anh",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "d8f4befe",
+    "name": "thạch lợi phương",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "4212440f",
+    "name": "Cửa hàng vlxd cử hoa",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "d56527d8",
+    "name": "Nhà máy tôn hùng quỳnh anh",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "98473070",
+    "name": "Cửa hàng tôn sắt dung cường",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "b9e4c814",
+    "name": "Sắt Thép Gia Thiên",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "6b4e59d1",
+    "name": "Dủng tiến thành",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "cde5912c",
+    "name": "Cửa hàng chị trang",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "427cb6d3",
+    "name": "Anh quốc",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "6e18b534",
+    "name": "Anh nam",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "175f2086",
+    "name": "Anh thuận thợ sât",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "9042d37b",
+    "name": "Anh sâng",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "8b20942b",
+    "name": "Cơ khí xây dựng tuấn anh",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "de44fbae",
+    "name": "Chú định thầu xây dựng",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "630a0e90",
+    "name": "Trường phát 3",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "8168ed2a",
+    "name": "Chị trang",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "417cbba4",
+    "name": "Út cảm",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "33bfbc77",
+    "name": "Vlxd lan cam",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "6799cb4d",
+    "name": "Cơ khí văn hiệp",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "61aeb4c2",
+    "name": "Thuỷ sang",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "85478304",
+    "name": "Thiên kim",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "59beed82",
+    "name": "Quốc cường - krong nô",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "6713789b",
+    "name": "Kho sơn huệ - đắk sô",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "706b2986",
+    "name": "Bình lâm - quy phúc",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "0b126cbe",
+    "name": "Sơn huệ chính",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "9ba3de07",
+    "name": "Anh bằng thợ sắt",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "56b30ce4",
+    "name": "Cửa hàng tùng lâm",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "2020c762",
+    "name": "Sơn huệ - kho đăk dro",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "3252883f",
+    "name": "Điện nước crong nô",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "086e2ada",
+    "name": "Anh hà sắt",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "f1d3414c",
+    "name": "Trung kiên- đắk mâm",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "49f569ef",
+    "name": "An thịnh phát - crong nô",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "bdd44415",
+    "name": "Nội thất thành tấn",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "251e74a4",
+    "name": "Xây dựng hoàng vũ",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "be1c51ac",
+    "name": "Vật liệu xây dựng hoàng vinh",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "9a41236d",
+    "name": "Cửa hàng sắt thép vượng thiết",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "ecad5f10",
+    "name": "Sắt thép chung thành",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "88b81ad7",
+    "name": "Cơ khí lộc trường minh",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "0bb3aa62",
+    "name": "Cửa hàng hoàng kiếm",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "1c58c42a",
+    "name": "Phương duy",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "252bc2a7",
+    "name": "Anh thái cửa sắt",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "b9853660",
+    "name": "Trường sa quảng khê",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "b34545e2",
+    "name": "Đại phú hùng",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "d6f1756c",
+    "name": "Minh khoa - quảng cáo",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "ac861421",
+    "name": "Quang trung",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "3cbbab43",
+    "name": "Nhôm sắt dưỡng phát",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "15e5f0ff",
+    "name": "Kho ngọc ánh",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "491ecb66",
+    "name": "Anh thản",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "ff372703",
+    "name": "Nội thất trần huy",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "2e22bd01",
+    "name": "Kho sắt huy thành phát",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "1bff87a6",
+    "name": "Đại lý nhọc mẫn",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "4569c160",
+    "name": "Cơ khí trung thuận",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "0a4a4216",
+    "name": "Tuấn furniture",
+    "phan_loai": "Cửa Hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "31b5bb41",
+    "name": "Kho thuỷ sang",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "55548a31",
+    "name": "Kho sơn huệ",
+    "phan_loai": "Nhà Máy Tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "b3c5f15f",
+    "name": "Hàng gia",
+    "phan_loai": "Thầu Thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "fc330bd3",
+    "name": "Toàn phát",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "f86e80ec",
+    "name": "Nhà máy tôn nhật đăng",
+    "phan_loai": "nhà máy tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "88bda32c",
+    "name": "Nội thất nhựa đoàn nguyên",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "83a9251d",
+    "name": "Nội thất nhựa tín dũng",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "3e98c91e",
+    "name": "Nhà máy tôn đại lộc krong jing",
+    "phan_loai": "nhà máy tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "ae927970",
+    "name": "Cửa hàng lan chi",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "0b119b0d",
+    "name": "Cửa hàng lan chi",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "637d9a0b",
+    "name": "vật liệu xây dựng hùng thanh",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "ddf5a381",
+    "name": "Anh khánh",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "2b48231b",
+    "name": "Nhà máy tôn tuyết thống",
+    "phan_loai": "nhà máy tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "c599453c",
+    "name": "Thiên lộc phát easup",
+    "phan_loai": "nhà máy tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "755f1c61",
+    "name": "Hoàng sa ( ea súp )",
+    "phan_loai": "nhà máy tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "d97e208d",
+    "name": "Nhà máy tôn dũng thanh",
+    "phan_loai": "nhà máy tôn",
+    "mail": "vuthuy47p1@gmail.com"
+  },
+  {
+    "id_name": "766b38db",
+    "name": "Nhà máy tôn hoàng sơn",
+    "phan_loai": "nhà máy tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "eaec5775",
+    "name": "Sắt thép đăng khoa",
+    "phan_loai": "nhà máy tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "f6eb26b5",
+    "name": "Sắt thép sơn duyên",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "20945863",
+    "name": "Vật liệu xây dựng ninh lợi",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "0b3e3c15",
+    "name": "Hoàng sa (ea h'leo)",
+    "phan_loai": "nhà máy tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "4329e6bc",
+    "name": "Nhà máy tôn phát đạt",
+    "phan_loai": "nhà máy tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "6f9be8c8",
+    "name": "Nhà máy tôn thành long",
+    "phan_loai": "nhà máy tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "28cee85d",
+    "name": "Nhà máy tôn hưng phát",
+    "phan_loai": "nhà máy tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "453a7703",
+    "name": "Nhà máy tôn quyền huệ",
+    "phan_loai": "nhà máy tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "32814fe7",
+    "name": "Cửa sắt tấn thọ",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "785fb3dc",
+    "name": "Anh hải",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "3aa2383b",
+    "name": "Cơ khí cường py",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "50b0ad6e",
+    "name": "Anh thuật cữa sắt",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "42aaa3a3",
+    "name": "thông",
+    "phan_loai": "ad mind",
+    "mail": "nbt1024@gmail.com"
+  },
+  {
+    "id_name": "eee45203",
+    "name": "Cô hà",
+    "phan_loai": "Chủ nhà",
+    "mail": ""
+  },
+  {
+    "id_name": "1cf928d9",
+    "name": "Cơ khí ngọc phương",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "290bc4a3",
+    "name": "Cơ khí ngọc phương",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "1ded303a",
+    "name": "Cửa sắt hai tự",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "cdbec662",
+    "name": "Cơ khí cao nguyên",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "dabf0639",
+    "name": "Cửa hàng phượng hồng",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "3cad13ac",
+    "name": "Bảo đăng",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "4d6fba64",
+    "name": "Công trình anh hoà ở quảng sơn",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "88f7ea34",
+    "name": "kế toàn",
+    "phan_loai": "ad mind",
+    "mail": "tranketoan@gmail.com"
+  },
+  {
+    "id_name": "361d5a7f",
+    "name": "Tôn sơn trang",
+    "phan_loai": "nhà máy tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "b8dc63ad",
+    "name": "Anh thầu lấy bên thạch cao trang",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "d1ce2ab4",
+    "name": "Cơ khí xuân phú",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "8231b447",
+    "name": "Kỹ nghệ sắt hùng hưng",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "71f764c6",
+    "name": "Cơ khí tuấn anh",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "e56bbd95",
+    "name": "Anh hậu",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "22e0d9b4",
+    "name": "Anh lượng cửa sắt",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "d542a8dc",
+    "name": "anh trường",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "e8c3c130",
+    "name": "Anh hiếu cơ khí",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "ea18d842",
+    "name": "Anh toàn thợ sắt",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "e1098495",
+    "name": "Anh cường thợ xây",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "b94e789d",
+    "name": "Anh cường thợ xây",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "15bc541a",
+    "name": "Cửa hàng hưng thịnh",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "bed7ae3a",
+    "name": "Y nghit kbuar",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "f4c62252",
+    "name": "Nhà máy tôn công gấm",
+    "phan_loai": "nhà máy tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "b6f1cac2",
+    "name": "Anh tịnh",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "f41072e9",
+    "name": "Anh thắng",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "f850ce01",
+    "name": "Anh toàn",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "1a509217",
+    "name": "Anh ti ( thuấn ) thợ sắt",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "33173874",
+    "name": "Anh trung",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "5b3e1074",
+    "name": "Cơ khí thiện nam",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "4aae9520",
+    "name": "Nhom kính sắt đức mạnh",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "f2d3fef1",
+    "name": "Nội thất lê gia",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "ef3b440b",
+    "name": "Nội thất lê gia",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "66725839",
+    "name": "Anh trường",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "788dd8f7",
+    "name": "Anh trường",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "3c4bb61c",
+    "name": "Anh thuỷ",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "dde00b0f",
+    "name": "Chủ nhà anh thưởng",
+    "phan_loai": "Chủ nhà",
+    "mail": ""
+  },
+  {
+    "id_name": "21eece0d",
+    "name": "Anb phong thợ sắt",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "506e2e6e",
+    "name": "Cơ khí xuân mạnh",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "77e2b73c",
+    "name": "Cửa hàng sắt thép bảo tín",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "229fccc4",
+    "name": "Anh hưng thợ sắt",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "c265df31",
+    "name": "Anh trí",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "e9fc361f",
+    "name": "Bê tông thuận phát",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "5c56eb38",
+    "name": "Trường sa châu viên",
+    "phan_loai": "nhà máy tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "bbca7faa",
+    "name": "Hoàng sa ql26",
+    "phan_loai": "nhà máy tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "74d2fd7a",
+    "name": "Nhà máy tôn hìng phúc",
+    "phan_loai": "nhà máy tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "b8d250c1",
+    "name": "Anh hoàng thợ sắt",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "ca222442",
+    "name": "Anh dũng thợ sắt",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "371a5184",
+    "name": "Hoà phát",
+    "phan_loai": "nhà máy tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "398d9dbb",
+    "name": "Cơ khí đông huyền",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "bd82acee",
+    "name": "Vlxd tiến quân",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "d0bb63bc",
+    "name": "Thạch cao nguyễn kim",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "feac6a6d",
+    "name": "Đại lý chung linh",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "9e49724e",
+    "name": "Đoàn quỳnh",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "70a4aaef",
+    "name": "Giang thiện phát",
+    "phan_loai": "cửa hàng nhựa",
+    "mail": ""
+  },
+  {
+    "id_name": "b716c691",
+    "name": "Cửa sắt thành vinh",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "9ccc5b3c",
+    "name": "Vậy tư nội thất busan",
+    "phan_loai": "cửa hàng nhựa",
+    "mail": ""
+  },
+  {
+    "id_name": "eb7087a2",
+    "name": "Điện nước thạch cao hoàng hiền",
+    "phan_loai": "cửa hàng nhựa",
+    "mail": ""
+  },
+  {
+    "id_name": "f79eada5",
+    "name": "Anh nhân",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "fc0db87b",
+    "name": "Anh bình",
+    "phan_loai": "Chủ nhà",
+    "mail": ""
+  },
+  {
+    "id_name": "1a0387b9",
+    "name": "Nhà máy tôn anh khoa",
+    "phan_loai": "nhà máy tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "764926c4",
+    "name": "Anh hồng",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "589f0e07",
+    "name": "Thạch cao ngọc sang",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "279197b2",
+    "name": "Nội thất hoàng khôi",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "e77ba723",
+    "name": "Duy thịnh phát",
+    "phan_loai": "cửa hàng nhựa",
+    "mail": ""
+  },
+  {
+    "id_name": "57a95b9f",
+    "name": "Thạch cao lệ phương",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "62a7a2d6",
+    "name": "Cửa hàng sắt thép đức hằng",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "7da0e876",
+    "name": "Kho nhật đăng",
+    "phan_loai": "nhà máy tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "b5255ae0",
+    "name": "Thịnh hoàng nano thạch cao",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "2b792d80",
+    "name": "Cửa hàng tuyển phương",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "41caa0f3",
+    "name": "Thạch cao đức chiến",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "d5934fe2",
+    "name": "Kho nhựa chị quyên",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "f589e40b",
+    "name": "Anh hiến",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "537c1e13",
+    "name": "Anh linh",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  },
+  {
+    "id_name": "492e8cd2",
+    "name": "Hoàng sa bán ra",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "4fcfaea0",
+    "name": "Cty cp minh long",
+    "phan_loai": "thầu thợ",
+    "mail": ""
+  }
+]
