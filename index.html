@@ -537,7 +537,8 @@
 				if (user) {
 					localStorage.setItem('userLoggedIn', JSON.stringify({
 						name: user.name,
-						email: user.mail
+						email: user.mail,
+						phan_loai: user.phan_loai
 					}));
 					updateUI();
 					closeLoginModal();
