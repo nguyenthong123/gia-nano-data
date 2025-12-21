@@ -1369,10 +1369,13 @@
 			select.innerHTML = '<option value="0">Giá niêm yết</option>';
 
 			discountData.forEach(item => {
-				const opt = document.createElement('option');
-				opt.value = item["gói chiết khấu theo kiện"];
-				opt.textContent = `Gói chiết khấu ${item["gói chiết khấu theo kiện"]} (Net kiện)`;
-				select.appendChild(opt);
+				const id = item["gói chiết khấu theo kiện"];
+				if (id) {
+					const opt = document.createElement('option');
+					opt.value = id;
+					opt.textContent = `Gói chiết khấu ${id} (Net kiện)`;
+					select.appendChild(opt);
+				}
 			});
 		}
 
@@ -1394,30 +1397,41 @@
 
 			let selectedDiscount = null;
 			if (selectedPackageId !== "0") {
-				selectedDiscount = discountData.find(d => d["gói chiết khấu theo kiện"] === selectedPackageId);
+				selectedDiscount = discountData.find(d => String(d["gói chiết khấu theo kiện"]) === String(selectedPackageId));
 			}
 
 			body.innerHTML = '';
 			duraflexData.forEach((item, index) => {
-				const originalPrice = parseFloat(item["giá niêm yết"]);
+				// Hàm helper để convert giá trị sang số (xử lý cả chuỗi định dạng VN)
+				const parseVN = (val) => {
+					if (typeof val === 'number') return val;
+					if (!val) return 0;
+					return parseFloat(String(val).replace(/\./g, '').replace(/,/g, '.'));
+				};
+
+				const originalPrice = parseVN(item["giá niêm yết"]);
 				let finalPrice = originalPrice;
 
-				const isDiscountable = item["sản phẩm được tính chiết khấu"] === "TRUE";
+				// Kiểm tra tính chiết khấu (linh hoạt với TRUE, true, "TRUE", "true", "Có")
+				const discountValue = item["sản phẩm được tính chiết khấu"];
+				const isDiscountable = discountValue === true ||
+					(typeof discountValue === 'string' &&
+						['TRUE', 'CÓ', 'X'].includes(discountValue.toUpperCase().trim()));
 
 				if (selectedDiscount && isDiscountable) {
-					const disTotal = parseFloat(selectedDiscount["chiết khấu công bố"]);
-					const k = parseFloat(selectedDiscount["gói chiết khấu theo kiện"]);
-					const unitsPerPack = parseFloat(item["số tấm trong 1 kiện"]);
+					const disTotal = parseVN(selectedDiscount["chiết khấu công bố"]);
+					const k = parseVN(selectedDiscount["gói chiết khấu theo kiện"]);
+					const unitsPerPack = parseVN(item["số tấm trong 1 kiện"]);
 
 					if (unitsPerPack > 0 && k > 0) {
 						const deductionPerUnit = disTotal / (unitsPerPack * k);
-						finalPrice = originalPrice - deductionPerUnit;
+						finalPrice = Math.round(originalPrice - deductionPerUnit);
 					}
 				} else if (selectedPackageId === "0") {
 					if (retailType === "thợ thầu") {
-						finalPrice = originalPrice * 1.02;
+						finalPrice = Math.round(originalPrice * 1.02);
 					} else if (retailType === "chủ nhà") {
-						finalPrice = originalPrice * 1.08;
+						finalPrice = Math.round(originalPrice * 1.08);
 					}
 				}
 
