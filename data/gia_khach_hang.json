@@ -3652,5 +3652,29 @@
     "name": "Cty cp minh long",
     "phan_loai": "thầu thợ",
     "mail": ""
+  },
+  {
+    "id_name": "549d7df0",
+    "name": "Điện nước đức hậu",
+    "phan_loai": "Cửa hàng weber",
+    "mail": ""
+  },
+  {
+    "id_name": "0687da46",
+    "name": "Đức việt",
+    "phan_loai": "Cửa hàng weber",
+    "mail": ""
+  },
+  {
+    "id_name": "819bed23",
+    "name": "Cửa hàng nhựa hương ngân",
+    "phan_loai": "Cửa hàng weber",
+    "mail": ""
+  },
+  {
+    "id_name": "85d930c4",
+    "name": "Lộc phát",
+    "phan_loai": "Cửa hàng weber",
+    "mail": ""
   }
 ]
