@@ -386,194 +386,42 @@
 			}
 		}
 
-		/* Weber Detail Section */
-		.weber-detail-section {
-			background: var(--primary-color);
-			padding: 60px 0;
-			margin-top: 40px;
-			color: #000;
+		#weber-iframe {
+			width: 100%;
+			height: 800px;
+			border: none;
+			border-radius: 24px;
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+			display: block;
+			margin-top: 30px;
 		}
 
-		.weber-container {
-			max-width: 1100px;
-			margin: 0 auto;
+		.iframe-container {
+			max-width: 1200px;
+			margin: 40px auto;
 			padding: 0 20px;
 		}
 
-		.weber-header {
+		.cta-weber {
 			text-align: center;
-			margin-bottom: 40px;
+			margin-top: 20px;
 		}
 
-		.weber-header h2 {
-			font-size: 2.2rem;
-			font-weight: 800;
-			text-transform: uppercase;
-			margin-bottom: 10px;
-			letter-spacing: -1px;
-		}
-
-		.weber-header p {
-			font-size: 1.1rem;
-			font-weight: 600;
-			opacity: 0.8;
-		}
-
-		.weber-tabs {
-			display: flex;
-			justify-content: center;
-			gap: 15px;
-			margin-bottom: 40px;
-			flex-wrap: wrap;
-		}
-
-		.weber-tab-btn {
+		.cta-btn {
+			display: inline-block;
 			padding: 12px 30px;
 			background: #000;
 			color: #fff;
-			border: none;
+			text-decoration: none;
 			border-radius: 50px;
 			font-weight: 800;
-			font-size: 1rem;
-			cursor: pointer;
-			transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+			transition: 0.3s;
 		}
 
-		.weber-tab-btn.active {
-			background: #fff;
+		.cta-btn:hover {
+			background: var(--accent-color);
 			color: #000;
-			transform: scale(1.1);
-		}
-
-		.weber-content {
-			display: none;
-			background: #fff;
-			padding: 40px;
-			border-radius: 24px;
-			box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-			animation: slideUp 0.5s ease;
-		}
-
-		.weber-content.active {
-			display: grid;
-			grid-template-columns: 1fr 1.5fr;
-			gap: 40px;
-			align-items: start;
-		}
-
-		.product-preview {
-			position: sticky;
-			top: 100px;
-			text-align: center;
-		}
-
-		.product-preview img {
-			max-width: 100%;
-			height: auto;
-			filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.1));
-		}
-
-		.feature-grid {
-			display: grid;
-			grid-template-columns: 1fr 1fr;
-			gap: 20px;
-		}
-
-		.feature-card {
-			padding: 20px;
-			border-radius: 16px;
-			background: #f8f9fa;
-			border-left: 5px solid var(--primary-color);
-		}
-
-		.feature-card h4 {
-			font-size: 0.9rem;
-			text-transform: uppercase;
-			color: #666;
-			margin-bottom: 8px;
-		}
-
-		.feature-card p {
-			font-weight: 700;
-			color: #000;
-			font-size: 1rem;
-		}
-
-		.detail-block {
-			margin-bottom: 30px;
-		}
-
-		.detail-block h3 {
-			font-size: 1.2rem;
-			text-transform: uppercase;
-			margin-bottom: 15px;
-			color: #000;
-			background: var(--primary-color);
-			display: inline-block;
-			padding: 4px 15px;
-			border-radius: 8px;
-		}
-
-		.detail-list {
-			list-style: none;
-		}
-
-		.detail-list li {
-			position: relative;
-			padding-left: 25px;
-			margin-bottom: 10px;
-			font-weight: 500;
-		}
-
-		.detail-list li::before {
-			content: '✓';
-			position: absolute;
-			left: 0;
-			color: #27ae60;
-			font-weight: 900;
-		}
-
-		.color-swatches {
-			display: flex;
-			gap: 12px;
-			flex-wrap: wrap;
-			margin-top: 10px;
-		}
-
-		.swatch-item {
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			gap: 5px;
-		}
-
-		.swatch-circle {
-			width: 35px;
-			height: 35px;
-			border-radius: 50%;
-			border: 2px solid #eee;
-			box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
-		}
-
-		.swatch-label {
-			font-size: 0.7rem;
-			font-weight: 700;
-			text-transform: uppercase;
-		}
-
-		@media (max-width: 768px) {
-			.weber-content.active {
-				grid-template-columns: 1fr;
-			}
-
-			.feature-grid {
-				grid-template-columns: 1fr;
-			}
-
-			.weber-header h2 {
-				font-size: 1.6rem;
-			}
+			transform: scale(1.05);
 		}
 	</style>
 </head>
@@ -648,220 +496,13 @@
 		</div>
 	</div>
 
-	<!-- Detail Weber Section -->
-	<section class="weber-detail-section">
-		<div class="weber-container">
-			<div class="weber-header">
-				<h2>Chi Tiết Giải Pháp Weberseal</h2>
-				<p>Lựa chọn dòng keo phù hợp cho từng vị trí trong công trình của bạn</p>
-			</div>
-
-			<div class="weber-tabs">
-				<button class="weber-tab-btn active" onclick="switchWeberTab('wa100')">WA-100 (Acrylic)</button>
-				<button class="weber-tab-btn" onclick="switchWeberTab('ws300')">WS-300 (Acid)</button>
-				<button class="weber-tab-btn" onclick="switchWeberTab('ws500')">WS-500 (Trung Tính)</button>
-			</div>
-
-			<!-- WA-100 Content -->
-			<div id="wa100" class="weber-content active">
-				<div class="product-preview">
-					<img src="https://www.vn.weber/files/vn/styles/768x768_resize/public/pictures/2024-09/WA100.jpg.webp?itok=H77J09jF"
-						alt="Weber WA-100">
-					<div style="margin-top: 20px;">
-						<p style="font-weight: 800; font-size: 1.2rem;">weberseal WA-100</p>
-						<span
-							style="background: #000; color: #fff; padding: 4px 12px; border-radius: 4px; font-size: 0.8rem; font-weight: 700;">TRỌNG
-							LƯỢNG: 450GR</span>
-					</div>
-				</div>
-				<div class="product-info">
-					<div class="detail-block">
-						<h3>Đặc điểm nổi bật</h3>
-						<div class="feature-grid">
-							<div class="feature-card">
-								<h4>Hoàn thiện</h4>
-								<p>Có thể sơn phủ sau lưu hóa</p>
-							</div>
-							<div class="feature-card">
-								<h4>Thi công</h4>
-								<p>Dễ dàng, không mùi hôi</p>
-							</div>
-							<div class="feature-card">
-								<h4>Bám dính</h4>
-								<p>Độ bám dính cực tốt</p>
-							</div>
-							<div class="feature-card">
-								<h4>An toàn</h4>
-								<p>Thân thiện môi trường</p>
-							</div>
-						</div>
-					</div>
-					<div class="detail-block">
-						<h3>Màu sắc</h3>
-						<div class="color-swatches">
-							<div class="swatch-item">
-								<div class="swatch-circle" style="background: #ffffff;"></div>
-								<span class="swatch-label">Trắng sữa</span>
-							</div>
-						</div>
-					</div>
-					<div class="detail-block">
-						<h3>Ứng dụng chính</h3>
-						<ul class="detail-list">
-							<li>Phù hợp cho khu vực nội thất khô ráo.</li>
-							<li>Trám khe hở, mối nối yêu cầu độ co giãn thấp.</li>
-							<li>Dùng cho cửa sổ, cửa đi, tấm xi măng, thạch cao.</li>
-							<li>Gỗ, nhựa uPVC, tấm sợi xi măng.</li>
-						</ul>
-					</div>
-				</div>
-			</div>
-
-			<!-- WS-300 Content -->
-			<div id="ws300" class="weber-content">
-				<div class="product-preview">
-					<img src="https://www.vn.weber/files/vn/styles/768x768_resize/public/pictures/2024-09/WS300.jpg.webp?itok=fDJoreCk"
-						alt="Weber WS-300">
-					<div style="margin-top: 20px;">
-						<p style="font-weight: 800; font-size: 1.2rem;">weberseal WS-300</p>
-						<span
-							style="background: #000; color: #fff; padding: 4px 12px; border-radius: 4px; font-size: 0.8rem; font-weight: 700;">DUNG
-							TÍCH: 300ML</span>
-					</div>
-				</div>
-				<div class="product-info">
-					<div class="detail-block">
-						<h3>Đặc điểm nổi bật</h3>
-						<div class="feature-grid">
-							<div class="feature-card">
-								<h4>Đàn hồi</h4>
-								<p>Rất cao & co giãn tốt</p>
-							</div>
-							<div class="feature-card">
-								<h4>Độ bền</h4>
-								<p>Tuổi thọ vượt trội</p>
-							</div>
-							<div class="feature-card">
-								<h4>Thời tiết</h4>
-								<p>Chịu được nhiệt & ẩm tốt</p>
-							</div>
-							<div class="feature-card">
-								<h4>Chảy nhão</h4>
-								<p>Không bị chảy theo thời gian</p>
-							</div>
-						</div>
-					</div>
-					<div class="detail-block">
-						<h3>Màu sắc</h3>
-						<div class="color-swatches">
-							<div class="swatch-item">
-								<div class="swatch-circle"
-									style="background: rgba(255,255,255,0.4); backdrop-filter: blur(2px);"></div><span
-									class="swatch-label">Trong</span>
-							</div>
-							<div class="swatch-item">
-								<div class="swatch-circle" style="background: #ffffff;"></div><span
-									class="swatch-label">Trắng sữa</span>
-							</div>
-							<div class="swatch-item">
-								<div class="swatch-circle" style="background: #d1d8e0;"></div><span
-									class="swatch-label">Xám nhạt</span>
-							</div>
-							<div class="swatch-item">
-								<div class="swatch-circle" style="background: #778ca3;"></div><span
-									class="swatch-label">Xám đậm</span>
-							</div>
-							<div class="swatch-item">
-								<div class="swatch-circle" style="background: #000000;"></div><span
-									class="swatch-label">Đen</span>
-							</div>
-						</div>
-					</div>
-					<div class="detail-block">
-						<h3>Ứng dụng chính</h3>
-						<ul class="detail-list">
-							<li>Lỗ hổng nhỏ, mối nối cửa nhôm kính.</li>
-							<li>Lắp đặt khung vách ngăn kính.</li>
-							<li>Sử dụng cho bề mặt thép không gỉ, gỗ, gạch.</li>
-							<li>Đá sẫm màu, nhựa PVC.</li>
-						</ul>
-					</div>
-				</div>
-			</div>
-
-			<!-- WS-500 Content -->
-			<div id="ws500" class="weber-content">
-				<div class="product-preview">
-					<img src="https://www.vn.weber/files/vn/styles/768x768_resize/public/pictures/2024-09/WS500.jpg.webp?itok=fU-9YvX7"
-						alt="Weber WS-500">
-					<div style="margin-top: 20px;">
-						<p style="font-weight: 800; font-size: 1.2rem;">weberseal WS-500</p>
-						<span
-							style="background: #000; color: #fff; padding: 4px 12px; border-radius: 4px; font-size: 0.8rem; font-weight: 700;">DUNG
-							TÍCH: 300ML</span>
-					</div>
-				</div>
-				<div class="product-info">
-					<div class="detail-block">
-						<h3>Đặc điểm nổi bật</h3>
-						<div class="feature-grid">
-							<div class="feature-card">
-								<h4>Mùi vị</h4>
-								<p>Ít mùi, cực kỳ an toàn</p>
-							</div>
-							<div class="feature-card">
-								<h4>Ăn mòn</h4>
-								<p>Không ăn mòn kim loại/bê tông</p>
-							</div>
-							<div class="feature-card">
-								<h4>Đa năng</h4>
-								<p>Trong nhà & Ngoài trời</p>
-							</div>
-							<div class="feature-card">
-								<h4>Dung môi</h4>
-								<p>Không chứa dung môi độc hại</p>
-							</div>
-						</div>
-					</div>
-					<div class="detail-block">
-						<h3>Màu sắc</h3>
-						<div class="color-swatches">
-							<div class="swatch-item">
-								<div class="swatch-circle"
-									style="background: rgba(255,255,255,0.4); backdrop-filter: blur(2px);"></div><span
-									class="swatch-label">Trong</span>
-							</div>
-							<div class="swatch-item">
-								<div class="swatch-circle" style="background: #ffffff;"></div><span
-									class="swatch-label">Trắng sữa</span>
-							</div>
-							<div class="swatch-item">
-								<div class="swatch-circle" style="background: #d1d8e0;"></div><span
-									class="swatch-label">Xám nhạt</span>
-							</div>
-							<div class="swatch-item">
-								<div class="swatch-circle" style="background: #778ca3;"></div><span
-									class="swatch-label">Xám đậm</span>
-							</div>
-							<div class="swatch-item">
-								<div class="swatch-circle" style="background: #000000;"></div><span
-									class="swatch-label">Đen</span>
-							</div>
-						</div>
-					</div>
-					<div class="detail-block">
-						<h3>Ứng dụng chính</h3>
-						<ul class="detail-list">
-							<li>Đặc biệt phù hợp với kim loại, tôn mái.</li>
-							<li>Công trình bê tông, cửa nhôm kính cao cấp.</li>
-							<li>Dùng được cho cả trong nhà và ngoài trời.</li>
-							<li>Gỗ, gạch, đá sẫm màu, nhựa PVC...</li>
-						</ul>
-					</div>
-				</div>
-			</div>
+	<!-- Detail Weber Iframe Embed -->
+	<div class="iframe-container">
+		<iframe src="chi-tiet-weber.html" id="weber-iframe" title="Chi tiết sản phẩm Weber"></iframe>
+		<div class="cta-weber">
+			<a href="chi-tiet-weber.html" class="cta-btn" target="_blank">MỞ TRANG CHI TIẾT ĐẦY ĐỦ</a>
 		</div>
-	</section>
+	</div>
 
 	<footer>
 		<p>&copy; 2024 Nhà Phân Phối Vật Liệu Xây Dựng. Bảo lưu mọi quyền.</p>
@@ -1002,20 +643,10 @@
 		// Init UI on load
 		document.addEventListener('DOMContentLoaded', updateUI);
 
-		// Weber Tab Logic
-		function switchWeberTab(contentId) {
-			// Remove active from all contents
-			document.querySelectorAll('.weber-content').forEach(c => c.classList.remove('active'));
-			// Remove active from all btns
-			document.querySelectorAll('.weber-tab-btn').forEach(b => b.classList.remove('active'));
-
-			// Add active to selected
-			document.getElementById(contentId).classList.add('active');
-			// Add active to btn that was clicked
-			event.currentTarget.classList.add('active');
-		}
+		// Weber Tab Logic (Removed from here, moved to iframe)
 	</script>
 
 </body>
 
 </html>
+```
