@@ -33,12 +33,17 @@ jobs:
           # File 2: Bảng giá Silicon Weber
           curl -L "https://drive.google.com/uc?export=download&id=1jO3hntZ2Oo2A4K6R57299U9mIBk80WyT" -o data/gia_silicon_weber.json
 
-          # File 3: Dữ liệu khách hàng (ID: 1404085uVa15Hw10VGUp46b0zw0Rix35m)
+          # File 3: Dữ liệu khách hàng
           curl -L "https://drive.google.com/uc?export=download&id=1404085uVa15Hw10VGUp46b0zw0Rix35m" -o data/gia_khach_hang.json
 
+          # File 4: Bảng giá Duraflex
+          curl -L "https://drive.google.com/uc?export=download&id=1TSwe2cASzEBByFniu-YrMjLTGwz8WY4m" -o data/gia_duraflex.json
+
+          # File 5: Chiết khấu Duraflex
+          curl -L "https://drive.google.com/uc?export=download&id=12vy8tSc7D32IMz8JUKxIHVbNxa2llnBi" -o data/chiet_khau_duraflex.json
+
       # 4. Kiểm tra thay đổi và cam kết (Commit) lên GitHub
-      - name: Commit and Push changes
-        run: |
+      run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
@@ -46,5 +51,5 @@ jobs:
           git add data/
           
           # Commit nếu có thay đổi
-          git commit -m "chore: Auto-update data files (Nano, Silicon, Customer) from Google Drive" || echo "No changes to commit"
+          git commit -m "chore: Auto-update data files (Nano, Silicon, Customer, Duraflex) from Google Drive" || echo "No changes to commit"
           git push
