@@ -43,7 +43,8 @@ jobs:
           curl -L "https://drive.google.com/uc?export=download&id=12vy8tSc7D32IMz8JUKxIHVbNxa2llnBi" -o data/chiet_khau_duraflex.json
 
       # 4. Kiểm tra thay đổi và cam kết (Commit) lên GitHub
-      run: |
+      - name: Commit and Push changes
+        run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
@@ -51,5 +52,5 @@ jobs:
           git add data/
           
           # Commit nếu có thay đổi
-          git commit -m "chore: Auto-update data files (Nano, Silicon, Customer, Duraflex) from Google Drive" || echo "No changes to commit"
+          git commit -m "chore: Auto-update data files from Google Drive" || echo "No changes to commit"
           git push
