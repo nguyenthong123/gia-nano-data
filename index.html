@@ -386,42 +386,104 @@
 			}
 		}
 
-		#weber-iframe {
+		/* Weber Modal Styles */
+		.weber-modal {
+			display: none;
+			position: fixed;
+			z-index: 3000;
+			left: 0;
+			top: 0;
 			width: 100%;
-			height: 800px;
-			border: none;
-			border-radius: 24px;
-			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-			display: block;
-			margin-top: 30px;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.85);
+			backdrop-filter: blur(8px);
+			align-items: center;
+			justify-content: center;
+			padding: 20px;
 		}
 
-		.iframe-container {
+		.weber-modal.active {
+			display: flex;
+		}
+
+		.weber-modal-content {
+			width: 95%;
 			max-width: 1200px;
-			margin: 40px auto;
-			padding: 0 20px;
+			height: 85vh;
+			background: white;
+			border-radius: 24px;
+			position: relative;
+			overflow: hidden;
+			animation: modalZoom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 		}
 
-		.cta-weber {
-			text-align: center;
-			margin-top: 20px;
+		@keyframes modalZoom {
+			from {
+				transform: scale(0.8);
+				opacity: 0;
+			}
+
+			to {
+				transform: scale(1);
+				opacity: 1;
+			}
 		}
 
-		.cta-btn {
-			display: inline-block;
-			padding: 12px 30px;
-			background: #000;
-			color: #fff;
-			text-decoration: none;
-			border-radius: 50px;
-			font-weight: 800;
+		.close-weber-modal {
+			position: absolute;
+			top: 15px;
+			right: 25px;
+			width: 45px;
+			height: 45px;
+			background: #fff;
+			color: #000;
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 28px;
+			font-weight: bold;
+			cursor: pointer;
+			z-index: 3001;
+			box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 			transition: 0.3s;
 		}
 
-		.cta-btn:hover {
-			background: var(--accent-color);
+		.close-weber-modal:hover {
+			background: var(--primary-color);
+			transform: rotate(90deg);
+		}
+
+		#weber-iframe {
+			width: 100%;
+			height: 100%;
+			border: none;
+		}
+
+		/* Update clickable card */
+		.section.weber-card {
+			cursor: pointer;
+			position: relative;
+			overflow: hidden;
+		}
+
+		.section.weber-card::after {
+			content: 'NHẤN ĐỂ XEM CHI TIẾT';
+			position: absolute;
+			bottom: 15px;
+			right: 20px;
+			background: var(--primary-color);
 			color: #000;
-			transform: scale(1.05);
+			padding: 5px 12px;
+			font-size: 0.75rem;
+			font-weight: 800;
+			border-radius: 4px;
+			opacity: 0;
+			transition: 0.3s;
+		}
+
+		.section.weber-card:hover::after {
+			opacity: 1;
 		}
 	</style>
 </head>
@@ -483,7 +545,7 @@
 		</div>
 
 		<!-- Section 3: Keo Silicon Weber -->
-		<div class="section">
+		<div class="section weber-card" onclick="openWeberModal()">
 			<div class="section-content">
 				<h2>Keo Silicon Weber</h2>
 				<p>Dòng sản phẩm keo dán gạch và keo chà ron cao cấp từ thương hiệu Weber (Pháp). Độ bám dính siêu
@@ -496,11 +558,11 @@
 		</div>
 	</div>
 
-	<!-- Detail Weber Iframe Embed -->
-	<div class="iframe-container">
-		<iframe src="chi-tiet-weber.html" id="weber-iframe" title="Chi tiết sản phẩm Weber"></iframe>
-		<div class="cta-weber">
-			<a href="chi-tiet-weber.html" class="cta-btn" target="_blank">MỞ TRANG CHI TIẾT ĐẦY ĐỦ</a>
+	<!-- Weber Detail Modal -->
+	<div id="weberModal" class="weber-modal">
+		<div class="weber-modal-content">
+			<span class="close-weber-modal" onclick="closeWeberModal()">&times;</span>
+			<iframe src="chi-tiet-weber.html" id="weber-iframe"></iframe>
 		</div>
 	</div>
 
@@ -643,7 +705,24 @@
 		// Init UI on load
 		document.addEventListener('DOMContentLoaded', updateUI);
 
-		// Weber Tab Logic (Removed from here, moved to iframe)
+		// Weber Modal Logic
+		function openWeberModal() {
+			document.getElementById('weberModal').classList.add('active');
+			document.body.style.overflow = 'hidden'; // Lock scroll
+		}
+
+		function closeWeberModal() {
+			document.getElementById('weberModal').classList.remove('active');
+			document.body.style.overflow = 'auto'; // Restore scroll
+		}
+
+		// Close modal on outside click
+		window.onclick = function (event) {
+			const modal = document.getElementById('weberModal');
+			if (event.target == modal) {
+				closeWeberModal();
+			}
+		}
 	</script>
 
 </body>
