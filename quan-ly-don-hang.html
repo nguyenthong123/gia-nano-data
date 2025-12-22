@@ -935,21 +935,108 @@
 			return new Intl.NumberFormat('vi-VN').format(num) + ' đ';
 		}
 
-		function viewInvoice(order) {
-			// Display invoice in modal with data
+		async function viewInvoice(order) {
+			// Display invoice in modal by loading the appropriate external template
 			const modal = document.getElementById('invoiceModal');
 			const content = document.getElementById('invoiceContent');
 			console.log('Order object:', order);
-			console.log('Order category raw:', order.category);
-			
-			const category = ((order.category || '') + '').toLowerCase().trim();
-			console.log('Category normalized:', category);
 
-			// Generate invoice HTML based on category
-			const invoiceHTML = generateInvoiceHTML(order, category);
-			content.innerHTML = invoiceHTML;
-			modal.style.display = 'flex';
-			document.body.style.overflow = 'hidden';
+			const category = ((order.category || '') + '').toLowerCase().trim();
+			const catNorm = category || 'pima';
+			console.log('Category normalized:', catNorm);
+
+			// Map to template file
+			const templateMap = {
+				'duraflex': 'phieu-don-hang-duraflex.html',
+				'weber': 'phieu-don-hang-weber.html',
+				'pima': 'phieu-don-hang-pima.html'
+			};
+
+			const templateFile = templateMap[catNorm] || templateMap['pima'];
+
+			try {
+				const resp = await fetch(templateFile);
+				if (!resp.ok) throw new Error('Không thể load template: ' + templateFile);
+				const html = await resp.text();
+
+				// Parse template and extract the invoice container
+				const parser = new DOMParser();
+				const doc = parser.parseFromString(html, 'text/html');
+				const invoiceNode = doc.querySelector('.invoice-container');
+
+				if (!invoiceNode) {
+					throw new Error('Template không chứa .invoice-container');
+				}
+
+				// Clone node into current document
+				const clone = invoiceNode.cloneNode(true);
+
+				// Populate fields inside clone
+				const setText = (selector, text) => {
+					const el = clone.querySelector(selector);
+					if (el) el.textContent = text;
+				};
+
+				setText('#orderIdDisplay', `Mã đơn: ${order.id || 'N/A'}`);
+				setText('#orderTimeDisplay', `Thời gian: ${order.time ? new Date(order.time).toLocaleString('vi-VN') : 'N/A'}`);
+				setText('#customerName', order.customer || 'N/A');
+				setText('#customerType', order.customer_type || order.phan_loai || 'N/A');
+
+				// Products
+				const tbody = clone.querySelector('#productsTableBody');
+				if (tbody) {
+					tbody.innerHTML = '';
+					if (!order.items || order.items.length === 0) {
+						tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999; padding: 30px;">Không có sản phẩm</td></tr>';
+					} else {
+						order.items.forEach((item, index) => {
+							const subtotal = parseInt(item.subtotal || 0);
+							const price = parseInt(item.price || item.unit_price || 0);
+							const qty = parseInt(item.qty || item.quantity || 0);
+							const discount = parseInt(item.promo || item.discount || 0);
+
+							const tr = document.createElement('tr');
+							tr.innerHTML = `
+								<td>${index + 1}</td>
+								<td><strong>${item.name || 'N/A'}</strong></td>
+								<td>${qty}</td>
+								<td>${formatCurrency(price)}</td>
+								<td>${formatCurrency(discount)}</td>
+								<td><strong>${formatCurrency(subtotal)}</strong></td>
+							`;
+							tbody.appendChild(tr);
+						});
+					}
+				}
+
+				// Summary
+				const total = parseInt(order.total || 0);
+				const summaryEl = clone.querySelector('#summaryTotal');
+				if (summaryEl) summaryEl.textContent = formatCurrency(total);
+
+				// Notes
+				if (order.notes && order.notes.trim()) {
+					const notesSection = clone.querySelector('#notesSection');
+					const notesEl = clone.querySelector('#orderNotes');
+					if (notesSection && notesEl) {
+						notesSection.style.display = 'block';
+						notesEl.textContent = order.notes;
+					}
+				}
+
+				// Inject clone into modal content
+				content.innerHTML = '';
+				content.appendChild(clone);
+				modal.style.display = 'flex';
+				document.body.style.overflow = 'hidden';
+			} catch (e) {
+				console.error(e);
+				// fallback to inline generation in case of error
+				const invoiceHTML = generateInvoiceHTML(order, catNorm);
+				content.innerHTML = invoiceHTML;
+				modal.style.display = 'flex';
+				document.body.style.overflow = 'hidden';
+			}
 		}
 
 		function generateInvoiceHTML(order, category) {
