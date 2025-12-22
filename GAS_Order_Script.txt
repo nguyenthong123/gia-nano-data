@@ -9,22 +9,64 @@
  * 7. Copy URL nhận được và dán vào file len-don.html.
  */
 
-const SHEET_ID = '1RKbxHqK_f4upstxQ1a0H0H7VF6Ut_eqyoNpwdozdEKI'; 
-const ORDER_SHEET_NAME = 'don_hang';
+const SHEET_ID = '1RKbxHqK_f4upstxQ1a0H0H7VF6Ut_eqyoNpwdozdEKI';
+// Map category -> sheet name
+const CATEGORY_SHEETS = {
+  'duraflex': 'don_hang_duraflex',
+  'weber': 'don_hang_weber',
+  'pima': 'don_hang_pima'
+};
 const COUNTER_SHEET_NAME = 'order_counter';
 
+// Headers expected in each sheet (match the sheets you created)
+const SHEET_HEADERS = {
+  'don_hang_duraflex': [
+    'Thời gian','Mã Đơn','Loại SP','Khách Hàng','Phân Loại KH',
+    'Sản Phẩm','Đơn Giá','Số Lượng','Thành Tiền','số kiện','số tiền chiết khấu kiện','số tiền còn lại trong đơn','Ghi Chú'
+  ],
+  'don_hang_weber': [
+    'Thời gian','Mã Đơn','Loại SP','Khách Hàng','Phân Loại KH',
+    'Sản Phẩm','Đơn Giá','Số Lượng','Thành Tiền','số thùng','tổng thùng trong đơn','ghi chú đơn hàng'
+  ],
+  'don_hang_pima': [
+    'Thời gian','Mã Đơn','Loại SP','Khách Hàng','Phân Loại KH',
+    'Sản Phẩm','Đơn Giá','Số Lượng','Thành Tiền','tiền hỗ trợ vận chuyển','tổng tiền hỗ trợ vận chuyển','số tiền còn lại trong đơn','Ghi Chú'
+  ]
+};
+
 function doGet(e) {
-  // Trả về dữ liệu CSV để fetch nhanh
+  // Trả về dữ liệu CSV/JSON của sheet được yêu cầu (query param: sheet hoặc category)
   const ss = SpreadsheetApp.openById(SHEET_ID);
-  const sheet = ss.getSheetByName(ORDER_SHEET_NAME);
-  if (!sheet) return ContentService.createTextOutput("Error: Sheet not found");
-  
+  const params = e.parameter || {};
+  let sheetName = params.sheet;
+  const category = params.category ? params.category.toString().toLowerCase() : '';
+
+  if (!sheetName && category && CATEGORY_SHEETS[category]) {
+    sheetName = CATEGORY_SHEETS[category];
+  }
+
+  // Default to first mapped sheet if none specified
+  if (!sheetName) sheetName = Object.values(CATEGORY_SHEETS)[0];
+
+  const sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return ContentService.createTextOutput("Error: Sheet not found: " + sheetName);
+
   const data = sheet.getDataRange().getValues();
+  // Return CSV for lightweight fetch in frontend
   let csv = "";
   for (let i = 0; i < data.length; i++) {
-    csv += data[i].join(",") + "\n";
+    // Escape values that contain commas or quotes
+    const row = data[i].map(v => {
+      if (v === null || v === undefined) return '';
+      const s = v.toString();
+      if (s.indexOf(',') >= 0 || s.indexOf('"') >= 0 || s.indexOf('\n') >= 0) {
+        return '"' + s.replace(/"/g, '""') + '"';
+      }
+      return s;
+    });
+    csv += row.join(',') + "\n";
   }
-  return ContentService.createTextOutput(csv);
+  return ContentService.createTextOutput(csv).setMimeType(ContentService.MimeType.TEXT);
 }
 
 function getNextOrderId(category) {
@@ -76,46 +118,85 @@ function getNextOrderId(category) {
 
 function doPost(e) {
   try {
-    const data = JSON.parse(e.postData.contents);
+    // Support both JSON body and form-encoded field `payload` (URLSearchParams from frontend)
+    let data = {};
+    try {
+      if (e.parameter && e.parameter.payload) {
+        data = JSON.parse(e.parameter.payload);
+      } else if (e.postData && e.postData.contents) {
+        data = JSON.parse(e.postData.contents);
+      }
+    } catch (parseErr) {
+      data = {};
+    }
     const action = data.action || 'add';
     const ss = SpreadsheetApp.openById(SHEET_ID);
-    let sheet = ss.getSheetByName(ORDER_SHEET_NAME);
-    
+
+    // Determine target sheet by category mapping
+    const category = (data.category || '').toString().toLowerCase();
+    const targetSheetName = CATEGORY_SHEETS[category] || CATEGORY_SHEETS['pima'];
+    let sheet = ss.getSheetByName(targetSheetName);
+
+    // If sheet missing, create with appropriate header row
     if (!sheet) {
-      sheet = ss.insertSheet(ORDER_SHEET_NAME);
-      sheet.appendRow([
-        "Thời gian", "Mã Đơn", "Loại SP", "Khách Hàng", "Phân Loại KH",
-        "Sản Phẩm", "Số Lượng", "Đơn Giá", "Chiết Khấu/KM", "Thành Tiền",
-        "Khuyến Mãi", "Giao hàng", "Phần dư", "Tổng Đơn", "Ghi Chú"
-      ]);
+      sheet = ss.insertSheet(targetSheetName);
+      const headers = SHEET_HEADERS[targetSheetName] || ["Thời gian","Mã Đơn","Loại SP","Khách Hàng","Phân Loại KH","Sản Phẩm","Đơn Giá","Số Lượng","Thành Tiền","Ghi Chú"];
+      sheet.appendRow(headers);
     }
 
     if (action === 'add') {
       const timestamp = new Date();
       const orderId = getNextOrderId(data.category);
+      const targetKey = sheet.getName();
+
+      // Optional summary fields sent from frontend
+      const totalPackages = data.total_packages || '';
+      const discountTotal = data.discount_total || '';
+      const totalAfterDiscount = data.total_after_discount || data.total || '';
+      const totalBoxes = data.total_boxes || '';
+      const totalSupport = data.total_support || '';
+      const totalAfterSupport = data.total_after_support || data.total || '';
+
       data.items.forEach((item, index) => {
-        sheet.appendRow([
-          timestamp, orderId, data.category, data.customer.name, data.customer.phan_loai,
-          item.name, item.quantity, item.unit_price, item.promo_note || "", item.subtotal,
-          item.promo_note || "", item.delivery_type || "", item.surplus || 0,
-          index === 0 ? data.total : "", data.notes || ""
-        ]);
+        let row = [];
+        if (targetKey === CATEGORY_SHEETS['duraflex']) {
+          // Headers: Thời gian, Mã Đơn, Loại SP, Khách Hàng, Phân Loại KH, Sản Phẩm, Đơn Giá, Số Lượng, Thành Tiền, số kiện, số tiền chiết khấu kiện, số tiền còn lại trong đơn, Ghi Chú
+          const packages = item.packages || totalPackages || '';
+          const discountPerPackages = item.discount_per_packages || '';
+          const remaining = (index === 0) ? totalAfterDiscount : '';
+          row = [timestamp, orderId, data.category, (data.customer && data.customer.name) || '', (data.customer && data.customer.phan_loai) || '', item.name || '', item.unit_price || '', item.quantity || '', item.subtotal || '', packages, discountPerPackages, remaining, data.notes || ''];
+        } else if (targetKey === CATEGORY_SHEETS['weber']) {
+          // Headers: Thời gian, Mã Đơn, Loại SP, Khách Hàng, Phân Loại KH, Sản Phẩm, Đơn Giá, Số Lượng, Thành Tiền, số thùng, tổng thùng trong đơn, ghi chú đơn hàng
+          const boxes = item.boxes || '';
+          const totalBoxesInOrder = totalBoxes || '';
+          row = [timestamp, orderId, data.category, (data.customer && data.customer.name) || '', (data.customer && data.customer.phan_loai) || '', item.name || '', item.unit_price || '', item.quantity || '', item.subtotal || '', boxes, totalBoxesInOrder, data.notes || ''];
+        } else if (targetKey === CATEGORY_SHEETS['pima']) {
+          // Headers: Thời gian, Mã Đơn, Loại SP, Khách Hàng, Phân Loại KH, Sản Phẩm, Đơn Giá, Số Lượng, Thành Tiền, tiền hỗ trợ vận chuyển, tổng tiền hỗ trợ vận chuyển, số tiền còn lại trong đơn, Ghi Chú
+          const support = item.support || '';
+          const totalSupportInOrder = totalSupport || '';
+          const remaining = (index === 0) ? totalAfterSupport : '';
+          row = [timestamp, orderId, data.category, (data.customer && data.customer.name) || '', (data.customer && data.customer.phan_loai) || '', item.name || '', item.unit_price || '', item.quantity || '', item.subtotal || '', support, totalSupportInOrder, remaining, data.notes || ''];
+        } else {
+          row = [timestamp, orderId, data.category, (data.customer && data.customer.name) || '', (data.customer && data.customer.phan_loai) || '', item.name || '', item.unit_price || '', item.quantity || '', item.subtotal || '', data.notes || ''];
+        }
+        sheet.appendRow(row);
       });
       return ContentService.createTextOutput(JSON.stringify({result: 'success', orderId: orderId})).setMimeType(ContentService.MimeType.JSON);
-    } 
+    }
     
     if (action === 'update_order') {
+      // For updates, we must search the correct sheet (by orderId prefix) or fallback
       const values = sheet.getDataRange().getValues();
       const orderId = data.orderId;
       let found = false;
-      
+
       for (let i = values.length - 1; i >= 1; i--) {
         if (values[i][1] === orderId) {
           sheet.deleteRow(i + 1);
           found = true;
         }
       }
-      
+
       if (found) {
         const timestamp = new Date();
         data.items.forEach((item, index) => {

@@ -548,6 +548,8 @@
 		let selectedCustomer = null;
 		let currentTab = 'weber';
 		let duraflexDiscounts = [];
+		// computed summary values to send to backend
+		let orderComputed = { totalBoxes: 0, totalSupport: 0, totalPackages: 0, discountAmount: 0, totalAfterDiscount: 0 };
 
 		// --- INITIALIZATION ---
 		let isEditMode = false;
@@ -826,6 +828,12 @@
 		function calculateTotals() {
 			const list = document.getElementById(`${currentTab}ItemList`);
 			const rows = list.querySelectorAll('.item-row');
+			// reset computed sums
+			orderComputed.totalBoxes = 0;
+			orderComputed.totalSupport = 0;
+			orderComputed.totalPackages = 0;
+			orderComputed.discountAmount = 0;
+			orderComputed.totalAfterDiscount = 0;
 			let total = 0;
 			let count = 0;
 			let totalKien = 0; // Dành cho Duraflex
@@ -844,6 +852,19 @@
 							const qty = parseInt(row.querySelector('.p-qty').value) || 0;
 							const kien = parseInt(product["số tấm trong 1 kiện"] || product["số tấm/kiện"] || 1);
 							totalKien += (qty / kien);
+						}
+					}
+
+					// If we are in weber tab, count boxes for orderComputed
+					if (currentTab === 'weber') {
+						const pName = row.querySelector('.p-select').value;
+						const product = products.weber.find(p => (p["tên sản phẩm"] || p["ten_sp"] || p["Tên sản phẩm"]) === pName);
+						if (product) {
+							const bottlesPerBox = parseInt(product["số chai trong 1 thùng"] || product["số chai/thùng"] || 1);
+							const qty = parseInt(row.querySelector('.p-qty').value) || 0;
+							const boxes = Math.floor(qty / (bottlesPerBox || 1));
+							orderComputed.totalBoxes += boxes;
+							row.setAttribute('data-boxes', boxes);
 						}
 					}
 				}
@@ -868,9 +889,18 @@
 			const totalLabel = document.getElementById('summaryTotalLabel');
 			let finalTotal = total; // Default to total
 
-			if (currentTab === 'duraflex' && totalKien >= 1) {
-				const ck = duraflexDiscounts.find(d => parseInt(d["gói chiết khấu theo kiện"]) === Math.floor(totalKien));
-				const ckAmount = ck ? parseInt(ck["số tiền chiết khấu"] || 0) : 0;
+			if (currentTab === 'duraflex') {
+				// choose the best discount where gói chiết khấu theo kiện <= totalKien
+				const applied = duraflexDiscounts.filter(d => parseInt(d["gói chiết khấu theo kiện"] || '0') <= Math.floor(totalKien));
+				let ckAmount = 0;
+				if (applied && applied.length) {
+					const best = applied.reduce((a, b) => parseInt(a["gói chiết khấu theo kiện"] || 0) > parseInt(b["gói chiết khấu theo kiện"] || 0) ? a : b);
+					ckAmount = parseInt(best["số tiền chiết khấu"] || 0) || 0;
+				}
+
+				orderComputed.totalPackages = totalKien;
+				orderComputed.discountAmount = ckAmount;
+				orderComputed.totalAfterDiscount = total - ckAmount;
 
 				if (ckAmount > 0) {
 					grossRow.style.display = 'flex';
@@ -902,6 +932,8 @@
 					document.getElementById('summarySurplus').innerText = `- ${formatCurrency(totalSurplus)}`;
 					totalLabel.innerText = "SỐ TIỀN CÒN LẠI:";
 					finalTotal = total; // Số tiền còn lại = total (đã tính theo giá kho)
+					orderComputed.totalSupport = totalSurplus;
+					orderComputed.totalAfterSupport = finalTotal;
 				} else {
 					grossRow.style.display = 'none';
 					surplusRow.style.display = 'none';
@@ -998,17 +1030,41 @@
 					notes: document.getElementById('orderNotes').value
 				};
 
+				// Attach computed metadata per category
+				if (currentTab === 'duraflex') {
+					payload.total_packages = orderComputed.totalPackages;
+					payload.discount_total = orderComputed.discountAmount;
+					payload.total_after_discount = orderComputed.totalAfterDiscount || payload.total;
+				} else if (currentTab === 'weber') {
+					payload.total_boxes = orderComputed.totalBoxes;
+				} else if (currentTab === 'pima') {
+					payload.total_support = orderComputed.totalSupport;
+					payload.total_after_support = orderComputed.totalAfterSupport || payload.total;
+				}
+
 				console.log('Sending payload:', payload); // Debug
+
+				// Send as application/x-www-form-urlencoded to avoid preflight CORS
+				const form = new URLSearchParams();
+				form.append('payload', JSON.stringify(payload));
 
 				const res = await fetch(SCRIPT_URL, {
 					method: 'POST',
-					mode: 'no-cors',
-					body: JSON.stringify(payload)
+					headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+					body: form.toString()
 				});
 
-				console.log('Response received:', res); // Debug
-				alert(isEditMode ? "Đã cập nhật đơn hàng!" : "Đã gửi thông tin đơn hàng!");
-				window.location.href = 'quan-ly-don-hang.html';
+				if (!res.ok) {
+					throw new Error('Network response was not ok: ' + res.statusText);
+				}
+				const json = await res.json();
+				console.log('Response received:', json); // Debug
+				if (json && json.result === 'success') {
+					alert(isEditMode ? "Đã cập nhật đơn hàng!" : `Đã gửi thông tin đơn hàng! Mã: ${json.orderId}`);
+					window.location.href = 'quan-ly-don-hang.html';
+				} else {
+					throw new Error((json && json.message) || 'Unknown error from server');
+				}
 			} catch (e) {
 				console.error('Error submitting order:', e); // Debug
 				alert("Lỗi khi gửi đơn hàng: " + e.message);

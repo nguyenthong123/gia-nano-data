@@ -722,10 +722,17 @@
 				<h1 style="font-weight: 800; text-transform: uppercase;">Quản Lý Đơn Hàng</h1>
 				<p style="color: #666;">Danh sách đơn hàng từ Google Sheet</p>
 			</div>
-			<div style="display: flex; gap: 15px;">
-				<a href="len-don.html" class="btn btn-success">+ TẠO ĐƠN MỚI</a>
-				<a href="index.html" class="btn btn-primary">TRANG CHỦ</a>
-			</div>
+						<div style="display: flex; gap: 12px; align-items:center;">
+								<a href="len-don.html" class="btn btn-success">+ TẠO ĐƠN MỚI</a>
+								<a href="index.html" class="btn btn-primary">TRANG CHỦ</a>
+								<div style="width:12px"></div>
+								<div id="categoryButtons" style="display:flex;gap:8px;">
+									<button class="btn" id="btnAll" style="background:#ffffff;border:1px solid var(--border);">TẤT CẢ</button>
+									<button class="btn" id="btnDuraflex" style="background:#27ae60;color:#fff;">TẤM DURAFLEX</button>
+									<button class="btn" id="btnWeber" style="background:#000;color:#fff;">SILICONE WEBER</button>
+									<button class="btn" id="btnPima" style="background:#f1c40f;color:#000;">TRẦN NANO PIMA</button>
+								</div>
+						</div>
 		</header>
 
 		<div class="form-card">
@@ -744,14 +751,61 @@
 	<script>
 		const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIHfOV9rW_GQ8_Xv-WWA3KAqPMONiZQPDdOdNOcYmMSMlt93KG3zZJ7Z53OJ-d-LIJZg/exec';
 
-		document.addEventListener('DOMContentLoaded', fetchOrders);
+		document.addEventListener('DOMContentLoaded', () => {
+			initCategoryButtons();
+			fetchOrders(); // load all by default
+		});
 
-		async function fetchOrders() {
-			const container = document.getElementById('orderList');
-			try {
-				const res = await fetch(SCRIPT_URL);
-				const csvText = await res.text();
-				const rows = csvToJson(csvText);
+		const CATEGORY_TO_SHEET = {
+			'duraflex': 'don_hang_duraflex',
+			'weber': 'don_hang_weber',
+			'pima': 'don_hang_pima'
+		};
+
+		function initCategoryButtons() {
+			const btnAll = document.getElementById('btnAll');
+			const btnDur = document.getElementById('btnDuraflex');
+			const btnWeb = document.getElementById('btnWeber');
+			const btnPima = document.getElementById('btnPima');
+
+			btnAll.addEventListener('click', () => { setActiveButton(btnAll); fetchOrders(); });
+			btnDur.addEventListener('click', () => { setActiveButton(btnDur); fetchOrders('duraflex'); });
+			btnWeb.addEventListener('click', () => { setActiveButton(btnWeb); fetchOrders('weber'); });
+			btnPima.addEventListener('click', () => { setActiveButton(btnPima); fetchOrders('pima'); });
+
+			// initial active
+			setActiveButton(document.getElementById('btnAll'));
+		}
+
+		function setActiveButton(activeBtn) {
+			const btns = document.querySelectorAll('#categoryButtons .btn');
+			btns.forEach(b => {
+				b.style.opacity = '0.9';
+				b.style.transform = 'none';
+			});
+			activeBtn.style.opacity = '1';
+			activeBtn.style.transform = 'translateY(-1px)';
+		}
+
+		async function fetchOrders(category) {
+				const container = document.getElementById('orderList');
+				try {
+					let rows = [];
+
+					if (!category) {
+						// fetch all three sheets and merge
+						const cats = Object.keys(CATEGORY_TO_SHEET);
+						const fetches = cats.map(c => fetch(`${SCRIPT_URL}?category=${encodeURIComponent(c)}`).then(r => r.text()));
+						const results = await Promise.all(fetches);
+						results.forEach(txt => {
+							const parsed = csvToJson(txt);
+							rows = rows.concat(parsed);
+						});
+					} else {
+						const res = await fetch(`${SCRIPT_URL}?category=${encodeURIComponent(category)}`);
+						const csvText = await res.text();
+						rows = csvToJson(csvText);
+					}
 
 				if (rows.length === 0) {
 					container.innerHTML = "Chưa có đơn hàng nào.";
