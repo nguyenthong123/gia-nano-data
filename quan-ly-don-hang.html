@@ -978,6 +978,8 @@
 				btnColor = '#000';
 			}
 
+			console.log('invoice visual: catNorm=', catNorm, 'headerGradient=', headerGradient, 'btnColor=', btnColor, 'headerTextColor=', headerTextColor);
+
 			// Generate products table
 			let productsHTML = '';
 			let totalGross = 0;
@@ -1063,6 +1065,8 @@
 						<h1 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 6px;">PHIẾU ĐƠN HÀNG</h1>
 						<div style="font-size: 0.95rem; font-weight: 600; opacity: 0.9;">Mã đơn: ${order.id || 'N/A'}</div>
 						<div style="margin-top: 10px; font-size: 0.95rem; opacity: 0.9;">Thời gian: ${order.time ? new Date(order.time).toLocaleString('vi-VN') : 'N/A'}</div>
+							<!-- DEBUG: hiển thị category được dùng để tạo phiếu -->
+							<div style="margin-top:6px; font-size:0.85rem; opacity:0.95; font-weight:700; color: ${headerTextColor};">DEBUG category: ${catNorm}</div>
 					</div>
 
 					<div style="padding: 28px;">
