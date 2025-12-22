@@ -942,7 +942,7 @@
 			console.log('Order object:', order);
 
 			const category = ((order.category || '') + '').toLowerCase().trim();
-			const catNorm = category || 'pima';
+			const catNorm = category;
 			console.log('Category normalized:', catNorm);
 
 			// Map to template file
@@ -1031,9 +1031,13 @@
 				document.body.style.overflow = 'hidden';
 			} catch (e) {
 				console.error(e);
-				// fallback to inline generation in case of error
-				const invoiceHTML = generateInvoiceHTML(order, catNorm);
-				content.innerHTML = invoiceHTML;
+				// No inline fallback — show a clear error to user
+				content.innerHTML = `
+					<div style="padding:24px; max-width:700px; color:#c0392b; background:#fff3f3; border-radius:8px;">
+						<h3 style="margin-bottom:8px;">Lỗi tải mẫu phiếu</h3>
+						<p>Không thể tải mẫu phiếu "${templateFile}". Vui lòng kiểm tra kết nối hoặc thử lại sau.</p>
+					</div>
+				`;
 				modal.style.display = 'flex';
 				document.body.style.overflow = 'hidden';
 			}
