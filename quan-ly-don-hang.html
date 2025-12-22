@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Quản Lý Đơn Hàng - Premium</title>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+	<style>
+		:root {
+			--primary: #2d3436;
+			--accent: #f1c40f;
+			--success: #27ae60;
+			--danger: #e74c3c;
+			--bg: #f8f9fa;
+			--card-bg: #ffffff;
+			--border: #e9ecef;
+		}
+
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			font-family: 'Inter', sans-serif;
+		}
+
+		body {
+			background: var(--bg);
+			padding: 20px;
+		}
+
+		.container {
+			max-width: 1200px;
+			margin: 0 auto;
+		}
+
+		header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 30px;
+			border-bottom: 2px solid var(--accent);
+			padding-bottom: 15px;
+		}
+
+		.btn {
+			padding: 10px 20px;
+			border-radius: 10px;
+			cursor: pointer;
+			font-weight: 600;
+			border: none;
+			transition: 0.3s;
+			text-decoration: none;
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+		.btn-primary {
+			background: var(--primary);
+			color: var(--accent);
+		}
+
+		.btn-success {
+			background: var(--success);
+			color: white;
+		}
+
+		.form-card {
+			background: white;
+			padding: 25px;
+			border-radius: 20px;
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+			margin-bottom: 25px;
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+			margin-top: 20px;
+		}
+
+		th {
+			background: #f8f9fa;
+			padding: 15px;
+			text-align: left;
+			font-size: 0.85rem;
+			text-transform: uppercase;
+			color: #666;
+			border-bottom: 2px solid var(--border);
+		}
+
+		td {
+			padding: 15px;
+			border-bottom: 1px solid var(--border);
+			vertical-align: middle;
+		}
+
+		tr:hover {
+			background: #fafafa;
+		}
+
+		.order-id {
+			font-weight: 800;
+			color: #2980b9;
+		}
+
+		.status-badge {
+			padding: 4px 10px;
+			border-radius: 6px;
+			font-size: 0.75rem;
+			font-weight: 700;
+			background: #e3f2fd;
+			color: #1976d2;
+		}
+
+		.loading {
+			text-align: center;
+			padding: 50px;
+			font-weight: 700;
+			color: #999;
+		}
+
+		.actions {
+			display: flex;
+			gap: 10px;
+		}
+
+		.modal {
+			display: none;
+			position: fixed;
+			z-index: 100;
+			left: 0;
+			top: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.5);
+			align-items: center;
+			justify-content: center;
+		}
+
+		.modal-content {
+			background: white;
+			padding: 30px;
+			border-radius: 20px;
+			width: 90%;
+			max-width: 800px;
+			max-height: 90vh;
+			overflow-y: auto;
+		}
+
+		.cat-weber {
+			border-left: 5px solid #000;
+		}
+
+		.cat-pima {
+			border-left: 5px solid #f1c40f;
+		}
+
+		.cat-duraflex {
+			border-left: 5px solid #27ae60;
+		}
+	</style>
+</head>
+
+<body>
+
+	<div class="container">
+		<header>
+			<div>
+				<h1 style="font-weight: 800; text-transform: uppercase;">Quản Lý Đơn Hàng</h1>
+				<p style="color: #666;">Danh sách đơn hàng từ Google Sheet</p>
+			</div>
+			<div style="display: flex; gap: 15px;">
+				<a href="len-don.html" class="btn btn-success">+ TẠO ĐƠN MỚI</a>
+				<a href="index.html" class="btn btn-primary">TRANG CHỦ</a>
+			</div>
+		</header>
+
+		<div class="form-card">
+			<div id="orderList" class="loading">Đang tải danh sách đơn hàng...</div>
+		</div>
+	</div>
+
+	<script>
+		const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIHfOV9rW_GQ8_Xv-WWA3KAqPMONiZQPDdOdNOcYmMSMlt93KG3zZJ7Z53OJ-d-LIJZg/exec';
+
+		document.addEventListener('DOMContentLoaded', fetchOrders);
+
+		async function fetchOrders() {
+			const container = document.getElementById('orderList');
+			try {
+				const res = await fetch(SCRIPT_URL);
+				const csvText = await res.text();
+				const rows = csvToJson(csvText);
+
+				if (rows.length === 0) {
+					container.innerHTML = "Chưa có đơn hàng nào.";
+					return;
+				}
+
+				// Gộp các dòng cùng OrderId
+				const ordersMap = {};
+				rows.forEach(r => {
+					const id = r["Mã Đơn"];
+					if (!ordersMap[id]) {
+						ordersMap[id] = {
+							id: id,
+							time: r["Thời gian"],
+							category: r["Loại SP"],
+							customer: r["Khách Hàng"],
+							customer_type: r["Phân Loại KH"] || r["Loại KH"],
+							total: r["Tổng Đơn"],
+							items: [],
+							notes: r["Ghi Chú"]
+						};
+					}
+					ordersMap[id].items.push({
+						name: r["Sản Phẩm"],
+						qty: r["Số Lượng"],
+						price: r["Đơn Giá"],
+						subtotal: r["Thành Tiền"],
+						promo: r["Chiết Khấu/KM"],
+						delivery_type: r["Giao hàng"] || "",
+						surplus: r["Phần dư"] || 0
+					});
+				});
+
+				renderTable(Object.values(ordersMap).reverse());
+			} catch (e) {
+				container.innerHTML = `<span style="color:red">Lỗi tải dữ liệu: ${e.message}</span>`;
+			}
+		}
+
+		function csvToJson(csv) {
+			const lines = csv.trim().split(/\r?\n/);
+			if (lines.length < 2) return [];
+			const headers = lines[0].split(',');
+			return lines.slice(1).map(line => {
+				const values = line.split(',');
+				const obj = {};
+				headers.forEach((h, i) => obj[h.trim()] = values[i] || "");
+				return obj;
+			});
+		}
+
+		function renderTable(orders) {
+			const container = document.getElementById('orderList');
+			let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Thời gian</th>
+                        <th>Mã Đơn</th>
+                        <th>Khách Hàng</th>
+                        <th>Loại SP</th>
+                        <th>Sản phẩm</th>
+                        <th>Tổng cộng</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+			orders.forEach(order => {
+				const catClass = `cat-${order.category.toLowerCase()}`;
+				html += `
+                <tr class="${catClass}">
+                    <td style="font-size: 0.8rem; color: #888;">${new Date(order.time).toLocaleString('vi-VN')}</td>
+                    <td class="order-id">${order.id}</td>
+                    <td><strong>${order.customer}</strong></td>
+                    <td><span class="status-badge">${order.category}</span></td>
+                    <td style="font-size: 0.9rem;">
+                        ${order.items.slice(0, 2).map(i => i.name).join(', ')}
+                        ${order.items.length > 2 ? '...' : ''}
+                    </td>
+                    <td style="font-weight: 800; color: #e67e22;">${formatCurrency(order.total || 0)}</td>
+                    <td class="actions">
+                        <button class="btn btn-primary" style="padding: 5px 12px; font-size: 0.8rem;" onclick='viewInvoice(${JSON.stringify(order)})'>XEM CHI TIẾT</button>
+                    </td>
+                </tr>
+            `;
+			});
+
+			html += `</tbody></table>`;
+			container.innerHTML = html;
+		}
+
+		function formatCurrency(num) {
+			return new Intl.NumberFormat('vi-VN').format(num) + ' đ';
+		}
+
+		function viewInvoice(order) {
+			// Open invoice page in new window
+			const orderData = encodeURIComponent(JSON.stringify(order));
+			window.open(`phieu-don-hang.html?data=${orderData}`, '_blank', 'width=1000,height=800');
+		}
+
+		function editOrder(order) {
+			// Lưu data vào localStorage và chuyển sang trang lên đơn với mode edit
+			localStorage.setItem('editingOrder', JSON.stringify(order));
+			window.location.href = 'len-don.html';
+		}
+	</script>
+
+</body>
+
+</html>

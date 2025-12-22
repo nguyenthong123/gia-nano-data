@@ -962,7 +962,7 @@
 						<th>Độ dày</th>
 						<th>Đóng gói</th>
 						<th>Trọng lượng (kg)</th>
-						<th>Giá HCM</th>
+						<th style="width: 140px;">Giá ra chành</th>
 					</tr>
 				</thead>
 				<tbody id="tableBody">
@@ -1405,7 +1405,7 @@
 				// 7. Giá HCM
 				const tdPrice = document.createElement('td');
 				tdPrice.className = 'price-cell';
-				tdPrice.setAttribute('data-label', 'Giá HCM');
+				tdPrice.setAttribute('data-label', 'Giá ra chành');
 
 				const priceSpan = document.createElement('span');
 				priceSpan.className = 'price';
@@ -1476,7 +1476,7 @@
 					"độ dày": item["độ dày"] || item["do_day"] || "",
 					"đóng gói": item["đóng gói"] || item["dong_goi"] || "",
 					"trọng lượng": item["trọng lượng"] || item["trong_luong"] || 0,
-					"giá hcm": item["giá hcm"] || item["gia_toi_chanh"] || "",
+					"giá hcm": item["giá ra chành"] || item["gia_ra_chanh"] || item["giá hcm"] || item["gia_toi_chanh"] || "",
 					"trang_thai_xoa": item["trạng thái xóa"] || item["trang_thai_xoa"] || ""
 				});
 

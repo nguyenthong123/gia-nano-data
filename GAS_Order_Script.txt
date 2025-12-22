@@ -1,0 +1,92 @@
+/**
+ * HƯỚNG DẪN:
+ * 1. Mở Google Sheet của bạn.
+ * 2. Vào Tiện ích mở rộng -> Apps Script.
+ * 3. Dán mã này vào (thay thế mã cũ nếu có).
+ * 4. Thay đổi SHEET_ID ở dòng dưới đây bằng ID Sheet của bạn.
+ * 5. Nhấn 'Triển khai' -> 'Lưu trữ mới' -> 'Web App'.
+ * 6. Chọn 'Anyone' (Bất kỳ ai) có quyền truy cập.
+ * 7. Copy URL nhận được và dán vào file len-don.html.
+ */
+
+const SHEET_ID = '1RKbxHqK_f4upstxQ1a0H0H7VF6Ut_eqyoNpwdozdEKI'; 
+const ORDER_SHEET_NAME = 'don_hang';
+
+function doGet(e) {
+  // Trả về dữ liệu CSV để fetch nhanh
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sheet = ss.getSheetByName(ORDER_SHEET_NAME);
+  if (!sheet) return ContentService.createTextOutput("Error: Sheet not found");
+  
+  const data = sheet.getDataRange().getValues();
+  let csv = "";
+  for (let i = 0; i < data.length; i++) {
+    csv += data[i].join(",") + "\n";
+  }
+  return ContentService.createTextOutput(csv);
+}
+
+function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    const action = data.action || 'add';
+    const ss = SpreadsheetApp.openById(SHEET_ID);
+    let sheet = ss.getSheetByName(ORDER_SHEET_NAME);
+    
+    // ... (Phần tạo sheet giữ nguyên như cũ) ...
+    if (!sheet) {
+      sheet = ss.insertSheet(ORDER_SHEET_NAME);
+      sheet.appendRow([
+        "Thời gian", "Mã Đơn", "Loại SP", "Khách Hàng", "Phân Loại KH",
+        "Sản Phẩm", "Số Lượng", "Đơn Giá", "Chiết Khấu/KM", "Thành Tiền",
+        "Khuyến Mãi", "Giao hàng", "Phần dư", "Tổng Đơn", "Ghi Chú"
+      ]);
+    }
+
+    if (action === 'add') {
+      const timestamp = new Date();
+      const orderId = 'ORD' + timestamp.getTime();
+      data.items.forEach((item, index) => {
+        sheet.appendRow([
+          timestamp, orderId, data.category, data.customer.name, data.customer.phan_loai,
+          item.name, item.quantity, item.unit_price, item.promo_note || "", item.subtotal,
+          item.promo_note || "", item.delivery_type || "", item.surplus || 0,
+          index === 0 ? data.total : "", data.notes || ""
+        ]);
+      });
+      return ContentService.createTextOutput(JSON.stringify({result: 'success', orderId: orderId})).setMimeType(ContentService.MimeType.JSON);
+    } 
+    
+    if (action === 'update_order') {
+      const values = sheet.getDataRange().getValues();
+      const orderId = data.orderId;
+      let found = false;
+      
+      // Xóa các dòng cũ của đơn này và ghi đè lại (hoặc cập nhật từng ô)
+      // Cách đơn giản nhất: Tìm dòng đầu tiên của OrderId, xóa hết các dòng có OrderId đó, rồi append lại
+      for (let i = values.length - 1; i >= 1; i--) {
+        if (values[i][1] === orderId) {
+          sheet.deleteRow(i + 1);
+          found = true;
+        }
+      }
+      
+      if (found) {
+        const timestamp = new Date(); // Giữ nguyên time cũ nếu cần, nhưng ở đây dùng time update
+        data.items.forEach((item, index) => {
+          sheet.appendRow([
+            timestamp, orderId, data.category, data.customer.name, data.customer.phan_loai,
+            item.name, item.quantity, item.unit_price, item.promo_note || "", item.subtotal,
+            item.promo_note || "", item.delivery_type || "", item.surplus || 0,
+            index === 0 ? data.total : "", data.notes || ""
+          ]);
+        });
+        return ContentService.createTextOutput(JSON.stringify({result: 'success'})).setMimeType(ContentService.MimeType.JSON);
+      }
+      return ContentService.createTextOutput(JSON.stringify({result: 'error', message: 'Order not found'})).setMimeType(ContentService.MimeType.JSON);
+    }
+
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({result: 'error', message: error.toString()})).setMimeType(ContentService.MimeType.JSON);
+  }
+}
