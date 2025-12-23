@@ -1,11 +1,8 @@
 name: Update Data from Google Drive
 
-# Cấu hình thời gian chạy
 on:
   schedule:
-    # Chạy tự động vào 23:30 giờ Việt Nam hàng ngày (16:30 UTC)
     - cron: '30 16 * * *'
-  # Cho phép nhấn nút chạy thủ công để test
   workflow_dispatch:
 
 permissions:
@@ -16,41 +13,28 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      # 1. Tải code hiện tại của kho về máy ảo
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Tạo thư mục data nếu chưa có
       - name: Create data directory
         run: mkdir -p data
 
-      # 3. Tải các file JSON từ Google Drive về thư mục data
       - name: Download JSONs from Drive
         run: |
-          # --- NHÓM 1: BẢNG GIÁ ---
           curl -L "https://drive.google.com/uc?export=download&id=1cnV5Z3t_EhYCff-DRwTD2MUuMlr51Ur8" -o data/gia_web_nano.json
           curl -L "https://drive.google.com/uc?export=download&id=1jO3hntZ2Oo2A4K6R57299U9mIBk80WyT" -o data/gia_silicon_weber.json
+          curl -L "https://drive.google.com/uc?export=download&id=1404085uVa15Hw10VGUp46b0zw0Rix35m" -o data/gia_khach_hang.json
           curl -L "https://drive.google.com/uc?export=download&id=1TSwe2cASzEBByFniu-YrMjLTGwz8WY4m" -o data/gia_duraflex.json
           curl -L "https://drive.google.com/uc?export=download&id=12vy8tSc7D32IMz8JUKxIHVbNxa2llnBi" -o data/chiet_khau_duraflex.json
-
-          # --- NHÓM 2: DỮ LIỆU KHÁCH HÀNG ---
-          curl -L "https://drive.google.com/uc?export=download&id=1404085uVa15Hw10VGUp46b0zw0Rix35m" -o data/gia_khach_hang.json
-
-          # --- NHÓM 3: LỊCH SỬ ĐƠN HÀNG (DỮ LIỆU TỰ ĐỘNG LƯU TRỮ HÀNG TUẦN) ---
           curl -L "https://drive.google.com/uc?export=download&id=1sN3hBnpc6UeYSgbKl_aqc6X0lJsBgJ-e" -o data/history_don_hang_duraflex.json
           curl -L "https://drive.google.com/uc?export=download&id=15kCzmqiq-J1bJ4dxNcw8TNUS2aQkjpNg" -o data/history_don_hang_pima.json
           curl -L "https://drive.google.com/uc?export=download&id=1mM9vzNxHoYQPKUfIea_Nw-EpY0GbRDbw" -o data/history_don_hang_weber.json
           curl -L "https://drive.google.com/uc?export=download&id=1dtmUKGVZdMjxvac0IFKp6jQwUqE0bmRE" -o data/history_order_counter.json
 
-      # 4. Kiểm tra thay đổi và cam kết (Commit) lên GitHub
       - name: Commit and Push changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Thêm tất cả file trong thư mục data
           git add data/
-          
-          # Commit nếu có thay đổi
-          git commit -m "chore: Auto-update history and price data from Google Drive" || echo "No changes to commit"
+          git commit -m "chore: Auto-update all data files including history" || echo "No changes to commit"
           git push
