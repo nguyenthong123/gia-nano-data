@@ -576,9 +576,48 @@
 					<span>Chiết khấu Duraflex:</span>
 					<span id="summaryDiscount">0 đ</span>
 				</div>
-				<div class="summary-row summary-total">
-					<span id="summaryTotalLabel">TỔNG CỘNG:</span>
-					<span id="summaryTotal">0 đ</span>
+				<!-- Duraflex Discount Options -->
+				<div id="duraflexDiscountOptions"
+					style="display: none; margin: 15px 0; border-top: 1px dashed #ddd; padding-top: 15px;">
+					<label
+						style="font-weight: 700; color: #1a8e44; display: block; margin-bottom: 10px; font-size: 0.9rem; text-align: center;">CHẾ
+						ĐỘ CHIẾT KHẤU DURAFLEX</label>
+					<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+						<button type="button" id="btnDiscountAuto" class="tab-btn active"
+							style="padding: 8px; font-size: 0.8rem;" onclick="setDiscountMode('auto')">KHUYẾN MÃI (TỰ
+							ĐỘNG)</button>
+						<button type="button" id="btnDiscountManual" class="tab-btn"
+							style="padding: 8px; font-size: 0.8rem;" onclick="setDiscountMode('manual')">KHUYẾN MÃI LINH
+							HOẠT</button>
+					</div>
+
+					<div id="duraflexAutoContainer">
+						<div id="duraflexPromoSelection"
+							style="padding: 12px; background: #f0fff0; border-radius: 12px; border: 1px solid #48d14d;">
+							<label
+								style="font-weight: 700; color: #1a8e44; display: block; margin-bottom: 5px; font-size: 0.85rem;">🎁
+								Khuyến mãi bổ sung (Duraflex):</label>
+							<select id="selectSpecialPromo" class="p-select" style="width: 100%;"
+								onchange="handleSpecialPromoChange()"></select>
+						</div>
+					</div>
+
+					<div id="duraflexManualContainer" style="display: none;">
+						<div
+							style="padding: 12px; background: #fff5f5; border-radius: 12px; border: 1px solid #ff7675;">
+							<label
+								style="font-weight: 700; color: #d63031; display: block; margin-bottom: 5px; font-size: 0.85rem;">✍️
+								Nhập số tiền chiết khấu mong muốn:</label>
+							<input type="text" id="inputFlexibleDiscount" class="p-price"
+								style="width: 100%; height: 40px; font-size: 1.1rem; text-align: right;"
+								placeholder="Vd: 500,000" oninput="handleFlexibleDiscountInput(this)">
+						</div>
+					</div>
+				</div>
+				<div class="summary-total"
+					style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 2px solid #eee;">
+					<span id="summaryTotalLabel" style="font-weight: 800; color: #2d3436;">TỔNG CỘNG:</span>
+					<span id="summaryTotal" style="font-weight: 800; color: #e67e22; font-size: 1.4rem;">0 đ</span>
 				</div>
 			</div>
 
@@ -605,8 +644,19 @@
 		// --- INITIALIZATION ---
 		let isEditMode = false;
 		let editOrderId = null;
+		let manualDiscountId = null; // Store manually selected promo ID for Duraflex
+		let duraflexDiscountMode = 'auto'; // 'auto' or 'manual'
+		let manualFlexibleDiscount = 0;
 
 		document.addEventListener('DOMContentLoaded', async () => {
+			// --- AUTH CHECK ---
+			const userData = JSON.parse(localStorage.getItem('userLoggedIn'));
+			if (!userData || userData.phan_loai !== 'ad mind') {
+				alert("Bạn không có quyền truy cập trang này!");
+				window.location.href = 'index.html';
+				return;
+			}
+
 			await loadInitialData();
 			setupCustomerSearch();
 
@@ -620,36 +670,82 @@
 		});
 
 		function setupEditMode(order) {
+			console.log('Setting up Edit Mode with Order:', order);
 			isEditMode = true;
 			editOrderId = order.id;
-			localStorage.removeItem('editingOrder'); // Xóa sau khi đã lấy dữ liệu
+			localStorage.removeItem('editingOrder');
 
 			document.querySelector('h1').innerText = "Chỉnh Sửa Đơn Hàng";
 			document.getElementById('submitOrderBtn').innerText = "CẬP NHẬT ĐƠN HÀNG";
 
 			// Select Customer
-			const cust = customers.find(c => c.name === order.customer);
-			if (cust) selectCustomer(cust.id_name);
+			const cust = customers.find(c =>
+				c.name.trim().toLowerCase() === (order.customer || '').trim().toLowerCase()
+			);
+			if (cust) {
+				selectCustomer(cust.id_name);
+			} else {
+				// Fallback: put the name in the input if not found in JSON
+				document.getElementById('customerInput').value = order.customer || '';
+			}
 
 			// Switch Tab
-			switchTab(order.category.toLowerCase());
+			const category = (order.category || 'weber').toLowerCase();
+			switchTab(category);
 
 			// Populate Items
-			const list = document.getElementById(`${currentTab}ItemList`);
+			const list = document.getElementById(`${category}ItemList`);
 			list.innerHTML = '';
 
 			order.items.forEach(item => {
-				const rowId = Date.now() + Math.random();
-				const row = createRowElement(currentTab, rowId);
+				const rowId = Math.floor(Date.now() + Math.random() * 1000);
+				const row = createRowElement(category, rowId);
 				list.appendChild(row);
 
 				const sel = row.querySelector('.p-select');
+				const itemName = (item.name || '').trim();
+				// Try to set value directly, if fails, search options
 				sel.value = item.name;
-				row.querySelector('.p-qty').value = item.qty;
-				updateRow(currentTab, rowId);
+				if (!sel.value && itemName) {
+					const options = Array.from(sel.options);
+					const matched = options.find(o => o.value.trim().toLowerCase() === itemName.toLowerCase());
+					if (matched) sel.value = matched.value;
+				}
+
+				row.querySelector('.p-qty').value = item.qty || item.quantity || 1;
+
+				if (category === 'pima') {
+					const hasSurplus = parseFloat(item.surplus || 0) > 0;
+					const isKho = hasSurplus || (item.delivery_type && item.delivery_type.toLowerCase().includes('kho'));
+					setDeliveryType(rowId, isKho ? 'kho' : 'chanh');
+				} else {
+					updateRow(category, rowId);
+				}
 			});
 
 			document.getElementById('orderNotes').value = order.notes || '';
+
+			// Restore Duraflex Discount Mode if applicable
+			if (category === 'duraflex') {
+				const savedCk = parseCurrency(order.discount_total || (order.items && order.items[0] ? order.items[0].promo : 0));
+				if (savedCk > 0) {
+					// Check what 'auto' would give
+					calculateTotals();
+					const autoCk = orderComputed.discountAmount;
+
+					// If the saved amount is different from auto, OR if we want to be safe,
+					// we can always switch to manual if a discount was explicitly saved.
+					// However, usually savedCk !== autoCk is the right trigger.
+					if (savedCk !== autoCk) {
+						duraflexDiscountMode = 'manual';
+						manualFlexibleDiscount = savedCk;
+						const input = document.getElementById('inputFlexibleDiscount');
+						if (input) input.value = formatCurrency(savedCk).replace(' đ', '');
+						setDiscountMode('manual');
+					}
+				}
+			}
+
 			calculateTotals();
 		}
 
@@ -710,7 +806,7 @@
 
 		function addItemRow(tab) {
 			const list = document.getElementById(`${tab}ItemList`);
-			const rowId = Date.now();
+			const rowId = Math.floor(Date.now() + Math.random() * 1000);
 			list.appendChild(createRowElement(tab, rowId));
 		}
 
@@ -824,12 +920,19 @@
 
 		function updateRow(tab, rowId) {
 			const row = document.getElementById(`row-${rowId}`);
-			const pName = row.querySelector('.p-select').value;
-			const qty = parseInt(row.querySelector('.p-qty').value) || 0;
+			if (!row) return;
+
+			const selectEl = row.querySelector('.p-select');
+			const qtyEl = row.querySelector('.p-qty');
 			const priceInput = row.querySelector('.p-price');
-			const promoDiv = row.querySelector(`#promo-${rowId}`);
 			const totalInput = row.querySelector('.p-total');
-			const infoGrid = row.querySelector(`#product-info-${rowId}`);
+			const promoDiv = document.getElementById(`promo-${rowId}`);
+			const infoGrid = document.getElementById(`product-info-${rowId}`);
+
+			if (!selectEl || !qtyEl || !priceInput || !totalInput) return;
+
+			const pName = selectEl.value;
+			const qty = parseInt(qtyEl.value) || 0;
 
 			if (!pName) {
 				priceInput.value = '';
@@ -842,7 +945,16 @@
 				return;
 			}
 
-			const product = products[tab].find(p => (p["tên sản phẩm"] || p["ten_sp"] || p["Tên sản phẩm"]) === pName);
+			const product = products[tab].find(p => {
+				const name = (p["tên sản phẩm"] || p["ten_sp"] || p["Tên sản phẩm"] || '').toString().trim().toLowerCase();
+				return name === pName.trim().toLowerCase();
+			});
+
+			if (!product) {
+				console.warn("Product not found:", pName);
+				return;
+			}
+
 			let unitPrice = 0;
 			let promoText = '';
 			let productInfoHTML = '';
@@ -991,25 +1103,48 @@
 			let finalTotal = total; // Default to total
 
 			if (currentTab === 'duraflex') {
-				// choose the best discount where gói chiết khấu theo kiện <= totalKien
-				const applied = duraflexDiscounts.filter(d => parseInt(d["gói chiết khấu theo kiện"] || '0') <= Math.floor(totalKien));
-				let ckAmount = 0;
-				if (applied && applied.length) {
-					const best = applied.reduce((a, b) => parseInt(a["gói chiết khấu theo kiện"] || 0) > parseInt(b["gói chiết khấu theo kiện"] || 0) ? a : b);
-					ckAmount = parseInt(best["số tiền chiết khấu"] || 0) || 0;
+				const discountOptions = document.getElementById('duraflexDiscountOptions');
+				if (discountOptions) discountOptions.style.display = 'block';
+
+				let totalCk = 0;
+
+				if (duraflexDiscountMode === 'auto') {
+					// 1. Auto Discount (Numeric packages only)
+					const numericDiscounts = duraflexDiscounts.filter(d => /^[0-9]+$/.test(String(d["gói chiết khấu theo kiện"]).trim()));
+					const applied = numericDiscounts.filter(d => parseInt(d["gói chiết khấu theo kiện"] || '0') <= Math.floor(totalKien));
+
+					let autoCk = 0;
+					if (applied && applied.length) {
+						const best = applied.reduce((a, b) => parseInt(a["gói chiết khấu theo kiện"] || 0) > parseInt(b["gói chiết khấu theo kiện"] || 0) ? a : b);
+						autoCk = parseInt(best["số tiền chiết khấu"] || 0) || 0;
+					}
+
+					// 2. Special/Manual Promotions (Text based)
+					const specialPromos = duraflexDiscounts.filter(d => !/^[0-9]+$/.test(String(d["gói chiết khấu theo kiện"]).trim()));
+					updateSpecialPromoDropdown(specialPromos);
+
+					let manualPromoCk = 0;
+					if (manualDiscountId) {
+						const chosen = specialPromos.find(d => String(d["gói chiết khấu theo kiện"]) === manualDiscountId);
+						if (chosen) manualPromoCk = parseInt(chosen["số tiền chiết khấu"] || 0);
+					}
+					totalCk = autoCk + manualPromoCk;
+				} else {
+					// Flexible/Manual Mode
+					totalCk = manualFlexibleDiscount;
 				}
 
 				orderComputed.totalPackages = totalKien;
-				orderComputed.discountAmount = ckAmount;
-				orderComputed.totalAfterDiscount = total - ckAmount;
+				orderComputed.discountAmount = totalCk;
+				orderComputed.totalAfterDiscount = total - totalCk;
 
-				if (ckAmount > 0) {
+				if (totalCk > 0) {
 					grossRow.style.display = 'flex';
 					discountRow.style.display = 'flex';
 					document.getElementById('summaryGross').innerText = formatCurrency(total);
-					document.getElementById('summaryDiscount').innerText = `- ${formatCurrency(ckAmount)}`;
+					document.getElementById('summaryDiscount').innerText = `- ${formatCurrency(totalCk)}`;
 					totalLabel.innerText = "SỐ TIỀN CÒN LẠI:";
-					finalTotal = total - ckAmount;
+					finalTotal = total - totalCk;
 				} else {
 					grossRow.style.display = 'none';
 					discountRow.style.display = 'none';
@@ -1051,19 +1186,91 @@
 				finalTotal = total;
 			}
 
+			// If not duraflex, hide options
+			if (currentTab !== 'duraflex') {
+				const opts = document.getElementById('duraflexDiscountOptions');
+				if (opts) opts.style.display = 'none';
+			}
+
 			console.log('Final total to display:', finalTotal); // Debug
 			document.getElementById('summaryTotal').innerText = formatCurrency(finalTotal > 0 ? finalTotal : 0);
 		}
 
 		// --- HELPERS ---
 		function formatCurrency(num) {
-			if (!num) return "";
+			if (num === 0) return "0 đ";
+			if (!num || isNaN(num)) return "";
 			return new Intl.NumberFormat('vi-VN').format(num) + ' đ';
 		}
 
 		function parseCurrency(str) {
 			if (!str) return 0;
 			return parseInt(str.toString().replace(/[^0-9]/g, '')) || 0;
+		}
+
+		function handleSpecialPromoChange() {
+			const sel = document.getElementById('selectSpecialPromo');
+			manualDiscountId = sel.value === "none" ? null : sel.value;
+			calculateTotals();
+		}
+
+		function setDiscountMode(mode) {
+			duraflexDiscountMode = mode;
+			const btnAuto = document.getElementById('btnDiscountAuto');
+			const btnManual = document.getElementById('btnDiscountManual');
+			const containerAuto = document.getElementById('duraflexAutoContainer');
+			const containerManual = document.getElementById('duraflexManualContainer');
+
+			if (mode === 'auto') {
+				btnAuto.classList.add('active');
+				btnManual.classList.remove('active');
+				containerAuto.style.display = 'block';
+				containerManual.style.display = 'none';
+			} else {
+				btnAuto.classList.remove('active');
+				btnManual.classList.add('active');
+				containerAuto.style.display = 'none';
+				containerManual.style.display = 'block';
+
+				// Initialize manual discount with auto discount if currently 0
+				if (manualFlexibleDiscount === 0) {
+					manualFlexibleDiscount = orderComputed.discountAmount || 0;
+					const input = document.getElementById('inputFlexibleDiscount');
+					if (input) input.value = formatCurrency(manualFlexibleDiscount).replace(' đ', '');
+				}
+			}
+			calculateTotals();
+		}
+
+		function handleFlexibleDiscountInput(el) {
+			const raw = el.value.replace(/[^0-9]/g, '');
+			manualFlexibleDiscount = parseInt(raw) || 0;
+			el.value = formatCurrency(manualFlexibleDiscount).replace(' đ', '');
+			calculateTotals();
+		}
+
+		function updateSpecialPromoDropdown(promos) {
+			const container = document.getElementById('duraflexPromoSelection');
+			const select = document.getElementById('selectSpecialPromo');
+
+			if (currentTab !== 'duraflex' || promos.length === 0) {
+				container.style.display = 'none';
+				return;
+			}
+
+			container.style.display = 'block';
+
+			// Keep current selection if valid
+			const currentVal = select.value;
+
+			let html = '<option value="none">-- Không chọn khuyến mãi bổ sung --</option>';
+			promos.forEach(p => {
+				const id = String(p["gói chiết khấu theo kiện"]);
+				const amount = parseInt(p["số tiền chiết khấu"] || 0);
+				html += `<option value="${id}" ${id === manualDiscountId ? 'selected' : ''}>${id} (-${formatCurrency(amount)})</option>`;
+			});
+
+			select.innerHTML = html;
 		}
 
 		// --- SUBMISSION ---

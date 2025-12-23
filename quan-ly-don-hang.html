@@ -771,7 +771,8 @@
 				<!-- Logged in user info will be injected here -->
 			</div>
 			<div style="display: flex; gap: 12px; align-items:center;">
-				<a href="len-don.html" class="btn btn-success">+ TẠO ĐƠN MỚI</a>
+				<a href="len-don.html" id="btnCreateOrder" class="btn btn-success" style="display: none;">+ TẠO ĐƠN
+					MỚI</a>
 				<a href="index.html" class="btn btn-primary">TRANG CHỦ</a>
 				<div style="width:12px"></div>
 				<div id="categoryButtons" style="display:flex;gap:8px;">
@@ -817,6 +818,14 @@
 				<div style="font-weight: 700; color: #2d3436;">${userData.name}</div>
 				<div style="color: #d63031; cursor: pointer; text-decoration: underline;" onclick="logout()">Đăng xuất</div>
 			`;
+
+			// Show create order button only for ad mind
+			const createBtn = document.getElementById('btnCreateOrder');
+			if (userData.phan_loai === 'ad mind') {
+				createBtn.style.display = 'inline-flex';
+			} else {
+				createBtn.style.display = 'none';
+			}
 		}
 
 		function logout() {
@@ -919,15 +928,24 @@
 						Promise.all(historyFetches)
 					]);
 
+					const liveIds = new Set();
 					sheetResults.forEach(txt => {
 						const parsed = csvToJson(txt);
-						parsed.forEach(r => r._isHistory = false);
+						parsed.forEach(r => {
+							r._isHistory = false;
+							const id = getRowValue(r, ["Mã Đơn", "Mã đơn", "Ma Don", "Ma don"]);
+							if (id) liveIds.add(id);
+						});
 						rows = rows.concat(parsed);
 					});
 
 					historyResults.forEach(hData => {
-						hData.forEach(r => r._isHistory = true);
-						rows = rows.concat(hData);
+						const filtered = hData.filter(r => {
+							const id = getRowValue(r, ["Mã Đơn", "Mã đơn", "Ma Don", "Ma don"]);
+							return !liveIds.has(id);
+						});
+						filtered.forEach(r => r._isHistory = true);
+						rows = rows.concat(filtered);
 					});
 
 					// Filter by logged in user
@@ -1003,12 +1021,14 @@
 					const csvText = await res.text();
 					const sheetRows = csvToJson(csvText);
 					sheetRows.forEach(r => r._isHistory = false);
+					const liveIds = new Set(sheetRows.map(r => getRowValue(r, ["Mã Đơn", "Mã đơn"])));
 
 					let historyRows = [];
 					try {
 						const hRes = await fetch(`data/history_don_hang_${category}.json`);
 						if (hRes.ok) {
-							historyRows = await hRes.json();
+							const hData = await hRes.json();
+							historyRows = hData.filter(r => !liveIds.has(getRowValue(r, ["Mã Đơn", "Mã đơn"])));
 							historyRows.forEach(r => r._isHistory = true);
 						}
 					} catch (e) {
@@ -1116,6 +1136,9 @@
                 <tbody>
         `;
 
+			const userData = JSON.parse(localStorage.getItem('userLoggedIn'));
+			const isAdmin = userData && userData.phan_loai === 'ad mind';
+
 			orders.forEach(order => {
 				const catClass = `cat-${(order.category || 'pima')}`;
 				const displayCat = order.category_display || (order.category ? order.category.toUpperCase() : 'PIMA');
@@ -1130,9 +1153,9 @@
                     </td>
                     <td data-label="Tổng cộng" style="font-weight: 800; color: #e67e22; font-size: 1.1rem;">${formatCurrency(order.total || 0)}</td>
                      <td class="actions">
-						<button class="btn btn-primary" style="padding: 6px 14px; font-size: 0.8rem; ${order._isHistory ? 'width:100%' : ''}" onclick='viewInvoice(${JSON.stringify(order)})'>XEM</button>
-						${!order._isHistory ? `
-						<button class="btn btn-warning" style="padding: 6px 14px; font-size: 0.8rem; background: #f39c12; color: white; border:none; border-radius:10px; cursor:pointer;" onclick='editOrder(${JSON.stringify(order)})'>SỬA</button>
+						<button class="btn btn-primary" style="padding: 6px 14px; font-size: 0.8rem; ${order._isHistory || !isAdmin ? 'width:100%' : ''}" onclick='viewInvoice(${JSON.stringify(order).replace(/'/g, "&apos;")})'>XEM</button>
+						${(!order._isHistory && isAdmin) ? `
+						<button class="btn btn-warning" style="padding: 6px 14px; font-size: 0.8rem; background: #f39c12; color: white; border:none; border-radius:10px; cursor:pointer;" onclick='editOrder(${JSON.stringify(order).replace(/'/g, "&apos;")})'>SỬA</button>
 						<button class="btn btn-danger" style="padding: 6px 14px; font-size: 0.8rem; background: #e74c3c; color: white; border:none; border-radius:10px; cursor:pointer;" onclick='deleteOrder("${order.id}", "${order.category}")'>XÓA</button>
 						` : ''}
                     </td>
@@ -1174,13 +1197,16 @@
 					}
 				});
 
+				const userData = JSON.parse(localStorage.getItem('userLoggedIn'));
+				const isAdmin = userData && userData.phan_loai === 'ad mind';
+
 				// Add a simplified order object for the modal
 				const orderObj = { id: row["Mã Đơn"] || row["Mã đơn"], time: row["Thời gian"], customer: row["Khách Hàng"], category: category };
 				html += `
 					<td class="actions">
-						<button class="btn btn-primary" style="padding: 5px 10px; font-size: 0.75rem; ${row._isHistory ? 'width:100%' : ''}" onclick='viewInvoiceFromId("${row["Mã Đơn"] || row["Mã đơn"]}", "${category}")'>XEM</button>
-						${!row._isHistory ? `
-						<button class="btn btn-warning" style="padding: 5px 10px; font-size: 0.75rem; background: #f39c12; color: white; border:none; border-radius:10px; cursor:pointer;" onclick='editOrderFromRow(${JSON.stringify(row)}, "${category}")'>SỬA</button>
+						<button class="btn btn-primary" style="padding: 5px 10px; font-size: 0.75rem; ${row._isHistory || !isAdmin ? 'width:100%' : ''}" onclick='viewInvoiceFromId("${row["Mã Đơn"] || row["Mã đơn"]}", "${category}")'>XEM</button>
+						${(!row._isHistory && isAdmin) ? `
+						<button class="btn btn-warning" style="padding: 5px 10px; font-size: 0.75rem; background: #f39c12; color: white; border:none; border-radius:10px; cursor:pointer;" onclick='editOrderFromRow(${JSON.stringify(row).replace(/'/g, "&apos;")}, "${category}")'>SỬA</button>
 						<button class="btn btn-danger" style="padding: 5px 10px; font-size: 0.75rem; background: #e74c3c; color: white; border:none; border-radius:10px; cursor:pointer;" onclick='deleteOrder("${row["Mã Đơn"] || row["Mã đơn"]}", "${category}")'>XÓA</button>
 						` : ''}
 					</td>
@@ -1196,11 +1222,15 @@
 			const res = await fetch(`${SCRIPT_URL}?category=${encodeURIComponent(category)}`);
 			const csvText = await res.text();
 			const sheetRows = csvToJson(csvText);
+			const liveIds = new Set(sheetRows.map(r => getRowValue(r, ["Mã Đơn", "Mã đơn"])));
 
 			let historyRows = [];
 			try {
 				const hRes = await fetch(`data/history_don_hang_${category}.json`);
-				if (hRes.ok) historyRows = await hRes.json();
+				if (hRes.ok) {
+					const hData = await hRes.json();
+					historyRows = hData.filter(r => !liveIds.has(getRowValue(r, ["Mã Đơn", "Mã đơn"])));
+				}
 			} catch (e) { }
 
 			const allRows = sheetRows.concat(historyRows);
@@ -1231,17 +1261,18 @@
 					qty: getRowValue(r, ["Số Lượng", "So Luong", "Số lượng"]),
 					price: getRowValue(r, ["Đơn Giá", "Don Gia", "Đơn giá"]),
 					subtotal: getRowValue(r, ["Thành Tiền", "Thanh Tien", "Thành tiền"]),
-					promo: getRowValue(r, ["số tiền chiết khấu kiện", "Chiết Khấu"]),
-					delivery_type: getRowValue(r, ["Giao hàng"]),
+					promo: getRowValue(r, ["số tiền chiết khấu kiện", "chiết khấu kiện", "Chiết Khấu", "Chiet Khau", "discount_amount"]),
+					delivery_type: getRowValue(r, ["Giao hàng", "Delivery"]),
 					surplus: parseCurrency(getRowValue(r, ["hỗ trợ", "vận chuyển", "tiền hỗ trợ", "phần dư", "surplus"]))
 				}))
 			};
 
 			// Calculate totals properly for the modal
 			if (category === 'pima') {
-				order.total = parseCurrency(first["số tiền còn lại trong đơn"] || 0);
+				order.total = parseCurrency(getRowValue(first, ["số tiền còn lại trong đơn", "Tổng cộng", "Total"]));
 			} else if (category === 'duraflex') {
-				order.total = parseCurrency(first["số tiền còn lại trong đơn"] || 0);
+				order.total = parseCurrency(getRowValue(first, ["số tiền còn lại trong đơn", "Tổng cộng", "Total"]));
+				order.discount_total = parseCurrency(getRowValue(first, ["số tiền chiết khấu kiện", "chiết khấu kiện", "Chiết Khấu", "Chiet Khau"]));
 			} else {
 				order.total = orderRows.reduce((sum, r) => sum + parseCurrency(r["Thành Tiền"] || 0), 0);
 			}
@@ -1250,6 +1281,7 @@
 		}
 
 		function formatCurrency(num) {
+			if (num === null || num === undefined || isNaN(num)) return "0 đ";
 			return new Intl.NumberFormat('vi-VN').format(num) + ' đ';
 		}
 
@@ -1338,42 +1370,64 @@
 						let computedSurplus = 0;
 						let computedPackages = 0;
 						let computedBoxes = 0;
-						let computedDiff = 0; // for pima kho diff
+						let computedDiff = 0;
+
+						// Pre-check for Duraflex discount derivation
+						if (catNorm === 'duraflex') {
+							let estimatedGross = 0;
+							order.items.forEach(item => {
+								let up = parseCurrency(item.price || item.unit_price || 0);
+								if (duraflexData) {
+									const nameLower = (item.name || '').toString().toLowerCase();
+									const found = duraflexData.find(p => (p["Tên sản phẩm"] || '').toString().toLowerCase().includes(nameLower) || nameLower.includes((p["Tên sản phẩm"] || '').toString().toLowerCase()));
+									if (found) up = parseCurrency(found["giá niêm yết"] || up);
+								}
+								estimatedGross += up * (parseInt(item.qty || item.quantity || 0) || 0);
+							});
+							const currentTotal = parseInt(order.total || 0);
+							const currentSavedCk = parseCurrency(order.discount_total || (order.items && order.items[0] ? order.items[0].promo : 0));
+
+							if (currentSavedCk === 0 && currentTotal > 0 && currentTotal < estimatedGross) {
+								order.discount_total = estimatedGross - currentTotal;
+								console.log('Derived missing discount:', order.discount_total);
+							}
+						}
 
 						order.items.forEach((item, index) => {
 							const tr = document.createElement('tr');
 							const qty = parseInt(item.qty || item.quantity || 0) || 0;
-							let unitPrice = parseInt(item.price || item.unit_price || 0) || 0;
+							let unitPrice = parseCurrency(item.price || item.unit_price || 0) || 0;
 							let promoAmount = 0;
-							let lineSubtotal = parseInt(item.subtotal || 0) || unitPrice * qty;
+							let lineSubtotal = parseCurrency(item.subtotal || 0) || (unitPrice * qty);
 
-							if (catNorm === 'duraflex' && duraflexData) {
-								const nameLower = (item.name || '').toString().toLowerCase();
-								const found = duraflexData.find(p => (p["Tên sản phẩm"] || '').toString().toLowerCase().includes(nameLower) || nameLower.includes((p["Tên sản phẩm"] || '').toString().toLowerCase()));
-								if (found) {
-									const listed = parseInt((found["giá niêm yết"] || '').toString().replace(/[^0-9]/g, '')) || unitPrice;
-									unitPrice = listed;
-									const perPackage = parseInt((found["số tấm trong 1 kiện"] || '').toString().replace(/[^0-9]/g, '')) || 1;
-									const packages = Math.floor(qty / perPackage);
+							if (catNorm === 'duraflex') {
+								// Trust the value already extracted into item.promo or order.discount_total
+								let rawPromo = parseCurrency(item.promo || order.discount_total);
+
+								if (index === 0) {
+									promoAmount = rawPromo;
+								} else {
+									// If it's the same total repeated, don't double count
 									promoAmount = 0;
-									if (chietKhauData && packages > 0) {
-										const applicable = chietKhauData.filter(t => parseInt(t["gói chiết khấu theo kiện"] || '0') <= packages);
-										if (applicable && applicable.length) {
-											const best = applicable.reduce((a, b) => parseInt(a["gói chiết khấu theo kiện"]) > parseInt(b["gói chiết khấu theo kiện"]) ? a : b);
-											const perPackageDiscount = parseInt((best["số tiền chiết khấu"] || '0').toString().replace(/[^0-9]/g, '')) || 0;
-											promoAmount = perPackageDiscount * packages;
-										}
-									}
-									lineSubtotal = unitPrice * qty - promoAmount;
-									computedDiscount += promoAmount;
-									computedPackages += packages;
 								}
+
+								if (duraflexData) {
+									const nameLower = (item.name || '').toString().toLowerCase();
+									const found = duraflexData.find(p => (p["Tên sản phẩm"] || '').toString().toLowerCase().includes(nameLower) || nameLower.includes((p["Tên sản phẩm"] || '').toString().toLowerCase()));
+									if (found) {
+										unitPrice = parseCurrency(found["giá niêm yết"] || unitPrice);
+										const perPackage = parseCurrency(found["số tấm trong 1 kiện"] || 1);
+										computedPackages += Math.floor(qty / perPackage);
+									}
+								}
+								lineSubtotal = unitPrice * qty - promoAmount;
+								computedDiscount += promoAmount;
 							} else if (catNorm === 'weber' && weberData) {
 								const nameLower = (item.name || '').toString().toLowerCase();
 								const found = weberData.find(p => (p['tên sản phẩm'] || '').toString().toLowerCase().includes(nameLower) || nameLower.includes((p['tên sản phẩm'] || '').toString().toLowerCase()));
 								if (found) {
-									const bottlesPerBox = parseInt((found['số chai trong 1 thùng'] || '').toString().replace(/[^0-9]/g, '')) || 1;
-									const listedUnit = parseInt((found['giá niêm yết theo chai'] || found['giá bán lẻ theo chai'] || '').toString().replace(/[^0-9]/g, '')) || unitPrice;
+									const bottlesPerBox = parseCurrency(found['số chai trong 1 thùng'] || 1);
+									const listedUnit = parseCurrency(found['giá niêm yết theo chai'] || found['giá bán lẻ theo chai'] || unitPrice);
 									unitPrice = listedUnit;
 									const boxes = Math.floor(qty / bottlesPerBox);
 									let promoText = '';
@@ -1395,8 +1449,8 @@
 								const nameLower = (item.name || '').toString().toLowerCase();
 								const found = pimaData.find(p => (p['tên sản phẩm'] || '').toString().toLowerCase().includes(nameLower) || nameLower.includes((p['tên sản phẩm'] || '').toString().toLowerCase()));
 								if (found) {
-									const priceKho = parseInt(found['giá tại kho'] || 0) || 0;
-									const priceChanh = parseInt(found['giá ra chành'] || 0) || unitPrice;
+									const priceKho = parseCurrency(found['giá tại kho'] || 0) || 0;
+									const priceChanh = parseCurrency(found['giá ra chành'] || unitPrice);
 									if ((item.delivery_type || '').toString().toLowerCase().includes('tại kho') || (item.delivery_type || '').toString().toLowerCase().includes('tai kho')) {
 										unitPrice = priceKho || unitPrice;
 										const diff = (priceChanh - unitPrice) * qty;
@@ -1409,7 +1463,7 @@
 							}
 
 							computedGross += lineSubtotal;
-							computedSurplus += parseInt(item.surplus || 0);
+							computedSurplus += parseCurrency(item.surplus || 0);
 
 							// Column 5 decision logic
 							let column5Content = '-';
@@ -1437,27 +1491,33 @@
 						});
 
 						// After loop, handle category-specific summary population
-						if (catNorm === 'pima') {
-							setText('#summaryTransportSupport', formatCurrency(computedSurplus));
-							setText('#summaryOrderTotal', formatCurrency(computedGross + computedSurplus));
-							setText('#summaryTotal', formatCurrency(parseInt(order.total || 0) || computedGross));
-						} else if (catNorm === 'duraflex') {
+						let finalDisplayTotal = parseCurrency(order.total || 0) || computedGross;
+
+						if (catNorm === 'duraflex') {
+							// Safety check: if discount is 0 but total is lower than gross, derive the discount
+							if (computedDiscount === 0 && finalDisplayTotal < (computedGross + computedDiscount)) {
+								computedDiscount = (computedGross + computedDiscount) - finalDisplayTotal;
+							}
+
 							setText('#summaryTotalPackages', computedPackages);
 							setText('#summaryGross', formatCurrency(computedGross + computedDiscount));
 							setText('#summaryDiscount', `- ${formatCurrency(computedDiscount)}`);
-							setText('#summaryTotal', formatCurrency(parseInt(order.total || 0) || computedGross));
+							setText('#summaryTotal', formatCurrency(finalDisplayTotal));
+						} else if (catNorm === 'pima') {
+							setText('#summaryTransportSupport', formatCurrency(computedSurplus));
+							setText('#summaryOrderTotal', formatCurrency(computedGross + computedSurplus));
+							setText('#summaryTotal', formatCurrency(finalDisplayTotal));
 						} else if (catNorm === 'weber') {
 							setText('#summaryTotalBoxes', computedBoxes);
-							setText('#summaryTotal', formatCurrency(parseInt(order.total || 0) || computedGross));
+							setText('#summaryTotal', formatCurrency(finalDisplayTotal));
 						} else {
-							// default summary for weber/pima
-							setText('#summaryTotal', formatCurrency(parseInt(order.total || 0) || computedGross));
+							setText('#summaryTotal', formatCurrency(finalDisplayTotal));
 						}
 					}
 				}
 
 				// Summary
-				const total = parseInt(order.total || 0);
+				const total = parseCurrency(order.total || 0);
 				const summaryEl = clone.querySelector('#summaryTotal');
 				if (summaryEl) summaryEl.textContent = formatCurrency(total);
 
@@ -1565,9 +1625,21 @@
 			let summaryHTML = '';
 
 			if (catNorm === 'duraflex') {
+				const discount = parseInt(order.discount_total || order.items.reduce((sum, i) => sum + parseInt(i.promo || 0), 0) || 0);
+				const gross = total + discount;
 				summaryHTML = `
+					<div class="summary-row">
+						<span>Tổng giá trị niêm yết:</span>
+						<span>${formatCurrency(gross)}</span>
+					</div>
+					${discount > 0 ? `
+					<div class="summary-row" style="color: #27ae60; font-weight: 700;">
+						<span>Tổng chiết khấu:</span>
+						<span>- ${formatCurrency(discount)}</span>
+					</div>
+					` : ''}
 					<div class="summary-row total">
-						<span>TỔNG CỘNG:</span>
+						<span>${discount > 0 ? 'SỐ TIỀN CÒN LẠI:' : 'TỔNG CỘNG:'}</span>
 						<span>${formatCurrency(total)}</span>
 					</div>
 				`;
@@ -1853,17 +1925,18 @@
 			const first = orderRows[0];
 			const order = {
 				id: orderId,
-				time: getRowValue(first, ["Thời gian"]),
-				customer: getRowValue(first, ["Khách Hàng"]),
+				time: getRowValue(first, ["Thời gian", "Thoi gian"]),
+				customer: getRowValue(first, ["Khách Hàng", "Khach Hang"]),
 				category: category,
-				notes: getRowValue(first, ["Ghi Chú", "ghi chú"]),
+				notes: getRowValue(first, ["Ghi Chú", "Ghi chú", "ghi chú", "ghi chú đơn hàng"]),
 				items: orderRows.map(r => ({
-					name: getRowValue(r, ["Sản Phẩm"]),
-					qty: getRowValue(r, ["Số Lượng"]),
-					price: getRowValue(r, ["Đơn Giá"]),
-					subtotal: getRowValue(r, ["Thành Tiền"]),
-					surplus: getRowValue(r, ["tiền hỗ trợ vận chuyển", "hỗ trợ"])
-				}))
+					name: getRowValue(r, ["Sản Phẩm", "San Pham", "Sản phẩm"]),
+					qty: getRowValue(r, ["Số Lượng", "So Luong", "Số lượng"]),
+					subtotal: getRowValue(r, ["Thành Tiền", "Thanh Tien", "Thành tiền"]),
+					promo: getRowValue(r, ["số tiền chiết khấu kiện", "chiết khấu kiện", "Chiết Khấu", "Chiet Khau", "discount_amount"]),
+					surplus: getRowValue(r, ["tiền hỗ trợ vận chuyển", "hỗ trợ", "tiền hỗ trợ", "phần dư", "surplus"])
+				})),
+				discount_total: getRowValue(first, ["số tiền chiết khấu kiện", "chiết khấu kiện", "Chiết Khấu", "Chiet Khau", "tiền chiết khấu", "số tiền chiết khấu"])
 			};
 			editOrder(order);
 		}

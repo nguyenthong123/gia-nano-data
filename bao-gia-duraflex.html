@@ -1050,8 +1050,9 @@
 				<form id="discountForm" onsubmit="submitForm(event, 'discount')">
 					<input type="hidden" id="d_id_old" name="id_old">
 					<div class="form-group">
-						<label>Gói chiết khấu theo kiện</label>
-						<input type="number" id="d_pack" name="gói chiết khấu theo kiện" class="form-input" required>
+						<label>Gói chiết khấu theo kiện (hoặc Tên khuyến mãi)</label>
+						<input type="text" id="d_pack" name="gói chiết khấu theo kiện" class="form-input" required
+							placeholder="Vd: 5 hoặc 20 bọc vít">
 					</div>
 					<div class="form-group">
 						<label>% chiết khấu</label>
@@ -1419,13 +1420,22 @@
 						['TRUE', 'CÓ', 'X'].includes(discountValue.toUpperCase().trim()));
 
 				if (selectedDiscount && isDiscountable) {
-					const disTotal = parseVN(selectedDiscount["chiết khấu công bố"]);
-					const k = parseVN(selectedDiscount["gói chiết khấu theo kiện"]);
-					const unitsPerPack = parseVN(item["số tấm trong 1 kiện"]);
+					const packVal = selectedDiscount["gói chiết khấu theo kiện"];
+					// Chỉ tính toán giá Net nếu gói chiết khấu là con số (kiện)
+					const isNumericPack = /^[0-9]+$/.test(String(packVal).trim());
 
-					if (unitsPerPack > 0 && k > 0) {
-						const deductionPerUnit = disTotal / (unitsPerPack * k);
-						finalPrice = Math.round(originalPrice - deductionPerUnit);
+					if (isNumericPack) {
+						const disTotal = parseVN(selectedDiscount["chiết khấu công bố"]);
+						const k = parseVN(packVal);
+						const unitsPerPack = parseVN(item["số tấm trong 1 kiện"]);
+
+						if (unitsPerPack > 0 && k > 0) {
+							const deductionPerUnit = disTotal / (unitsPerPack * k);
+							finalPrice = Math.round(originalPrice - deductionPerUnit);
+						}
+					} else {
+						// Nếu là khuyến mãi chữ (Vd: 20 bọc vít), giữ nguyên giá niêm yết ở bảng xem trước
+						finalPrice = originalPrice;
 					}
 				} else if (selectedPackageId === "0") {
 					if (retailType === "thợ thầu") {
