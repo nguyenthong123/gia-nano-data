@@ -27,20 +27,20 @@ jobs:
       # 3. Tải các file JSON từ Google Drive về thư mục data
       - name: Download JSONs from Drive
         run: |
-          # File 1: Bảng giá Nano Pima
+          # --- NHÓM 1: BẢNG GIÁ ---
           curl -L "https://drive.google.com/uc?export=download&id=1cnV5Z3t_EhYCff-DRwTD2MUuMlr51Ur8" -o data/gia_web_nano.json
-          
-          # File 2: Bảng giá Silicon Weber
           curl -L "https://drive.google.com/uc?export=download&id=1jO3hntZ2Oo2A4K6R57299U9mIBk80WyT" -o data/gia_silicon_weber.json
+          curl -L "https://drive.google.com/uc?export=download&id=1TSwe2cASzEBByFniu-YrMjLTGwz8WY4m" -o data/gia_duraflex.json
+          curl -L "https://drive.google.com/uc?export=download&id=12vy8tSc7D32IMz8JUKxIHVbNxa2llnBi" -o data/chiet_khau_duraflex.json
 
-          # File 3: Dữ liệu khách hàng
+          # --- NHÓM 2: DỮ LIỆU KHÁCH HÀNG ---
           curl -L "https://drive.google.com/uc?export=download&id=1404085uVa15Hw10VGUp46b0zw0Rix35m" -o data/gia_khach_hang.json
 
-          # File 4: Bảng giá Duraflex
-          curl -L "https://drive.google.com/uc?export=download&id=1TSwe2cASzEBByFniu-YrMjLTGwz8WY4m" -o data/gia_duraflex.json
-
-          # File 5: Chiết khấu Duraflex
-          curl -L "https://drive.google.com/uc?export=download&id=12vy8tSc7D32IMz8JUKxIHVbNxa2llnBi" -o data/chiet_khau_duraflex.json
+          # --- NHÓM 3: LỊCH SỬ ĐƠN HÀNG (DỮ LIỆU TỰ ĐỘNG LƯU TRỮ HÀNG TUẦN) ---
+          curl -L "https://drive.google.com/uc?export=download&id=1sN3hBnpc6UeYSgbKl_aqc6X0lJsBgJ-e" -o data/history_don_hang_duraflex.json
+          curl -L "https://drive.google.com/uc?export=download&id=15kCzmqiq-J1bJ4dxNcw8TNUS2aQkjpNg" -o data/history_don_hang_pima.json
+          curl -L "https://drive.google.com/uc?export=download&id=1mM9vzNxHoYQPKUfIea_Nw-EpY0GbRDbw" -o data/history_don_hang_weber.json
+          curl -L "https://drive.google.com/uc?export=download&id=1dtmUKGVZdMjxvac0IFKp6jQwUqE0bmRE" -o data/history_order_counter.json
 
       # 4. Kiểm tra thay đổi và cam kết (Commit) lên GitHub
       - name: Commit and Push changes
@@ -52,5 +52,5 @@ jobs:
           git add data/
           
           # Commit nếu có thay đổi
-          git commit -m "chore: Auto-update data files from Google Drive" || echo "No changes to commit"
+          git commit -m "chore: Auto-update history and price data from Google Drive" || echo "No changes to commit"
           git push
