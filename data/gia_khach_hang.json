@@ -3676,5 +3676,17 @@
     "name": "Lộc phát",
     "phan_loai": "Cửa hàng weber",
     "mail": ""
+  },
+  {
+    "id_name": "bdd609d9",
+    "name": "Điện nước nhật quang",
+    "phan_loai": "Cửa hàng keo dán gach",
+    "mail": ""
+  },
+  {
+    "id_name": "37a1acc8",
+    "name": "Thái bình",
+    "phan_loai": "Cửa hàng keo dán gach",
+    "mail": ""
   }
 ]
