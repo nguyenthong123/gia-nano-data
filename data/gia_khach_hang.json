@@ -3688,5 +3688,53 @@
     "name": "Thái bình",
     "phan_loai": "Cửa hàng keo dán gach",
     "mail": ""
+  },
+  {
+    "id_name": "2dc8472f",
+    "name": "Thành điện nước",
+    "phan_loai": "Cửa hàng keo dán gach",
+    "mail": ""
+  },
+  {
+    "id_name": "e8cf66b6",
+    "name": "Tân quyên",
+    "phan_loai": "Cửa hàng keo dán gach",
+    "mail": ""
+  },
+  {
+    "id_name": "1079dfb5",
+    "name": "Đơn nháp",
+    "phan_loai": "cửa hàng",
+    "mail": ""
+  },
+  {
+    "id_name": "9f4bcd98",
+    "name": "Nhôm kính hữu nam",
+    "phan_loai": "Cửa hàng weber",
+    "mail": ""
+  },
+  {
+    "id_name": "b81e9c06",
+    "name": "Điện nước lộc phát",
+    "phan_loai": "Cửa hàng weber",
+    "mail": ""
+  },
+  {
+    "id_name": "9d69996c",
+    "name": "Tân thịnh",
+    "phan_loai": "Cửa hàng weber",
+    "mail": ""
+  },
+  {
+    "id_name": "541c1649",
+    "name": "Nhôm kính lộc phát",
+    "phan_loai": "thợ nhôm kính",
+    "mail": ""
+  },
+  {
+    "id_name": "42c7e655",
+    "name": "Nhôm kính quang tới",
+    "phan_loai": "thợ nhôm kính",
+    "mail": ""
   }
 ]

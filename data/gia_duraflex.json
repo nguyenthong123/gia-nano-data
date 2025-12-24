@@ -1,55 +1,5 @@
 [
   {
-    "image": "https://lh3.googleusercontent.com/d/1GinbpuD7mpAVbBn1sETOsmL2ahbq3FV4",
-    "id sản phẩm": "D11",
-    "Tên sản phẩm": "Tấm duraflex 4mm",
-    "kích thước": "1m22x2m44",
-    "số kg trên tấm": "18.45",
-    "số tấm trong 1 kiện": "150",
-    "giá niêm yết": "124500",
-    "sản phẩm được tính chiết khấu": "TRUE"
-  },
-  {
-    "image": "https://lh3.googleusercontent.com/d/1UKrGYj8nS8pDHr-dU9XIW4kd4UUvNDXR",
-    "id sản phẩm": "D12",
-    "Tên sản phẩm": "Tấm duraflex 4,5mm",
-    "kích thước": "1m22x2m44",
-    "số kg trên tấm": "22",
-    "số tấm trong 1 kiện": "130",
-    "giá niêm yết": "142500",
-    "sản phẩm được tính chiết khấu": "TRUE"
-  },
-  {
-    "image": "https://lh3.googleusercontent.com/d/1KDgRmoQkM0-Z3EybEV1DhwvN99pcV6rq",
-    "id sản phẩm": "D13",
-    "Tên sản phẩm": "Tấm duraflex 6mm",
-    "kích thước": "1m22x2m44",
-    "số kg trên tấm": "29,24",
-    "số tấm trong 1 kiện": "100",
-    "giá niêm yết": "183502",
-    "sản phẩm được tính chiết khấu": "TRUE"
-  },
-  {
-    "image": "https://lh3.googleusercontent.com/d/1qEk8p2cpj_6lNgwDz5KR3_CISF2n2x3Q",
-    "id sản phẩm": "D14",
-    "Tên sản phẩm": "Tấm duraflex 8mm",
-    "kích thước": "1m22x2m44",
-    "số kg trên tấm": "38,18",
-    "số tấm trong 1 kiện": "80",
-    "giá niêm yết": "270700",
-    "sản phẩm được tính chiết khấu": "TRUE"
-  },
-  {
-    "image": "https://lh3.googleusercontent.com/d/1abFmvYTXqjEP6S9U5oLNNo_wSH7RpcYa",
-    "id sản phẩm": "D15",
-    "Tên sản phẩm": "Tấm duraflex 9mm",
-    "kích thước": "1m22x2m44",
-    "số kg trên tấm": "42,27",
-    "số tấm trong 1 kiện": "70",
-    "giá niêm yết": "310100",
-    "sản phẩm được tính chiết khấu": "TRUE"
-  },
-  {
     "image": "https://lh3.googleusercontent.com/d/1Y8BE7SaqurysUh0mDKzS4NV2dOyfvn4e",
     "id sản phẩm": "D16",
     "Tên sản phẩm": "Tấm duraflex 10mm",
@@ -126,17 +76,47 @@
     "kích thước": "35 mm",
     "số kg trên tấm": "1",
     "số tấm trong 1 kiện": "260",
-    "giá niêm yết": "98000",
-    "sản phẩm được tính chiết khấu": "FALSE"
+    "giá niêm yết": "90000",
+    "sản phẩm được tính chiết khấu": "TRUE"
   },
   {
-    "image": "https://lh3.googleusercontent.com/d/1kW-NRAIGDtHxDLeUVsjBAReO5z9ni0YT",
-    "id sản phẩm": "V26",
-    "Tên sản phẩm": "Vít tự khoan 26mm",
-    "kích thước": "26 mm",
-    "số kg trên tấm": "1",
-    "số tấm trong 1 kiện": "350",
-    "giá niêm yết": "98000",
-    "sản phẩm được tính chiết khấu": "FALSE"
+    "image": "https://lh3.googleusercontent.com/d/1MbM-K38LPsjuydmhAyR5zVQ35v92oKwz",
+    "id sản phẩm": "d777",
+    "Tên sản phẩm": "tấm duraflex 14mm",
+    "kích thước": "1m22x2m44",
+    "số kg trên tấm": "12",
+    "số tấm trong 1 kiện": "50",
+    "giá niêm yết": "789000",
+    "sản phẩm được tính chiết khấu": "TRUE"
+  },
+  {
+    "image": "https://drive.google.com/uc?export=view&id=1jHWKFRHz5tRxe5pSB6MlhvL0OkNfG8JL",
+    "id sản phẩm": "D271",
+    "Tên sản phẩm": "Tấm duraflex 6mm",
+    "kích thước": "1m22x2m44",
+    "số kg trên tấm": "30",
+    "số tấm trong 1 kiện": "100",
+    "giá niêm yết": "138502",
+    "sản phẩm được tính chiết khấu": "TRUE"
+  },
+  {
+    "image": "https://drive.google.com/uc?export=view&id=1341Q3Qzs4354odoIwlogOvizPJTDkycu",
+    "id sản phẩm": "D593",
+    "Tên sản phẩm": "Tấm duraflex 8mm",
+    "kích thước": "1m22x2m44",
+    "số kg trên tấm": "39",
+    "số tấm trong 1 kiện": "80",
+    "giá niêm yết": "270700",
+    "sản phẩm được tính chiết khấu": "TRUE"
+  },
+  {
+    "image": "",
+    "id sản phẩm": "",
+    "Tên sản phẩm": "",
+    "kích thước": "",
+    "số kg trên tấm": "",
+    "số tấm trong 1 kiện": "",
+    "giá niêm yết": "",
+    "sản phẩm được tính chiết khấu": "0,1836734694"
   }
 ]
