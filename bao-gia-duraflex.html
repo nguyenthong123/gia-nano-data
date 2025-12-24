@@ -1466,6 +1466,18 @@
 			return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 		}
 
+		function getDirectLink(url) {
+			if (!url) return '';
+			if (url.includes('drive.google.com/uc?')) {
+				const regex = /[?&]id=([^&]+)/;
+				const match = url.match(regex);
+				if (match && match[1]) {
+					return `https://lh3.googleusercontent.com/d/${match[1]}`;
+				}
+			}
+			return url;
+		}
+
 		function handleNetChange() {
 			const retailSelect = document.getElementById('selectRetail');
 			if (retailSelect) retailSelect.value = "0";
@@ -1561,8 +1573,10 @@
 				const tr = document.createElement('tr');
 				if (isEditMode) tr.classList.add('edit-mode');
 
+				const imageUrl = getDirectLink(item.image);
+
 				tr.innerHTML = `
-					<td class="img-cell"><img src="${item.image}" alt="${item["Tên sản phẩm"]}" class="product-img" onclick="showLightbox('${item.image}')"></td>
+					<td class="img-cell"><img src="${imageUrl}" alt="${item["Tên sản phẩm"]}" class="product-img" onclick="showLightbox('${imageUrl}')"></td>
 					<td class="name-cell">
 						<strong>${item["Tên sản phẩm"]}</strong>
 						<div class="edit-controls">
