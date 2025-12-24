@@ -1109,6 +1109,23 @@
 		<img class="lightbox-content" id="lightboxImg" src="" alt="Zoomed Image">
 	</div>
 
+	<!-- Custom Confirm Delete Modal -->
+	<div id="confirmDeleteModal" class="modal">
+		<div class="modal-content" style="max-width: 400px; text-align: center; padding: 30px;">
+			<div style="font-size: 50px; color: #d63031; margin-bottom: 20px;">⚠️</div>
+			<h3 style="margin-top: 0; color: #2d3436; font-size: 1.5rem;">Xác nhận xóa?</h3>
+			<p id="deleteConfirmText" style="color: #636e72; line-height: 1.6; margin-bottom: 25px;">Bạn có chắc chắn
+				muốn xóa sản phẩm này không?</p>
+			<div style="display: flex; gap: 15px;">
+				<button onclick="closeConfirmModal()"
+					style="flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #dfe6e9; background: #fff; color: #636e72; font-weight: bold; cursor: pointer;">Hủy</button>
+				<button id="btnConfirmDelete"
+					style="flex: 1; padding: 12px; border-radius: 10px; border: none; background: #d63031; color: #fff; font-weight: bold; cursor: pointer;">Xóa
+					ngay</button>
+			</div>
+		</div>
+	</div>
+
 	<script>
 		// ================= CONFIGURATION =================
 		// Sau khi Deploy Google Apps Script, hãy dán link Web App vào đây:
@@ -1203,6 +1220,22 @@
 			document.getElementById('gia_toi_chanh').value = price + fee;
 		}
 
+		function closeConfirmModal() {
+			document.getElementById('confirmDeleteModal').classList.remove('show');
+		}
+
+		let productToDelete = null;
+		function showConfirmDelete(item) {
+			productToDelete = item;
+			document.getElementById('deleteConfirmText').innerText = `Bạn có chắc muốn xóa sản phẩm "${item["tên sản phẩm"]}" không?`;
+			document.getElementById('confirmDeleteModal').classList.add('show');
+
+			document.getElementById('btnConfirmDelete').onclick = async () => {
+				closeConfirmModal();
+				await deleteProduct(item);
+			};
+		}
+
 		// Convert File to Base64 for upload
 		const fileToBase64 = file => new Promise((resolve, reject) => {
 			const reader = new FileReader();
@@ -1224,29 +1257,58 @@
 
 			try {
 				const isEdit = !!currentEditingProduct;
-				const payload = {
-					action: isEdit ? 'update' : 'add',
-					ten_sp_old: isEdit ? currentEditingProduct["tên sản phẩm"] : '',
-					// Thông tin sản phẩm
-					id_sp: document.getElementById('id_sp').value,
-					ten_sp: document.getElementById('ten_sp').value,
-					quy_cach: document.getElementById('quy_cach').value,
-					do_day: document.getElementById('do_day').value,
-					dong_goi: document.getElementById('dong_goi').value,
-					trong_luong: document.getElementById('trong_luong').value,
-					gia_kho: document.getElementById('gia_kho').value,
-					phi_chanh: document.getElementById('phi_chanh').value,
-					gia_toi_chanh: document.getElementById('gia_toi_chanh').value
+				const id_sp = document.getElementById('id_sp').value;
+				const ten_sp = document.getElementById('ten_sp').value;
+				const quy_cach = document.getElementById('quy_cach').value;
+				const do_day = document.getElementById('do_day').value;
+				const dong_goi = document.getElementById('dong_goi').value;
+				const trong_luong = document.getElementById('trong_luong').value;
+				const gia_kho = document.getElementById('gia_kho').value;
+				const phi_chanh = document.getElementById('phi_chanh').value;
+				const gia_hcm = document.getElementById('gia_toi_chanh').value;
+
+				// Data object matching Sheet Headers
+				const productData = {
+					"id sản phẩm": id_sp,
+					"tên sản phẩm": ten_sp,
+					"quy cách": quy_cach,
+					"độ dày": do_day,
+					"đóng gói": dong_goi,
+					"trọng lượng": trong_luong,
+					"giá tại kho": gia_kho,
+					"giá ra chành": gia_hcm,
+					"trạng thái xóa": ""
 				};
 
-				// Xử lý ảnh (Cả khi thêm mới và khi chỉnh sửa nếu có chọn file mới)
+				const payload = {
+					action: isEdit ? 'update' : 'create',
+					idField: 'id sản phẩm',
+					idValue: isEdit ? currentEditingProduct["id_sp"] : id_sp,
+					data: productData
+				};
+
+				// Xử lý ảnh
 				const fileInput = document.getElementById('imageFile');
 				const file = fileInput.files[0];
 				if (file) {
 					loadingText.textContent = 'Đang tải ảnh lên Drive...';
-					payload.image_base64 = await fileToBase64(file);
-					payload.image_name = file.name;
-					payload.image_mime = file.type;
+					const base64 = await fileToBase64(file);
+					const uploadRes = await fetch(SCRIPT_URL, {
+						method: 'POST',
+						body: JSON.stringify({
+							action: 'upload',
+							file: base64,
+							mimeType: file.type,
+							filename: file.name,
+							folderId: '1f2lJw6oYd2fe94u0w2FHVqdaZc5RhTqb' // Default folder
+						})
+					});
+					const uploadData = await uploadRes.json();
+					if (uploadData.success) {
+						productData.image = uploadData.url;
+					}
+				} else if (isEdit) {
+					productData.image = currentEditingProduct.image;
 				}
 
 				loadingText.textContent = isEdit ? 'Đang cập nhật Sheet...' : 'Đang lưu vào Sheet...';
@@ -1256,9 +1318,14 @@
 					body: JSON.stringify(payload)
 				});
 
-				alert(isEdit ? 'Cập nhật thành công!' : 'Thêm sản phẩm thành công!');
-				closeModal();
-				loadData();
+				const result = await response.json();
+				if (result.success) {
+					alert(isEdit ? 'Cập nhật thành công!' : 'Thêm sản phẩm thành công!');
+					closeModal();
+					loadData();
+				} else {
+					throw new Error(result.message);
+				}
 
 			} catch (error) {
 				console.error(error);
@@ -1269,24 +1336,47 @@
 			}
 		}
 
-		async function deleteProduct(productName) {
-			if (!confirm(`Bạn có chắc muốn xóa sản phẩm "${productName}" khỏi hệ thống?`)) return;
-
+		async function deleteProduct(item) {
 			const loading = document.getElementById('formLoading');
+			const modal = document.getElementById('addModal');
+
+			// Show loading on top
+			modal.classList.add('show');
 			loading.style.display = 'flex';
-			document.getElementById('loadingText').textContent = 'Đang xóa...';
+			document.getElementById('loadingText').textContent = 'Đang xử lý xóa...';
 
 			try {
-				await fetch(SCRIPT_URL, {
+				// Map data for GAS
+				const productData = {
+					"id sản phẩm": item.id_sp,
+					"tên sản phẩm": item["tên sản phẩm"],
+					"quy cách": item["quy cách"],
+					"độ dày": item["độ dày"],
+					"đóng gói": item["đóng gói"],
+					"trọng lượng": item["trọng lượng"],
+					"giá ra chành": item["giá hcm"],
+					"image": item.image
+				};
+
+				const response = await fetch(SCRIPT_URL, {
 					method: 'POST',
-					body: JSON.stringify({ action: 'delete', ten_sp: productName })
+					body: JSON.stringify({
+						action: 'delete',
+						data: productData
+					})
 				});
-				alert('Đã xóa sản phẩm thành công!');
-				loadData();
+				const result = await response.json();
+				if (result.success) {
+					alert('Đã xóa sản phẩm thành công!');
+					loadData();
+				} else {
+					throw new Error(result.message);
+				}
 			} catch (error) {
 				alert('Lỗi khi xóa: ' + error.message);
 			} finally {
 				loading.style.display = 'none';
+				modal.classList.remove('show');
 			}
 		}
 
@@ -1295,20 +1385,20 @@
 		// ---- EXISTING FUNCTIONS ----
 		function convertDriveLink(url) {
 			if (!url) return '';
-			if (!url.includes('google.com')) return url;
+			if (url.includes('lh3.googleusercontent.com/d/')) return url;
 
-			let id = null;
-			const matchFile = url.match(/\/file\/d\/([-_\w]+)/);
-			if (matchFile) id = matchFile[1];
-
-			if (!id) {
-				const matchId = url.match(/[?&]id=([-_\w]+)/);
-				if (matchId) id = matchId[1];
+			let fileId = null;
+			if (url.includes('drive.google.com/uc?')) {
+				const regex = /[?&]id=([^&]+)/;
+				const match = url.match(regex);
+				if (match && match[1]) fileId = match[1];
+			} else if (url.includes('drive.google.com/file/d/')) {
+				const match = url.match(/\/d\/([^/]+)/);
+				if (match && match[1]) fileId = match[1];
 			}
 
-			if (id) {
-				// Dùng lh3 để ảnh hiển thị nhanh và nét hơn
-				return `https://lh3.googleusercontent.com/d/${id}`;
+			if (fileId) {
+				return `https://lh3.googleusercontent.com/d/${fileId}`;
 			}
 			return url;
 		}
@@ -1419,7 +1509,7 @@
 				tdAdmin.className = 'edit-controls';
 				tdAdmin.innerHTML = `
 					<button class="btn-edit" onclick='openModal("edit", ${JSON.stringify(item).replace(/'/g, "&apos;")})'>Sửa</button>
-					<button class="btn-delete" onclick='deleteProduct("${item["tên sản phẩm"]}")'>Xóa</button>
+					<button class="btn-delete" onclick='showConfirmDelete(${JSON.stringify(item).replace(/'/g, "&apos;")})'>Xóa</button>
 				`;
 				// Append to Name Cell for mobile convenience, or row end
 				tdName.appendChild(tdAdmin);
@@ -1490,10 +1580,11 @@
 				// Gộp lại tất cả
 				allProducts = [...sheetData, ...uniqueJson];
 
-				// LỌC BỎ: Sản phẩm trống tên HOẶC có trạng thái là "Xóa"
+				// LỌC BỎ: Sản phẩm trống tên HOẶC có trạng thái là "Xóa" hoặc "DELETED"
 				allProducts = allProducts.filter(p => {
 					const hasName = (p["tên sản phẩm"] || "").trim() !== "";
-					const isDeleted = (p["trang_thai_xoa"] || "").toLowerCase().includes("xóa");
+					const status = (p["trang_thai_xoa"] || "").toLowerCase();
+					const isDeleted = status.includes("xóa") || status.includes("deleted");
 					return hasName && !isDeleted;
 				});
 
