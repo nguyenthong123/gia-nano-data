@@ -80,7 +80,13 @@ function createData(payload) {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const sheet = ss.getSheetByName(SHEET_NAME);
     const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-    const newRow = headers.map(h => payload.data[h] !== undefined ? payload.data[h] : '');
+    
+    // Map dữ liệu vào row mới dựa trên header (không phân biệt hoa thường/khoảng trắng)
+    const newRow = headers.map(h => {
+        const headerClean = String(h).trim().toLowerCase();
+        const dataKey = Object.keys(payload.data).find(k => k.toLowerCase().trim() === headerClean);
+        return (dataKey && payload.data[dataKey] !== undefined) ? payload.data[dataKey] : '';
+    });
     
     sheet.appendRow(newRow);
     return jsonResponse({success: true});
@@ -93,28 +99,88 @@ function updateData(payload) {
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const sheet = ss.getSheetByName(SHEET_NAME);
-    const idField = payload.idField || 'id sản phẩm'; 
+    const idField = (payload.idField || 'id sản phẩm').toLowerCase().trim();
     const idValue = payload.idValue;
     
     const values = sheet.getDataRange().getValues();
     const headers = values[0];
-    const idColIndex = headers.indexOf(idField);
     
-    if (idColIndex === -1) return jsonResponse({success: false, message: 'ID Field not found: ' + idField});
-    
-    for (let i = 1; i < values.length; i++) {
-      if (String(values[i][idColIndex]).trim() === String(idValue).trim()) {
-        const rowNum = i + 1;
-        headers.forEach((header, index) => {
-          if (header && payload.data[header] !== undefined) {
-             sheet.getRange(rowNum, index + 1).setValue(payload.data[header]);
-          }
-        });
-        return jsonResponse({success: true});
+    // 1. Tìm index cột ID
+    let idColIndex = -1;
+    for (let j = 0; j < headers.length; j++) {
+      if (String(headers[j]).toLowerCase().trim() === idField) {
+        idColIndex = j;
+        break;
       }
     }
     
-    return jsonResponse({success: false, message: 'Item not found for update'});
+    if (idColIndex === -1) return jsonResponse({success: false, message: 'ID Field not found: ' + idField});
+    
+    // 2. Tìm dòng cần update
+    let rowNum = -1;
+    
+    // Cách 1: Tìm theo ID chính xác
+    for (let i = 1; i < values.length; i++) {
+      if (String(values[i][idColIndex]).trim() === String(idValue).trim()) {
+        rowNum = i + 1;
+        break;
+      }
+    }
+    
+    // Cách 2: Nếu không tìm thấy ID, thử tìm theo Tên Sản Phẩm (nếu dòng đó chưa có ID)
+    // Giúp sửa lỗi các dòng bị mất ID trên sheet
+    if (rowNum === -1) {
+        let nameColIndex = -1;
+        for (let j = 0; j < headers.length; j++) {
+            if (String(headers[j]).toLowerCase().trim() === 'tên sản phẩm') {
+                nameColIndex = j;
+                break;
+            }
+        }
+        
+        // Lấy tên từ payload (tìm key tên sản phẩm linh hoạt)
+        const nameKey = Object.keys(payload.data).find(k => k.toLowerCase().trim() === 'tên sản phẩm');
+        const nameValue = nameKey ? payload.data[nameKey] : null;
+        
+        if (nameColIndex !== -1 && nameValue) {
+            for (let i = 1; i < values.length; i++) {
+                const currentName = String(values[i][nameColIndex]).toLowerCase().trim();
+                const currentId = String(values[i][idColIndex]).trim();
+                
+                // Nếu trùng tên VÀ chưa có ID -> Chính là dòng cần update/sửa lỗi
+                if (currentName === String(nameValue).toLowerCase().trim() && currentId === "") {
+                    rowNum = i + 1;
+                    break;
+                }
+            }
+        }
+    }
+    
+    if (rowNum === -1) {
+        return jsonResponse({success: false, message: 'Item not found for update: ' + idValue});
+    }
+
+    // 3. Thực hiện update data vào row tìm được
+    headers.forEach((header, index) => {
+        if (header) {
+            const headerClean = String(header).trim();
+            const colIndex = index + 1;
+            
+            // Logic bảo vệ ID nhưng cho phép điền nếu trống
+            if (headerClean.toLowerCase() === idField) {
+                 const currentVal = sheet.getRange(rowNum, colIndex).getValue(); // Check trực tiếp giá trị ô
+                 if (String(currentVal).trim() !== "") return; // Nếu đã có ID, không cho sửa
+            }
+
+            const dataKey = Object.keys(payload.data).find(k => k.toLowerCase().trim() === headerClean.toLowerCase());
+            if (dataKey !== undefined && payload.data[dataKey] !== undefined) {
+               sheet.getRange(rowNum, colIndex).setValue(payload.data[dataKey]);
+            }
+        }
+    });
+
+    return jsonResponse({success: true, message: 'Updated successfully'});
+
   } catch (err) {
     return jsonResponse({success: false, message: err.toString()});
   }
@@ -131,39 +197,42 @@ function deleteData(payload) {
     
     // Đọc headers để map dữ liệu
     const range = sheet.getDataRange();
-    const values = range.getValues();
-    const headers = values[0];
+    const headers = range.getValues()[0];
     
-    // Tìm hoặc tạo cột "trạng thái xóa"
+    // Tìm hoặc tạo cột "trạng thái xóa" (Case-insensitive check)
     let deleteColIndex = headers.findIndex(h => String(h).trim().toLowerCase() === 'trạng thái xóa');
     
+    // Nếu chưa có cột trạng thái xóa thì thêm vào
     if (deleteColIndex === -1) {
-        deleteColIndex = headers.length;
-        sheet.getRange(1, deleteColIndex + 1).setValue('trạng thái xóa');
+        deleteColIndex = headers.length; // Index mới sẽ là cuối cùng
+        sheet.getRange(1, deleteColIndex + 1).setValue('trạng thái xóa'); // Thêm header vào sheet
     }
     
-    // Tạo dòng mới với toàn bộ data + trạng thái DELETED (Logic giữ nguyên là tạo DELETED record)
+    // Tạo dòng mới để Append
     const newRow = [];
-    headers.forEach((h, index) => {
-        if (index === deleteColIndex) {
-            newRow.push('DELETED');
-        } else if (payload.data[h] !== undefined) {
-            newRow.push(payload.data[h]);
-        } else {
-            newRow.push('');
-        }
-    });
     
-    // Nếu cột trạng thái xóa mới được thêm (nằm ngoài headers cũ)
-    if (deleteColIndex >= headers.length) {
-        newRow[deleteColIndex] = 'DELETED';
+    // Duyệt qua từng header (kể cả cột mới thêm) để điền dữ liệu tương ứng từ payload
+    // Sử dụng vòng lặp an toàn đến max(headers.length, deleteColIndex + 1)
+    const maxCols = Math.max(headers.length, deleteColIndex + 1);
+    
+    for (let i = 0; i < maxCols; i++) {
+        if (i === deleteColIndex) {
+            newRow.push('DELETED'); // Cột trạng thái xóa
+        } else {
+            // Lấy tên header hiện tại (nếu có)
+            const headerName = headers[i] ? String(headers[i]).trim().toLowerCase() : '';
+            
+            // Tìm trong payload xem có key tương ứng không
+            const dataKey = Object.keys(payload.data).find(k => k.toLowerCase().trim() === headerName);
+            
+            if (headerName && dataKey && payload.data[dataKey] !== undefined) {
+                 newRow.push(payload.data[dataKey]);
+            } else {
+                 newRow.push(''); // Không có dữ liệu thì để trống
+            }
+        }
     }
     
-    // NOTE: Với Pima có thể ta muốn update dòng cũ thành DELETED thay vì append dòng mới.
-    // Tuy nhiên đề bài yêu cầu "như Duraflex" nên ta giữ nguyên logic Append DELETED row.
-    // Logic của Duraflex là append row với status DELETED để frontend lọc ra.
-    // Nhưng tối ưu hơn là tìm và update dòng cũ.
-    // Nhưng OK, ta cứ theo chuẩn Duraflex file kia.
     sheet.appendRow(newRow);
     
     return jsonResponse({success: true, message: 'Created DELETED record in sheet'});

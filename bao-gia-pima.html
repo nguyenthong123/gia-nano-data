@@ -1166,34 +1166,36 @@
 			const title = document.getElementById('modalTitle');
 			const btn = document.getElementById('btnSubmit');
 			const fileNameDisplay = document.getElementById('fileNameDisplay');
+			const form = document.getElementById('addProductForm');
 
 			modal.classList.add('show');
 			document.body.style.overflow = 'hidden';
 			if (fileNameDisplay) fileNameDisplay.innerText = "Nhấn để chọn ảnh";
+			form.reset();
 
 			if (mode === 'edit' && data) {
 				title.textContent = 'Cập Nhật Sản Phẩm Pima';
 				btn.textContent = 'CẬP NHẬT THAY ĐỔI';
 				currentEditingProduct = data;
 
-				// Fill data
+				// Fill data - mappings must match the 'name' attribute in form or just direct assignment
 				document.getElementById('id_sp').value = data["id_sp"] || '';
 				document.getElementById('ten_sp').value = data["tên sản phẩm"] || '';
 				document.getElementById('quy_cach').value = data["quy cách"] || '';
 				document.getElementById('do_day').value = data["độ dày"] || '';
 				document.getElementById('dong_goi').value = data["đóng gói"] || '';
 				document.getElementById('trong_luong').value = data["trọng lượng"] || '';
-				document.getElementById('gia_kho').value = data["giá kho"] || '';
-				document.getElementById('phi_chanh').value = data["phí chành"] || '';
+				document.getElementById('gia_kho').value = data["giá tại kho"] || '';
+				document.getElementById('phi_chanh').value = data["phí vận chuyển"] || 5000;
 				document.getElementById('gia_toi_chanh').value = data["giá hcm"] || '';
 				document.getElementById('imageFile').required = false;
 			} else {
 				title.textContent = 'Thêm Sản Phẩm Pima Mới';
 				btn.textContent = 'LƯU DỮ LIỆU PIMA';
 				currentEditingProduct = null;
-				document.getElementById('addProductForm').reset();
 				const randomId = 'P' + Math.floor(Math.random() * 900 + 100);
 				document.getElementById('id_sp').value = randomId;
+				document.getElementById('phi_chanh').value = 5000;
 				document.getElementById('imageFile').required = true;
 			}
 		}
@@ -1276,15 +1278,9 @@
 					"đóng gói": dong_goi,
 					"trọng lượng": trong_luong,
 					"giá tại kho": gia_kho,
+					"phí vận chuyển": phi_chanh,
 					"giá ra chành": gia_hcm,
 					"trạng thái xóa": ""
-				};
-
-				const payload = {
-					action: isEdit ? 'update' : 'create',
-					idField: 'id sản phẩm',
-					idValue: isEdit ? currentEditingProduct["id_sp"] : id_sp,
-					data: productData
 				};
 
 				// Xử lý ảnh
@@ -1300,12 +1296,14 @@
 							file: base64,
 							mimeType: file.type,
 							filename: file.name,
-							folderId: '1f2lJw6oYd2fe94u0w2FHVqdaZc5RhTqb' // Default folder
+							folderId: '1Jm6v_wN1YbVM43RYFIMtQqXuaD-bCTnV'
 						})
 					});
 					const uploadData = await uploadRes.json();
 					if (uploadData.success) {
 						productData.image = uploadData.url;
+					} else {
+						throw new Error("Upload ảnh thất bại: " + uploadData.message);
 					}
 				} else if (isEdit) {
 					productData.image = currentEditingProduct.image;
@@ -1313,12 +1311,33 @@
 
 				loadingText.textContent = isEdit ? 'Đang cập nhật Sheet...' : 'Đang lưu vào Sheet...';
 
-				const response = await fetch(SCRIPT_URL, {
+				let action = isEdit ? 'update' : 'create';
+				let response = await fetch(SCRIPT_URL, {
 					method: 'POST',
-					body: JSON.stringify(payload)
+					body: JSON.stringify({
+						action: action,
+						idField: 'id sản phẩm',
+						idValue: isEdit ? currentEditingProduct.id_sp : id_sp,
+						data: productData
+					})
 				});
 
-				const result = await response.json();
+				let result = await response.json();
+
+				// Retry logic like Duraflex: if update fails because not found on sheet, create it
+				if (!result.success && action === 'update' && result.message.includes('not found')) {
+					loadingText.textContent = 'Không tìm thấy dòng trên sheet, đang tạo mới...';
+					action = 'create';
+					response = await fetch(SCRIPT_URL, {
+						method: 'POST',
+						body: JSON.stringify({
+							action: action,
+							data: productData
+						})
+					});
+					result = await response.json();
+				}
+
 				if (result.success) {
 					alert(isEdit ? 'Cập nhật thành công!' : 'Thêm sản phẩm thành công!');
 					closeModal();
@@ -1340,13 +1359,11 @@
 			const loading = document.getElementById('formLoading');
 			const modal = document.getElementById('addModal');
 
-			// Show loading on top
 			modal.classList.add('show');
 			loading.style.display = 'flex';
 			document.getElementById('loadingText').textContent = 'Đang xử lý xóa...';
 
 			try {
-				// Map data for GAS
 				const productData = {
 					"id sản phẩm": item.id_sp,
 					"tên sản phẩm": item["tên sản phẩm"],
@@ -1354,6 +1371,8 @@
 					"độ dày": item["độ dày"],
 					"đóng gói": item["đóng gói"],
 					"trọng lượng": item["trọng lượng"],
+					"giá tại kho": item["giá tại kho"],
+					"phí vận chuyển": item["phí vận chuyển"],
 					"giá ra chành": item["giá hcm"],
 					"image": item.image
 				};
@@ -1557,39 +1576,69 @@
 					masterProducts = csvToJson(text);
 				}
 
-				// Normalize function: Khớp cấu trúc 9 cột (đã thêm Trạng thái xóa ở cột I)
-				const normalize = (item) => ({
-					"image": item["image"] || item["link_image"] || "",
-					"id_sp": item["id sản phẩm"] || item["id_sp"] || "",
-					"tên sản phẩm": (item["tên sản phẩm"] || item["ten_sp"] || "").trim(),
-					"quy cách": item["quy cách"] || item["quy_cach"] || "",
-					"độ dày": item["độ dày"] || item["do_day"] || "",
-					"đóng gói": item["đóng gói"] || item["dong_goi"] || "",
-					"trọng lượng": item["trọng lượng"] || item["trong_luong"] || 0,
-					"giá hcm": item["giá ra chành"] || item["gia_ra_chanh"] || item["giá hcm"] || item["gia_toi_chanh"] || "",
-					"trang_thai_xoa": item["trạng thái xóa"] || item["trang_thai_xoa"] || ""
-				});
+				// Normalize function: Cập nhật đầy đủ các trường (Robust matching)
+				const normalize = (item) => {
+					const findValue = (possibleKeys) => {
+						for (let key of possibleKeys) {
+							if (item[key] !== undefined && item[key] !== null) return item[key];
+							// Tìm key khớp nhưng khác hoa thường hoặc có khoảng trắng
+							const matchedKey = Object.keys(item).find(k => k.toLowerCase().trim() === key.toLowerCase().trim());
+							if (matchedKey) return item[matchedKey];
+						}
+						return "";
+					};
 
-				const sheetData = masterProducts.map(normalize);
+					return {
+						"image": findValue(["image", "link_image"]),
+						"id_sp": findValue(["id sản phẩm", "id_sp"]),
+						"tên sản phẩm": findValue(["tên sản phẩm", "ten_sp"]).toString().trim(),
+						"quy cách": findValue(["quy cách", "quy_cach"]),
+						"độ dày": findValue(["độ dày", "do_day"]).toString(),
+						"đóng gói": findValue(["đóng gói", "dong_goi"]),
+						"trọng lượng": findValue(["trọng lượng", "trong_luong"]) || 0,
+						"giá tại kho": findValue(["giá tại kho", "gia_tai_kho", "giá kho"]) || 0,
+						"phí vận chuyển": findValue(["phí vận chuyển", "phi_van_chuyen", "phí chành"]) || 5000,
+						"giá hcm": findValue(["giá ra chành", "gia_ra_chanh", "giá hcm", "gia_toi_chanh"]),
+						"trang_thai_xoa": findValue(["trạng thái xóa", "trang_thai_xoa"])
+					};
+				};
+
+				const sheetNormalized = masterProducts.map(normalize);
 				const jsonNormalized = jsonProducts.map(normalize);
 
-				// LOGIC ƯU TIÊN: Lấy toàn bộ từ Sheet, sau đó bổ sung từ JSON những gì Sheet chưa có
-				const sheetNames = new Set(sheetData.map(p => p["tên sản phẩm"].toLowerCase()));
-				const uniqueJson = jsonNormalized.filter(p => !sheetNames.has(p["tên sản phẩm"].toLowerCase()));
+				// LOGIC ƯU TIÊN GIỐNG DURAFLEX:
+				// Tạo bản đồ dữ liệu theo ID để merge dễ dàng
+				const combinedData = {};
+				const cleanId = (id) => String(id || "").toLowerCase().trim();
 
-				// Gộp lại tất cả
-				allProducts = [...sheetData, ...uniqueJson];
+				// 1. Nạp từ JSON trước làm gốc
+				jsonNormalized.forEach(p => {
+					const key = cleanId(p.id_sp);
+					if (key) combinedData[key] = p;
+				});
+
+				// 2. Nạp từ Sheet để đè dữ liệu mới nhất (hoặc thêm sản phẩm mới tạo trên web)
+				// Nếu một ID xuất hiện nhiều lần trên sheet, dòng sau cùng sẽ ghi đè dòng trước
+				sheetNormalized.forEach(p => {
+					const key = cleanId(p.id_sp);
+					if (key) {
+						combinedData[key] = p;
+					}
+				});
+
+				// 3. Chuyển thành array và lọc
+				allProducts = Object.values(combinedData);
 
 				// LỌC BỎ: Sản phẩm trống tên HOẶC có trạng thái là "Xóa" hoặc "DELETED"
 				allProducts = allProducts.filter(p => {
 					const hasName = (p["tên sản phẩm"] || "").trim() !== "";
-					const status = (p["trang_thai_xoa"] || "").toLowerCase();
-					const isDeleted = status.includes("xóa") || status.includes("deleted");
+					const status = String(p["trang_thai_xoa"] || "").toLowerCase().trim();
+					// Kiểm tra các từ khóa đánh dấu đã xóa (xử lý cả tiếng Việt có dấu và không dấu)
+					const isDeleted = status.includes("delete") ||
+						status.includes("xóa") ||
+						status.includes("xoa");
 					return hasName && !isDeleted;
 				});
-
-				// Lọc bỏ sản phẩm trống tên
-				allProducts = allProducts.filter(p => (p["tên sản phẩm"] || "").trim() !== "");
 
 				renderTable(allProducts);
 			} catch (error) {
@@ -1602,7 +1651,11 @@
 			const lines = csv.trim().split(/\r?\n/);
 			if (lines.length < 2) return [];
 
-			const headers = lines[0].split(',').map(h => h.trim());
+			const headers = lines[0].split(',').map(h => {
+				let s = h.trim();
+				if (s.startsWith('"') && s.endsWith('"')) s = s.slice(1, -1);
+				return s;
+			});
 
 			return lines.slice(1).map(line => {
 				const values = [];

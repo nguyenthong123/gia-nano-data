@@ -1179,36 +1179,66 @@
 					masterProducts = csvToJson(text);
 				}
 
-				// Normalize function
-				const normalize = (item) => ({
-					"image": item["image"] || item["link_image"] || "",
-					"id_san_pham": item["id sản phẩm"] || item["id_san_pham"] || "",
-					"tên sản phẩm": (item["tên sản phẩm"] || item["ten_san_pham"] || "").trim(),
-					"số chai trong 1 thùng": item["số chai trong 1 thùng"] || item["số chai/thùng"] || item["so_chai_thung"] || "24",
-					"giá bán lẻ theo chai": item["giá bán lẻ theo chai"] || item["gia_ban_le"] || "",
-					"giá niêm yết theo chai": item["giá niêm yết theo chai"] || item["gia_niem_yet"] || "",
-					"khuyến mãi 3 thùng": item["khuyến mãi 3 thùng"] || item["km_3_thung"] || "",
-					"khuyến mãi 2 thùng": item["khuyến mãi 2 thùng"] || item["km_2_thung"] || "",
-					"khuyến mãi 1 thùng": item["khuyến mãi 1 thùng"] || item["km_1_thung"] || "",
-					"tặng thêm": item["tặng thêm"] || item["tang_them"] || "",
-					"trạng thái xóa": item["trạng thái xóa"] || item["trang_thai_xoa"] || ""
-				});
+				// Normalize function: Cập nhật đầy đủ các trường (Robust matching)
+				const normalize = (item) => {
+					const findValue = (possibleKeys) => {
+						for (let key of possibleKeys) {
+							if (item[key] !== undefined && item[key] !== null) return item[key];
+							// Tìm key khớp nhưng khác hoa thường hoặc có khoảng trắng
+							const matchedKey = Object.keys(item).find(k => k.toLowerCase().trim() === key.toLowerCase().trim());
+							if (matchedKey) return item[matchedKey];
+						}
+						return "";
+					};
 
-				const sheetDataMaster = masterProducts.map(normalize);
+					return {
+						"image": findValue(["image", "link_image"]),
+						"id_san_pham": findValue(["id sản phẩm", "id_san_pham", "id"]),
+						"tên sản phẩm": findValue(["tên sản phẩm", "ten_san_pham"]).toString().trim(),
+						"số chai trong 1 thùng": findValue(["số chai trong 1 thùng", "số chai/thùng", "so_chai_thung"]) || "24",
+						"giá bán lẻ theo chai": findValue(["giá bán lẻ theo chai", "gia_ban_le"]),
+						"giá niêm yết theo chai": findValue(["giá niêm yết theo chai", "gia_niem_yet"]),
+						"khuyến mãi 3 thùng": findValue(["khuyến mãi 3 thùng", "km_3_thung"]),
+						"khuyến mãi 2 thùng": findValue(["khuyến mãi 2 thùng", "km_2_thung"]),
+						"khuyến mãi 1 thùng": findValue(["khuyến mãi 1 thùng", "km_1_thung"]),
+						"tặng thêm": findValue(["tặng thêm", "tang_them"]),
+						"trạng thái xóa": findValue(["trạng thái xóa", "trang_thai_xoa"])
+					};
+				};
+
+				const sheetNormalized = masterProducts.map(normalize);
 				const jsonNormalized = jsonProducts.map(normalize);
 
-				// LOGIC ƯU TIÊN: Lấy từ Sheet Master -> JSON
-				const sheetNames = new Set(sheetDataMaster.map(p => p["tên sản phẩm"].toLowerCase()));
-				const filteredJson = jsonNormalized.filter(p => !sheetNames.has(p["tên sản phẩm"].toLowerCase()));
+				// LOGIC: Sheet là Master.
+				// 1. Deduplicate Sheet Data: Dòng sau (ở dưới) sẽ đè dòng trước (ở trên).
+				//    Điều này cực kỳ quan trọng vì lệnh Xóa sẽ 'append' một dòng mới có trạng thái DELETED vào cuối.
+				const sheetMap = {};
+				const cleanString = (s) => String(s || "").trim().toLowerCase();
 
-				// Gộp lại: Master đứng trước, rồi mới đến JSON
-				allProducts = [...sheetDataMaster, ...filteredJson];
+				const getUniqueKey = (p) => {
+					// Ưu tiên dùng ID, nếu không có thì dùng Tên để định danh sản phẩm
+					const id = cleanString(p.id_san_pham);
+					if (id) return id;
+					return cleanString(p["tên sản phẩm"]);
+				};
 
-				// Lọc bỏ: Tên trống HOẶC Trạng thái xóa (Xóa hoặc DELETED)
-				allProducts = allProducts.filter(p => {
-					const hasName = p["tên sản phẩm"] !== "";
-					const status = (p["trạng thái xóa"] || "").toLowerCase();
-					const isDeleted = status.includes("xóa") || status.includes("deleted");
+				sheetNormalized.forEach(p => {
+					const key = getUniqueKey(p);
+					if (key) sheetMap[key] = p; // Dòng sau ghi đè dòng trước
+				});
+				const sheetUnique = Object.values(sheetMap);
+
+				// 2. Filter JSON: Chỉ lấy những item mà Sheet chưa có (so sánh theo Tên)
+				const sheetNames = new Set(sheetUnique.map(p => cleanString(p["tên sản phẩm"])));
+				const jsonUnique = jsonNormalized.filter(p => !sheetNames.has(cleanString(p["tên sản phẩm"])));
+
+				// 3. Gộp tất cả và Lọc bỏ: Tên trống HOẶC Trạng thái xóa
+				allProducts = [...sheetUnique, ...jsonUnique].filter(p => {
+					const hasName = (p["tên sản phẩm"] || "").trim() !== "";
+					const status = String(p["trạng thái xóa"] || "").toLowerCase().trim();
+					const isDeleted = status.includes("delete") ||
+						status.includes("xóa") ||
+						status.includes("xoa");
 					return hasName && !isDeleted;
 				});
 
@@ -1222,20 +1252,41 @@
 		function csvToJson(csv) {
 			const lines = csv.trim().split(/\r?\n/);
 			if (lines.length < 2) return [];
-			const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+
+			const headers = lines[0].split(',').map(h => {
+				let s = h.trim();
+				if (s.startsWith('"') && s.endsWith('"')) s = s.slice(1, -1);
+				return s;
+			});
+
 			return lines.slice(1).map(line => {
 				const values = [];
 				let currentVal = '';
 				let inQuotes = false;
+
 				for (let i = 0; i < line.length; i++) {
 					const char = line[i];
-					if (char === '"') inQuotes = !inQuotes;
-					else if (char === ',' && !inQuotes) { values.push(currentVal.trim().replace(/^"|"$/g, '')); currentVal = ''; }
-					else currentVal += char;
+					if (char === '"') {
+						inQuotes = !inQuotes;
+					} else if (char === ',' && !inQuotes) {
+						values.push(currentVal.trim());
+						currentVal = '';
+					} else {
+						currentVal += char;
+					}
 				}
-				values.push(currentVal.trim().replace(/^"|"$/g, ''));
+				values.push(currentVal.trim());
+
+				// Clean values (strip quotes)
+				const cleanValues = values.map(v => {
+					if (v.startsWith('"') && v.endsWith('"')) return v.slice(1, -1);
+					return v;
+				});
+
 				const entry = {};
-				headers.forEach((h, i) => entry[h] = values[i] || "");
+				headers.forEach((h, i) => {
+					entry[h] = cleanValues[i] || "";
+				});
 				return entry;
 			});
 		}
@@ -1324,7 +1375,16 @@
 				const p = allProducts.find(x => x["tên sản phẩm"] === tenSp);
 				if (p) {
 					currentEditProduct = p;
-					document.getElementById('id_san_pham').value = p["id sản phẩm"] || p.id_san_pham;
+
+					// FIX: Nếu sản phẩm chưa có ID (từ JSON cũ), tự tạo ID mới để fill vào form
+					// Nếu người dùng lưu, ID này sẽ được ghi vào Sheet.
+					// Nhờ loadData lọc theo tên, sản phẩm này (có ID mới) sẽ đè JSON cũ (không ID).
+					let existingId = p["id sản phẩm"] || p.id_san_pham;
+					if (!existingId) {
+						existingId = 'W' + Math.floor(Math.random() * 9000 + 1000);
+					}
+
+					document.getElementById('id_san_pham').value = existingId;
 					document.getElementById('ten_san_pham').value = p["tên sản phẩm"];
 					document.getElementById('so_chai_thung').value = p["số chai trong 1 thùng"];
 					document.getElementById('gia_ban_le').value = p["giá bán lẻ theo chai"];
@@ -1339,7 +1399,7 @@
 				modalTitle.innerText = "Thêm Sản Phẩm Weber Mới";
 				btnSubmit.innerText = "LƯU SẢN PHẨM";
 				currentEditProduct = null;
-				document.getElementById('id_san_pham').value = 'W' + Math.floor(Math.random() * 90 + 10);
+				document.getElementById('id_san_pham').value = 'W' + Math.floor(Math.random() * 9000 + 1000); // Create luôn có ID mới
 				document.getElementById('imageFile').required = true;
 			}
 		}
@@ -1360,14 +1420,19 @@
 			event.preventDefault();
 			const formLoading = document.getElementById('formLoading');
 			const loadingText = document.getElementById('loadingText');
+			const btnSubmit = document.getElementById('btnSubmit');
 			const isEdit = !!currentEditProduct;
 
 			formLoading.style.display = 'flex';
 			loadingText.innerText = "Đang xử lý...";
+			btnSubmit.disabled = true;
 
 			try {
 				const id_sp = document.getElementById('id_san_pham').value;
 				const ten_sp = document.getElementById('ten_san_pham').value;
+
+				// FIX: Luôn lấy ID từ input field (dù là mới sinh ra hay có sẵn)
+				const finalId = id_sp;
 				const so_chai = document.getElementById('so_chai_thung').value;
 				const gia_le = document.getElementById('gia_ban_le').value;
 				const gia_ny = document.getElementById('gia_niem_yet').value;
@@ -1389,17 +1454,12 @@
 					"trạng thái xóa": ""
 				};
 
-				const payload = {
-					action: isEdit ? "update" : "create",
-					idField: "id sản phẩm",
-					idValue: isEdit ? currentEditProduct["id sản phẩm"] : id_sp,
-					data: productData
-				};
-
+				// Xử lý upload ảnh
 				const fileInput = document.getElementById('imageFile');
 				const file = fileInput.files[0];
+
 				if (file) {
-					loadingText.innerText = "Đang tải ảnh...";
+					loadingText.innerText = "Đang tải ảnh lên Drive...";
 					const base64 = await fileToBase64(file);
 					const uploadRes = await fetch(SCRIPT_URL, {
 						method: 'POST',
@@ -1408,32 +1468,55 @@
 							file: base64,
 							mimeType: file.type,
 							filename: file.name,
-							folderId: '1f2lJw6oYd2fe94u0w2FHVqdaZc5RhTqb'
+							folderId: '1Jm6v_wN1YbVM43RYFIMtQqXuaD-bCTnV'
 						})
 					});
 					const uploadData = await uploadRes.json();
 					if (uploadData.success) {
 						productData.image = uploadData.url;
+					} else {
+						throw new Error("Upload ảnh thất bại: " + (uploadData.message || "Unknown error"));
 					}
-				} else if (isEdit) {
+				} else if (isEdit && currentEditProduct) {
 					productData.image = currentEditProduct.image;
 				}
 
-				loadingText.innerText = isEdit ? "Đang cập nhật..." : "Đang lưu...";
-				const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
-				const result = await response.json();
+				loadingText.innerText = isEdit ? "Đang cập nhật Sheet..." : "Đang lưu vào Sheet...";
+
+
+
+				let action = isEdit ? "update" : "create";
+				let payload = {
+					action: action,
+					idField: "id sản phẩm",
+					idValue: finalId, // Gửi ID chính xác từ form
+					data: productData
+				};
+
+				let response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+				let result = await response.json();
+
+				// Retry logic: Nếu update thất bại do không tìm thấy dòng, thử tạo mới
+				if (!result.success && action === 'update' && result.message.includes('not found')) {
+					loadingText.innerText = 'Đang tạo mới dòng dữ liệu...';
+					payload.action = 'create';
+					response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+					result = await response.json();
+				}
 
 				if (result.success) {
-					alert(isEdit ? "Cập nhật thành công!" : "Thêm thành công!");
+					alert(isEdit ? "Cập nhật thành công!" : "Thêm sản phẩm thành công!");
 					closeModal();
 					loadData();
 				} else {
-					throw new Error(result.message || "Lỗi từ Script");
+					throw new Error(result.message || "Lỗi không xác định từ Script");
 				}
 			} catch (err) {
+				console.error(err);
 				alert("Lỗi: " + err.message);
 			} finally {
 				formLoading.style.display = 'none';
+				btnSubmit.disabled = false;
 			}
 		}
 
@@ -1451,16 +1534,16 @@
 		}
 
 		async function deleteProduct(item) {
-			const formLoading = document.getElementById('formLoading');
-			const modal = document.getElementById('addModal');
+			const loading = document.getElementById('formLoading');
+			const modal = document.getElementById('addModal'); // Re-use modal for loading spinner overlay if needed, similar to Pima strategy
 
 			modal.classList.add('show');
-			formLoading.style.display = 'flex';
+			loading.style.display = 'flex';
 			document.getElementById('loadingText').innerText = "Đang xử lý xóa...";
 
 			try {
 				const productData = {
-					"id sản phẩm": item["id sản phẩm"],
+					"id sản phẩm": item.id_san_pham, // FIX: Sử dụng đúng key đã được normalize
 					"tên sản phẩm": item["tên sản phẩm"],
 					"số chai trong 1 thùng": item["số chai trong 1 thùng"],
 					"giá bán lẻ theo chai": item["giá bán lẻ theo chai"],
@@ -1474,7 +1557,10 @@
 
 				const response = await fetch(SCRIPT_URL, {
 					method: 'POST',
-					body: JSON.stringify({ action: "delete", data: productData })
+					body: JSON.stringify({
+						action: 'delete',
+						data: productData
+					})
 				});
 				const result = await response.json();
 				if (result.success) {
@@ -1483,10 +1569,10 @@
 				} else {
 					throw new Error(result.message);
 				}
-			} catch (err) {
-				alert("Lỗi: " + err.message);
+			} catch (error) {
+				alert("Lỗi khi xóa: " + error.message);
 			} finally {
-				formLoading.style.display = 'none';
+				loading.style.display = 'none';
 				modal.classList.remove('show');
 			}
 		}
