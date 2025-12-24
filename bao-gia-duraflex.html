@@ -1126,15 +1126,36 @@
 				const dData = await dRes.json();
 
 				if (pData.success && pData.data.length > 0) {
-					// Merge hoặc replace: Ở đây ta sẽ lọc bỏ các item bị đánh dấu xóa
-					const activePrices = pData.data.filter(item => item["trạng thái xóa"] !== "DELETED");
-					if (activePrices.length > 0) duraflexData = activePrices;
+					// Merge logic: Ưu tiên dữ liệu từ Sheet
+					pData.data.forEach(sheetItem => {
+						const id = sheetItem["id sản phẩm"];
+						if (!id) return;
+						const index = duraflexData.findIndex(item => String(item["id sản phẩm"]) === String(id));
+						if (index !== -1) {
+							duraflexData[index] = sheetItem; // Đè dữ liệu sheet lên JSON
+						} else {
+							duraflexData.push(sheetItem); // Thêm mới từ sheet
+						}
+					});
 				}
 
 				if (dData.success && dData.data.length > 0) {
-					const activeDiscounts = dData.data.filter(item => item["trạng thái xóa"] !== "DELETED");
-					if (activeDiscounts.length > 0) discountData = activeDiscounts;
+					dData.data.forEach(sheetItem => {
+						const id = sheetItem["gói chiết khấu theo kiện"];
+						if (!id) return;
+						const index = discountData.findIndex(item => String(item["gói chiết khấu theo kiện"]) === String(id));
+						if (index !== -1) {
+							discountData[index] = sheetItem;
+						} else {
+							discountData.push(sheetItem);
+						}
+					});
 				}
+
+				// Lọc lại toàn bộ để ẩn các item có trạng thái DELETED
+				duraflexData = duraflexData.filter(item => item["trạng thái xóa"] !== "DELETED");
+				discountData = discountData.filter(item => item["trạng thái xóa"] !== "DELETED");
+
 			} catch (e) {
 				console.warn("Không thể tải dữ liệu từ Google Sheets, sử dụng JSON local.", e);
 			}
@@ -1155,7 +1176,6 @@
 
 		function toggleEditMode() {
 			isEditMode = !isEditMode;
-			const list = document.querySelector('.data-list'); // Just a selector for visual change
 			const label = document.getElementById('editModeLabel');
 			const btn = document.getElementById('toggleEditBtn');
 
@@ -1187,26 +1207,35 @@
 			closeModal('choiceModal');
 			const modal = document.getElementById('productModal');
 			const form = document.getElementById('productForm');
+			const idInput = document.getElementById('p_id');
 			form.reset();
 
 			if (item) {
 				document.getElementById('productModalTitle').innerText = "Sửa Sản Phẩm";
 				document.getElementById('p_id_old').value = item["id sản phẩm"];
-				document.getElementById('p_id').value = item["id sản phẩm"];
+				idInput.value = item["id sản phẩm"];
+				idInput.readOnly = true;
+				idInput.style.backgroundColor = "#f8fafc";
+				idInput.style.cursor = "not-allowed";
+
 				document.getElementById('p_name').value = item["Tên sản phẩm"];
 				document.getElementById('p_size').value = item["kích thước"];
 				document.getElementById('p_weight').value = item["số kg trên tấm"];
 				document.getElementById('p_pack').value = item["số tấm trong 1 kiện"];
 				document.getElementById('p_price').value = item["giá niêm yết"];
 				document.getElementById('p_is_discount').value = item["sản phẩm được tính chiết khấu"];
-				document.getElementById('p_image_url').value = item.image;
-				document.getElementById('p_image_label').innerText = "Đã có ảnh (Click để thay đổi)";
+				document.getElementById('p_image_url').value = item.image || "";
+				document.getElementById('p_image_label').innerText = item.image ? "Đã có ảnh (Click để thay đổi)" : "Chưa chọn ảnh";
 			} else {
 				document.getElementById('productModalTitle').innerText = "Thêm Sản Phẩm";
 				document.getElementById('p_id_old').value = "";
-				// Tự động tạo ID: 1 chữ + 2 số (Dxx)
-				document.getElementById('p_id').value = "D" + Math.floor(10 + Math.random() * 90);
+				idInput.readOnly = false;
+				idInput.style.backgroundColor = "#fff";
+				idInput.style.cursor = "text";
+				// Tự động tạo ID: 1 chữ + 3 số ngẫu nhiên để tránh trùng
+				idInput.value = "D" + Math.floor(100 + Math.random() * 899);
 				document.getElementById('p_image_label').innerText = "Chưa chọn ảnh";
+				document.getElementById('p_image_url').value = "";
 			}
 			modal.style.display = 'flex';
 		}
@@ -1215,18 +1244,26 @@
 			closeModal('choiceModal');
 			const modal = document.getElementById('discountModal');
 			const form = document.getElementById('discountForm');
+			const packInput = document.getElementById('d_pack');
 			form.reset();
 
 			if (item) {
 				document.getElementById('discountModalTitle').innerText = "Sửa Gói Chiết Khấu";
 				document.getElementById('d_id_old').value = item["gói chiết khấu theo kiện"];
-				document.getElementById('d_pack').value = item["gói chiết khấu theo kiện"];
+				packInput.value = item["gói chiết khấu theo kiện"];
+				packInput.readOnly = true;
+				packInput.style.backgroundColor = "#f8fafc";
+				packInput.style.cursor = "not-allowed";
+
 				document.getElementById('d_percent').value = item["% chiết khấu"];
 				document.getElementById('d_amount').value = item["số tiền chiết khấu"];
 				document.getElementById('d_public').value = item["chiết khấu công bố"];
 			} else {
 				document.getElementById('discountModalTitle').innerText = "Thêm Gói Chiết Khấu";
 				document.getElementById('d_id_old').value = "";
+				packInput.readOnly = false;
+				packInput.style.backgroundColor = "#fff";
+				packInput.style.cursor = "text";
 			}
 			modal.style.display = 'flex';
 		}
@@ -1275,8 +1312,8 @@
 					}
 				}
 
-				const action = data.id_old ? 'update' : 'create';
-				const res = await fetch(SCRIPT_URL, {
+				let action = data.id_old ? 'update' : 'create';
+				let res = await fetch(SCRIPT_URL, {
 					method: 'POST',
 					body: JSON.stringify({
 						action: action,
@@ -1288,7 +1325,24 @@
 					})
 				});
 
-				const result = await res.json();
+				let result = await res.json();
+
+				// Nếu là update mà không tìm thấy (có thể dữ liệu gốc từ JSON chưa có trên Sheet)
+				// Thì thực hiện Create để đẩy lên Sheet
+				if (!result.success && action === 'update' && result.message.includes('not found')) {
+					action = 'create';
+					res = await fetch(SCRIPT_URL, {
+						method: 'POST',
+						body: JSON.stringify({
+							action: action,
+							sheetId: SHEET_ID,
+							sheetName: sheetName,
+							data: data
+						})
+					});
+					result = await res.json();
+				}
+
 				if (result.success) {
 					alert("Thành công!");
 					location.reload();
@@ -1305,8 +1359,17 @@
 
 		async function deleteItem(id, type) {
 			if (!confirm("Bạn có chắc chắn muốn xóa?")) return;
-			const sheetName = type === 'product' ? 'bang_gia_dura' : 'chiet_khau_dura';
+
+			const sourceArray = type === 'product' ? duraflexData : discountData;
 			const idField = type === 'product' ? 'id sản phẩm' : 'gói chiết khấu theo kiện';
+			const item = sourceArray.find(i => String(i[idField]) === String(id));
+
+			if (!item) {
+				alert("Không tìm thấy dữ liệu để xóa!");
+				return;
+			}
+
+			const sheetName = type === 'product' ? 'bang_gia_dura' : 'chiet_khau_dura';
 
 			try {
 				const res = await fetch(SCRIPT_URL, {
@@ -1315,6 +1378,7 @@
 						action: 'delete',
 						sheetId: SHEET_ID,
 						sheetName: sheetName,
+						data: item, // Gửi kèm toàn bộ data của sản phẩm
 						idField: idField,
 						idValue: id
 					})
@@ -1323,6 +1387,8 @@
 				if (result.success) {
 					alert("Đã xóa!");
 					location.reload();
+				} else {
+					alert("Lỗi: " + result.message);
 				}
 			} catch (e) {
 				alert("Lỗi khi xóa!");
@@ -1446,7 +1512,6 @@
 				}
 
 				const tr = document.createElement('tr');
-				// Check for edit mode class
 				if (isEditMode) tr.classList.add('edit-mode');
 
 				tr.innerHTML = `
@@ -1454,8 +1519,8 @@
 					<td class="name-cell">
 						<strong>${item["Tên sản phẩm"]}</strong>
 						<div class="edit-controls">
-							<button class="btn-edit" onclick="openProductForm(${JSON.stringify(item).replace(/"/g, '&quot;')})">Sửa</button>
-							<button class="btn-delete" onclick="deleteItem('${item["id sản phẩm"]}', 'product')">Xóa</button>
+							<button class="btn-edit" onclick="handleEditClick('product', '${item["id sản phẩm"]}')">Sửa</button>
+							<button class="btn-delete" onclick="handleDeleteClick('product', '${item["id sản phẩm"]}')">Xóa</button>
 						</div>
 					</td>
 					<td><span class="badge">${item["kích thước"]}</span></td>
@@ -1465,6 +1530,20 @@
 				`;
 				body.appendChild(tr);
 			});
+		}
+
+		function handleEditClick(type, id) {
+			const sourceArray = type === 'product' ? duraflexData : discountData;
+			const idField = type === 'product' ? 'id sản phẩm' : 'gói chiết khấu theo kiện';
+			const item = sourceArray.find(i => String(i[idField]) === String(id));
+			if (item) {
+				if (type === 'product') openProductForm(item);
+				else openDiscountForm(item);
+			}
+		}
+
+		function handleDeleteClick(type, id) {
+			deleteItem(id, type);
 		}
 
 		function renderDiscountTab() {
@@ -1484,8 +1563,8 @@
 						${formatCurrency(item["chiết khấu công bố"])}
 					</div>
 					<div class="edit-controls" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
-						<button class="btn-edit" onclick="openDiscountForm(${JSON.stringify(item).replace(/"/g, '&quot;')})">Sửa</button>
-						<button class="btn-delete" onclick="deleteItem('${item["gói chiết khấu theo kiện"]}', 'discount')">Xóa</button>
+						<button class="btn-edit" onclick="handleEditClick('discount', '${item["gói chiết khấu theo kiện"]}')">Sửa</button>
+						<button class="btn-delete" onclick="handleDeleteClick('discount', '${item["gói chiết khấu theo kiện"]}')">Xóa</button>
 					</div>
 				`;
 				grid.appendChild(div);
