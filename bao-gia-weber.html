@@ -320,6 +320,26 @@
 			cursor: pointer;
 		}
 
+		/* Custom Confirm Delete Modal */
+		.modal-confirm {
+			display: none;
+			position: fixed;
+			z-index: 20001;
+			left: 0;
+			top: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.7);
+			backdrop-filter: blur(8px);
+			align-items: center;
+			justify-content: center;
+			padding: 20px;
+		}
+
+		.modal-confirm.show {
+			display: flex;
+		}
+
 		/* Responsive Mobile */
 		@media screen and (max-width: 768px) {
 			.header-container {
@@ -1080,6 +1100,23 @@
 		<img class="lightbox-content" id="lightboxImg" src="" alt="Zoomed Image">
 	</div>
 
+	<!-- Custom Confirm Delete Modal -->
+	<div id="confirmDeleteModal" class="modal-confirm">
+		<div class="modal-content" style="max-width: 400px; text-align: center; padding: 30px;">
+			<div style="font-size: 50px; color: #d63031; margin-bottom: 20px;">⚠️</div>
+			<h3 style="margin-top: 0; color: #2d3436; font-size: 1.5rem;">Xác nhận xóa?</h3>
+			<p id="deleteConfirmText" style="color: #636e72; line-height: 1.6; margin-bottom: 25px;">Bạn có chắc chắn
+				muốn xóa sản phẩm này không?</p>
+			<div style="display: flex; gap: 15px;">
+				<button onclick="closeConfirmModal()"
+					style="flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #dfe6e9; background: #fff; color: #636e72; font-weight: bold; cursor: pointer;">Hủy</button>
+				<button id="btnConfirmDelete"
+					style="flex: 1; padding: 12px; border-radius: 10px; border: none; background: #d63031; color: #fff; font-weight: bold; cursor: pointer;">Xóa
+					ngay</button>
+			</div>
+		</div>
+	</div>
+
 	<script>
 		// ================= CẤU HÌNH & TRẠNG THÁI =================
 		const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyxrW2FR6QzVsXQZPxHRGBqy58eKKylDAxJuWsoog9ndyYSvncTrYe1MlqfliZYjHV01A/exec';
@@ -1167,10 +1204,11 @@
 				// Gộp lại: Master đứng trước, rồi mới đến JSON
 				allProducts = [...sheetDataMaster, ...filteredJson];
 
-				// Lọc bỏ: Tên trống HOẶC Trạng thái xóa
+				// Lọc bỏ: Tên trống HOẶC Trạng thái xóa (Xóa hoặc DELETED)
 				allProducts = allProducts.filter(p => {
 					const hasName = p["tên sản phẩm"] !== "";
-					const isDeleted = (p["trạng thái xóa"] || "").toLowerCase().includes("xóa");
+					const status = (p["trạng thái xóa"] || "").toLowerCase();
+					const isDeleted = status.includes("xóa") || status.includes("deleted");
 					return hasName && !isDeleted;
 				});
 
@@ -1204,10 +1242,22 @@
 
 		function convertDriveLink(url) {
 			if (!url) return '';
+			if (url.includes('lh3.googleusercontent.com/d/')) return url;
+
 			let fileId = null;
-			if (url.match(/\/d\/([^/]+)/)) fileId = url.match(/\/d\/([^/]+)/)[1];
-			else if (url.match(/id=([^&]+)/)) fileId = url.match(/id=([^&]+)/)[1];
-			return fileId ? `https://lh3.googleusercontent.com/d/${fileId}` : url;
+			if (url.includes('drive.google.com/uc?')) {
+				const regex = /[?&]id=([^&]+)/;
+				const match = url.match(regex);
+				if (match && match[1]) fileId = match[1];
+			} else if (url.includes('drive.google.com/file/d/')) {
+				const match = url.match(/\/d\/([^/]+)/);
+				if (match && match[1]) fileId = match[1];
+			}
+
+			if (fileId) {
+				return `https://lh3.googleusercontent.com/d/${fileId}`;
+			}
+			return url;
 		}
 
 		function renderTable() {
@@ -1243,7 +1293,7 @@
 							${item["tên sản phẩm"]}
 							<div class="edit-controls">
 								<button class="btn-edit" onclick="openModal('edit', '${item["tên sản phẩm"].replace(/'/g, "\\'")}')">Sửa</button>
-								<button class="btn-delete" onclick="deleteProduct('${item["tên sản phẩm"].replace(/'/g, "\\'")}')">Xóa</button>
+								<button class="btn-delete" onclick='showConfirmDelete(${JSON.stringify(item).replace(/'/g, "&apos;")})'>Xóa</button>
 							</div>
 						</td>
 						<td class="spec-cell" data-label="Số chai/thùng">${item["số chai trong 1 thùng"]}</td>
@@ -1274,7 +1324,7 @@
 				const p = allProducts.find(x => x["tên sản phẩm"] === tenSp);
 				if (p) {
 					currentEditProduct = p;
-					document.getElementById('id_san_pham').value = p.id_san_pham;
+					document.getElementById('id_san_pham').value = p["id sản phẩm"] || p.id_san_pham;
 					document.getElementById('ten_san_pham').value = p["tên sản phẩm"];
 					document.getElementById('so_chai_thung').value = p["số chai trong 1 thùng"];
 					document.getElementById('gia_ban_le').value = p["giá bán lẻ theo chai"];
@@ -1316,34 +1366,64 @@
 			loadingText.innerText = "Đang xử lý...";
 
 			try {
+				const id_sp = document.getElementById('id_san_pham').value;
+				const ten_sp = document.getElementById('ten_san_pham').value;
+				const so_chai = document.getElementById('so_chai_thung').value;
+				const gia_le = document.getElementById('gia_ban_le').value;
+				const gia_ny = document.getElementById('gia_niem_yet').value;
+				const tang = document.getElementById('tang_them').value;
+				const km3 = document.getElementById('km_3_thung').value;
+				const km2 = document.getElementById('km_2_thung').value;
+				const km1 = document.getElementById('km_1_thung').value;
+
+				const productData = {
+					"id sản phẩm": id_sp,
+					"tên sản phẩm": ten_sp,
+					"số chai trong 1 thùng": so_chai,
+					"giá bán lẻ theo chai": gia_le,
+					"giá niêm yết theo chai": gia_ny,
+					"tặng thêm": tang,
+					"khuyến mãi 3 thùng": km3,
+					"khuyến mãi 2 thùng": km2,
+					"khuyến mãi 1 thùng": km1,
+					"trạng thái xóa": ""
+				};
+
 				const payload = {
-					action: isEdit ? "update" : "add",
-					ten_sp_old: isEdit ? currentEditProduct["tên sản phẩm"] : "",
-					id_san_pham: document.getElementById('id_san_pham').value,
-					ten_san_pham: document.getElementById('ten_san_pham').value,
-					so_chai_thung: document.getElementById('so_chai_thung').value,
-					gia_ban_le: document.getElementById('gia_ban_le').value,
-					gia_niem_yet: document.getElementById('gia_niem_yet').value,
-					tang_them: document.getElementById('tang_them').value,
-					km_3_thung: document.getElementById('km_3_thung').value,
-					km_2_thung: document.getElementById('km_2_thung').value,
-					km_1_thung: document.getElementById('km_1_thung').value
+					action: isEdit ? "update" : "create",
+					idField: "id sản phẩm",
+					idValue: isEdit ? currentEditProduct["id sản phẩm"] : id_sp,
+					data: productData
 				};
 
 				const fileInput = document.getElementById('imageFile');
 				const file = fileInput.files[0];
 				if (file) {
 					loadingText.innerText = "Đang tải ảnh...";
-					payload.image_base64 = await fileToBase64(file);
-					payload.image_name = file.name;
-					payload.image_mime = file.type;
+					const base64 = await fileToBase64(file);
+					const uploadRes = await fetch(SCRIPT_URL, {
+						method: 'POST',
+						body: JSON.stringify({
+							action: 'upload',
+							file: base64,
+							mimeType: file.type,
+							filename: file.name,
+							folderId: '1f2lJw6oYd2fe94u0w2FHVqdaZc5RhTqb'
+						})
+					});
+					const uploadData = await uploadRes.json();
+					if (uploadData.success) {
+						productData.image = uploadData.url;
+					}
+				} else if (isEdit) {
+					productData.image = currentEditProduct.image;
 				}
 
 				loadingText.innerText = isEdit ? "Đang cập nhật..." : "Đang lưu...";
 				const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
 				const result = await response.json();
 
-				if (result.result === 'success') {
+				if (result.success) {
 					alert(isEdit ? "Cập nhật thành công!" : "Thêm thành công!");
 					closeModal();
 					loadData();
@@ -1357,19 +1437,58 @@
 			}
 		}
 
-		async function deleteProduct(tenSp) {
-			if (!confirm(`Bạn có chắc muốn xóa sản phẩm: ${tenSp}?`)) return;
+		function closeConfirmModal() {
+			document.getElementById('confirmDeleteModal').classList.remove('show');
+		}
+
+		function showConfirmDelete(item) {
+			document.getElementById('deleteConfirmText').innerText = `Bạn có chắc muốn xóa sản phẩm "${item["tên sản phẩm"]}" không?`;
+			document.getElementById('confirmDeleteModal').classList.add('show');
+			document.getElementById('btnConfirmDelete').onclick = async () => {
+				closeConfirmModal();
+				await deleteProduct(item);
+			};
+		}
+
+		async function deleteProduct(item) {
+			const formLoading = document.getElementById('formLoading');
+			const modal = document.getElementById('addModal');
+
+			modal.classList.add('show');
+			formLoading.style.display = 'flex';
+			document.getElementById('loadingText').innerText = "Đang xử lý xóa...";
+
 			try {
+				const productData = {
+					"id sản phẩm": item["id sản phẩm"],
+					"tên sản phẩm": item["tên sản phẩm"],
+					"số chai trong 1 thùng": item["số chai trong 1 thùng"],
+					"giá bán lẻ theo chai": item["giá bán lẻ theo chai"],
+					"giá niêm yết theo chai": item["giá niêm yết theo chai"],
+					"tặng thêm": item["tặng thêm"],
+					"khuyến mãi 3 thùng": item["khuyến mãi 3 thùng"],
+					"khuyến mãi 2 thùng": item["khuyến mãi 2 thùng"],
+					"khuyến mãi 1 thùng": item["khuyến mãi 1 thùng"],
+					"image": item.image
+				};
+
 				const response = await fetch(SCRIPT_URL, {
 					method: 'POST',
-					body: JSON.stringify({ action: "delete", ten_san_pham: tenSp })
+					body: JSON.stringify({ action: "delete", data: productData })
 				});
 				const result = await response.json();
-				if (result.result === 'success') {
-					alert("Đã đánh dấu xóa!");
+				if (result.success) {
+					alert("Đã xóa sản phẩm thành công!");
 					loadData();
-				} else { alert("Lỗi: " + result.message); }
-			} catch (err) { alert("Lỗi kết nối: " + err.message); }
+				} else {
+					throw new Error(result.message);
+				}
+			} catch (err) {
+				alert("Lỗi: " + err.message);
+			} finally {
+				formLoading.style.display = 'none';
+				modal.classList.remove('show');
+			}
 		}
 
 		// Lightbox functions
