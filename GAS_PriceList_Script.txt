@@ -117,69 +117,45 @@ function deleteData(payload) {
   try {
     const ss = SpreadsheetApp.openById(payload.sheetId);
     const sheet = ss.getSheetByName(payload.sheetName);
-    const idField = payload.idField;
-    const idValue = payload.idValue;
     
-    // Đọc dữ liệu và tiêu đề
+    if (!payload.data) {
+      return jsonResponse({success: false, message: 'No data provided for delete operation'});
+    }
+    
+    // Đọc headers để map dữ liệu
     const range = sheet.getDataRange();
     const values = range.getValues();
     const headers = values[0];
     
-    // Tìm vị trí cột ID
-    const idColIndex = headers.indexOf(idField);
-    if (idColIndex === -1) return jsonResponse({success: false, message: 'ID Field not found: ' + idField});
-    
-    // Tìm vị trí cột "trạng thái xóa" (không phân biệt hoa thường, khoảng trắng)
+    // Tìm hoặc tạo cột "trạng thái xóa"
     let deleteColIndex = headers.findIndex(h => String(h).trim().toLowerCase() === 'trạng thái xóa');
     
-    // Nếu chưa có cột "trạng thái xóa", tự động thêm vào cột cuối cùng
     if (deleteColIndex === -1) {
-        deleteColIndex = headers.length; // Cột mới sẽ ở vị trí này
-        sheet.getRange(1, deleteColIndex + 1).setValue('trạng thái xóa'); // Ghi tiêu đề mới
+        deleteColIndex = headers.length;
+        sheet.getRange(1, deleteColIndex + 1).setValue('trạng thái xóa');
     }
     
-    let actionTaken = '';
-    let updated = false;
-
-    // Duyệt qua các dòng để tìm ID
-    for (let i = 1; i < values.length; i++) {
-        if (String(values[i][idColIndex]).trim() === String(idValue).trim()) {
-            // Ghi đè chữ DELETED vào cột trạng thái xóa
-            sheet.getRange(i + 1, deleteColIndex + 1).setValue('DELETED');
-            updated = true;
-            actionTaken = 'Updated existing row to DELETED';
+    // Tạo dòng mới với toàn bộ data + trạng thái DELETED
+    const newRow = [];
+    headers.forEach((h, index) => {
+        if (index === deleteColIndex) {
+            newRow.push('DELETED');
+        } else if (payload.data[h] !== undefined) {
+            newRow.push(payload.data[h]);
+        } else {
+            newRow.push('');
         }
+    });
+    
+    // Nếu cột trạng thái xóa mới được thêm (nằm ngoài headers cũ)
+    if (deleteColIndex >= headers.length) {
+        newRow[deleteColIndex] = 'DELETED';
     }
     
-    // Nếu không tìm thấy dòng nào khớp ID, ta tạo dòng mới với trạng thái DELETED
-    if (!updated && payload.data) {
-        const newRow = [];
-        // Map dữ liệu vào đúng cột
-        headers.forEach((h, index) => {
-             // Nếu là cột trạng thái xóa, ghi DELETED
-             if (index === deleteColIndex) {
-                 newRow.push('DELETED');
-             } else if (payload.data[h] !== undefined) {
-                 newRow.push(payload.data[h]);
-             } else {
-                 newRow.push('');
-             }
-        });
-        
-        // Nếu cột trạng thái xóa nằm ngoài số lượng cột cũ (do mới thêm), xử lý thêm
-        if (deleteColIndex >= headers.length) {
-             newRow[deleteColIndex] = 'DELETED';
-        }
-        
-        // Nếu dữ liệu mới có nhiều cột hơn header hiện tại? 
-        // Đảm bảo không lỗi. Thêm row an toàn.
-        sheet.appendRow(newRow);
-        actionTaken = 'Created new row with DELETED status';
-        updated = true;
-    }
+    // Thêm dòng mới vào cuối sheet
+    sheet.appendRow(newRow);
     
-    if (updated) return jsonResponse({success: true, message: actionTaken});
-    return jsonResponse({success: false, message: 'Item not found and no data provided to create'});
+    return jsonResponse({success: true, message: 'Created DELETED record in sheet'});
   } catch (err) {
     return jsonResponse({success: false, message: err.toString()});
   }
@@ -191,7 +167,7 @@ function uploadFile(payload) {
     const blob = Utilities.newBlob(Utilities.base64Decode(payload.file), payload.mimeType, payload.filename);
     const file = folder.createFile(blob);
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    const url = 'https://drive.google.com/uc?export=view&id=' + file.getId();
+    const url = 'https://lh3.googleusercontent.com/d/' + file.getId();
     return jsonResponse({success: true, url: url});
   } catch (err) {
     return jsonResponse({success: false, message: err.toString()});
