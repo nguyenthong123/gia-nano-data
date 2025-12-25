@@ -790,25 +790,116 @@
 		}
 
 		async function fetchCustomers() {
-			if (ORDER_SCRIPT_URL.includes('AKfyc')) {
+			let jsonData = [];
+			try {
+				const res = await fetch('data/data_khach.json');
+				if (res.ok) {
+					const raw = await res.json();
+					jsonData = raw.map(item => {
+						const newItem = {};
+						Object.keys(item).forEach(k => {
+							const normK = k.replace(/\s+/g, '').toLowerCase();
+							newItem[normK] = item[k];
+						});
+						return newItem;
+					}).filter(item => item.mailđăngnhập === userData.email);
+				}
+			} catch (e) { console.warn("No local customer JSON or error", e); }
+
+			try {
 				const res = await fetch(`${ORDER_SCRIPT_URL}?action=read_customers&email=${encodeURIComponent(userData.email)}`);
 				const json = await res.json();
-				if (json.success) currentCustomers = json.data;
-			}
+				if (json.success) {
+					const sheetData = json.data;
+					const merged = [...sheetData];
+					const sheetIds = new Set(sheetData.map(s => s.idkháchhàng));
+
+					jsonData.forEach(j => {
+						if (!sheetIds.has(j.idkháchhàng)) merged.push(j);
+					});
+					currentCustomers = merged;
+				} else {
+					currentCustomers = jsonData;
+				}
+			} catch (e) { currentCustomers = jsonData; }
 		}
 
 		async function fetchOrders() {
-			if (ORDER_SCRIPT_URL.includes('AKfyc')) {
+			let jsonData = [];
+			try {
+				const res = await fetch('data/data_don_hang.json');
+				if (res.ok) {
+					const raw = await res.json();
+					jsonData = raw.map(item => {
+						const newItem = {};
+						Object.keys(item).forEach(k => {
+							const normK = k.replace(/\s+/g, '').toLowerCase();
+							newItem[normK] = item[k];
+						});
+						return newItem;
+					}).filter(item => item.mailđăngnhập === userData.email);
+				}
+			} catch (e) { console.warn("No local order JSON or error", e); }
+
+			try {
 				const res = await fetch(`${ORDER_SCRIPT_URL}?action=read_orders&email=${encodeURIComponent(userData.email)}`);
 				const json = await res.json();
-				if (json.success) currentOrders = json.data;
-			}
+				if (json.success) {
+					const sheetData = json.data;
+					// Merge orders by ID. Each order might have multiple rows.
+					// We'll prioritize sheet data if the order ID exists in sheet.
+					const merged = [...sheetData];
+					const sheetOrderIds = new Set(sheetData.map(s => s.idđơnhàng));
+
+					jsonData.forEach(j => {
+						if (!sheetOrderIds.has(j.idđơnhàng)) merged.push(j);
+					});
+					currentOrders = merged;
+				} else {
+					currentOrders = jsonData;
+				}
+			} catch (e) { currentOrders = jsonData; }
 		}
 
 		async function fetchProducts() {
-			const res = await fetch(`${PRODUCT_SCRIPT_URL}?action=read&username=${encodeURIComponent(userData.email)}`);
-			const json = await res.json();
-			if (json.success) availableProducts = json.data;
+			let jsonData = [];
+			try {
+				const res = await fetch('data/data_san_pham_kh.json');
+				if (res.ok) {
+					const raw = await res.json();
+					jsonData = raw.map(item => {
+						const newItem = {};
+						Object.keys(item).forEach(k => {
+							const normK = k.replace(/\s+/g, '').toLowerCase();
+							newItem[normK] = item[k];
+						});
+						// Map internal naming
+						if (newItem.id_san_pham === undefined && newItem.idsanpham) newItem.id_san_pham = newItem.idsanpham;
+						if (newItem.ten_san_pham === undefined && newItem.tensanpham) newItem.ten_san_pham = newItem.tensanpham;
+						if (newItem.gia_san_pham === undefined && newItem.giasanpham) newItem.gia_san_pham = newItem.giasanpham;
+						if (newItem.ten_nghanh_hang === undefined && newItem.tennghanhhang) newItem.ten_nghanh_hang = newItem.tennghanhhang;
+
+						return newItem;
+					}).filter(item => item.ten_dang_nhap === userData.email);
+				}
+			} catch (e) { console.warn("No local product JSON or error", e); }
+
+			try {
+				const res = await fetch(`${PRODUCT_SCRIPT_URL}?action=read&username=${encodeURIComponent(userData.email)}`);
+				const json = await res.json();
+				if (json.success) {
+					const sheetData = json.data;
+					const merged = [...sheetData];
+					const sheetIds = new Set(sheetData.map(s => s.id_san_pham));
+
+					jsonData.forEach(j => {
+						if (!sheetIds.has(j.id_san_pham)) merged.push(j);
+					});
+					availableProducts = merged;
+				} else {
+					availableProducts = jsonData;
+				}
+			} catch (e) { availableProducts = jsonData; }
 		}
 
 		// --- TAB SWITCH --
