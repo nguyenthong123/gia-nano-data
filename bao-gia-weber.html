@@ -900,6 +900,32 @@
 				transform: rotate(360deg);
 			}
 		}
+
+		/* CSS cho nút chọn loại sản phẩm */
+		.type-buttons {
+			display: flex;
+			gap: 12px;
+		}
+
+		.type-btn {
+			flex: 1;
+			padding: 12px;
+			border: 2px solid #edf2f7;
+			border-radius: 12px;
+			background: #f8fafc;
+			color: #636e72;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.3s;
+			text-align: center;
+		}
+
+		.type-btn.active {
+			border-color: #f1c40f;
+			background: #fef9e7;
+			color: #2d3436;
+			box-shadow: 0 4px 12px rgba(241, 196, 15, 0.2);
+		}
 	</style>
 </head>
 
@@ -1032,6 +1058,16 @@
 						<label>Tên Sản Phẩm</label>
 						<input type="text" id="ten_san_pham" name="ten_san_pham" class="form-input" required
 							placeholder="Ví dụ: Weberseal WS 500">
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label>Loại sản phẩm (Phân loại)</label>
+					<div class="type-buttons">
+						<input type="hidden" id="loai_san_pham" name="loai_san_pham" value="A 300">
+						<button type="button" class="type-btn active" onclick="selectProductType(this, 'A 300')">A
+							300</button>
+						<button type="button" class="type-btn" onclick="selectProductType(this, 'A 500')">A 500</button>
 					</div>
 				</div>
 
@@ -1202,6 +1238,7 @@
 						"khuyến mãi 2 thùng": findValue(["khuyến mãi 2 thùng", "km_2_thung"]),
 						"khuyến mãi 1 thùng": findValue(["khuyến mãi 1 thùng", "km_1_thung"]),
 						"tặng thêm": findValue(["tặng thêm", "tang_them"]),
+						"loại sản phẩm": findValue(["loại sản phẩm", "loai_san_pham", "type"]),
 						"trạng thái xóa": findValue(["trạng thái xóa", "trang_thai_xoa"])
 					};
 				};
@@ -1311,6 +1348,13 @@
 			return url;
 		}
 
+		function formatCurrency(num) {
+			if (!num && num !== 0) return "Liên hệ";
+			const n = parseInt(num.toString().replace(/[^0-9]/g, ''));
+			if (isNaN(n)) return num; // Trả về gốc nếu không phải số
+			return new Intl.NumberFormat('vi-VN').format(n) + ' đ';
+		}
+
 		function renderTable() {
 			const tableBody = document.getElementById('tableBody');
 			const priceKey = document.getElementById('selectPrice').value;
@@ -1332,7 +1376,7 @@
 
 			tableBody.innerHTML = filtered.map(item => {
 				const imgUrl = convertDriveLink(item.image) || 'https://placehold.co/100x100?text=Weber';
-				const priceVal = item[priceKey] || "Liên hệ";
+				const priceVal = formatCurrency(item[priceKey]);
 				const promoVal = item[promoKey] || "";
 
 				return `
@@ -1393,6 +1437,15 @@
 					document.getElementById('km_3_thung').value = p["khuyến mãi 3 thùng"];
 					document.getElementById('km_2_thung').value = p["khuyến mãi 2 thùng"];
 					document.getElementById('km_1_thung').value = p["khuyến mãi 1 thùng"];
+
+					// Set loại sản phẩm
+					const loai = p["loại sản phẩm"] || 'A 300';
+					document.getElementById('loai_san_pham').value = loai;
+					const btns = document.querySelectorAll('.type-btn');
+					btns.forEach(b => {
+						b.classList.toggle('active', b.innerText === loai);
+					});
+
 					document.getElementById('imageFile').required = false; // Không bắt buộc khi sửa
 				}
 			} else {
@@ -1401,7 +1454,20 @@
 				currentEditProduct = null;
 				document.getElementById('id_san_pham').value = 'W' + Math.floor(Math.random() * 9000 + 1000); // Create luôn có ID mới
 				document.getElementById('imageFile').required = true;
+
+				// Reset type buttons
+				document.getElementById('loai_san_pham').value = 'A 300';
+				const btns = document.querySelectorAll('.type-btn');
+				btns.forEach(b => b.classList.remove('active'));
+				btns[0].classList.add('active');
 			}
+		}
+
+		function selectProductType(btn, value) {
+			document.getElementById('loai_san_pham').value = value;
+			const btns = document.querySelectorAll('.type-btn');
+			btns.forEach(b => b.classList.remove('active'));
+			btn.classList.add('active');
 		}
 
 		function closeModal() {
@@ -1451,6 +1517,7 @@
 					"khuyến mãi 3 thùng": km3,
 					"khuyến mãi 2 thùng": km2,
 					"khuyến mãi 1 thùng": km1,
+					"loại sản phẩm": document.getElementById('loai_san_pham').value,
 					"trạng thái xóa": ""
 				};
 
@@ -1552,6 +1619,7 @@
 					"khuyến mãi 3 thùng": item["khuyến mãi 3 thùng"],
 					"khuyến mãi 2 thùng": item["khuyến mãi 2 thùng"],
 					"khuyến mãi 1 thùng": item["khuyến mãi 1 thùng"],
+					"loại sản phẩm": item["loại sản phẩm"],
 					"image": item.image
 				};
 

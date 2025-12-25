@@ -798,6 +798,42 @@
 		</div>
 	</div>
 
+	<!-- Modal Xác Nhận Xóa -->
+	<div id="confirmModal" class="modal" style="display: none;">
+		<div class="modal-content"
+			style="max-width: 400px; padding: 30px; text-align: center; border-radius: 20px; background: white; position: relative;">
+			<div style="font-size: 3rem; color: #e74c3c; margin-bottom: 20px;">⚠️</div>
+			<h2 id="confirmTitle" style="margin-bottom: 15px; color: #2d3436;">Xác nhận xóa?</h2>
+			<p id="confirmMessage" style="color: #636e72; margin-bottom: 25px; line-height: 1.5;">Bạn có chắc chắn muốn
+				xóa đơn hàng này không? Hành động này không thể hoàn tác.</p>
+			<div style="display: flex; gap: 15px; justify-content: center;">
+				<button id="btnCancelConfirm" class="btn"
+					style="background: #dfe6e9; color: #2d3436; border: none; padding: 12px 25px; border-radius: 12px; cursor: pointer; font-weight: 700; flex: 1;">HỦY</button>
+				<button id="btnOkConfirm" class="btn"
+					style="background: #e74c3c; color: white; border: none; padding: 12px 25px; border-radius: 12px; cursor: pointer; font-weight: 700; flex: 1;">XÓA
+					NGAY</button>
+			</div>
+		</div>
+	</div>
+
+	<style>
+		#confirmModal .modal-content {
+			animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+		}
+
+		@keyframes modalPop {
+			from {
+				transform: scale(0.8);
+				opacity: 0;
+			}
+
+			to {
+				transform: scale(1);
+				opacity: 1;
+			}
+		}
+	</style>
+
 	<script>
 		const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIHfOV9rW_GQ8_Xv-WWA3KAqPMONiZQPDdOdNOcYmMSMlt93KG3zZJ7Z53OJ-d-LIJZg/exec';
 
@@ -968,6 +1004,9 @@
 						const id = getRowValue(r, ["Mã Đơn", "Mã đơn", "Ma Don", "Ma don"]) || 'UNKNOWN';
 						const rawCategory = getRowValue(r, ["Loại SP", "Loai SP", "Loại sản phẩm", "Loại"]);
 						const categoryNorm = (rawCategory || '').toString().toLowerCase().trim();
+						let categoryKey = 'pima';
+						if (categoryNorm.includes('weber') || id.startsWith('W')) categoryKey = 'weber';
+						else if (categoryNorm.includes('duraflex') || id.startsWith('D')) categoryKey = 'duraflex';
 
 						const time = getRowValue(r, ["Thời gian", "Thoi gian"]);
 						const customer = getRowValue(r, ["Khách Hàng", "Khach Hang"]);
@@ -975,9 +1014,9 @@
 						const notes = getRowValue(r, ["Ghi Chú", "Ghi chú", "ghi chú", "ghi chú đơn hàng"]);
 
 						let rowValue = 0;
-						if (categoryNorm === 'pima' || id.startsWith('P')) {
+						if (categoryKey === 'pima') {
 							rowValue = parseCurrency(getRowValue(r, ["số tiền còn lại trong đơn", "số tiền còn lại", "Remaining Amount"]));
-						} else if (categoryNorm === 'duraflex' || id.startsWith('D')) {
+						} else if (categoryKey === 'duraflex') {
 							rowValue = parseCurrency(getRowValue(r, ["số tiền còn lại trong đơn", "số tiền còn lại"]));
 						} else {
 							rowValue = parseCurrency(getRowValue(r, ["Thành Tiền", "Thanh Tien", "Thành tiền"]));
@@ -987,7 +1026,7 @@
 							ordersMap[id] = {
 								id: id,
 								time: time,
-								category: categoryNorm,
+								category: categoryKey,
 								category_display: rawCategory || (id.startsWith('P') ? 'PIMA' : id.startsWith('D') ? 'DURAFLEX' : 'WEBER'),
 								customer: customer,
 								customer_type: custType,
@@ -998,7 +1037,7 @@
 							};
 						} else {
 							// Weber thì cộng dồn Thành Tiền, Pima/Duraflex thì lấy giá trị lặp lại (pick max)
-							if (categoryNorm === 'weber' || id.startsWith('W')) {
+							if (categoryKey === 'weber') {
 								ordersMap[id].total += rowValue;
 							} else {
 								if (rowValue > ordersMap[id].total) ordersMap[id].total = rowValue;
@@ -1156,7 +1195,7 @@
 						<button class="btn btn-primary" style="padding: 6px 14px; font-size: 0.8rem; ${order._isHistory || !isAdmin ? 'width:100%' : ''}" onclick='viewInvoice(${JSON.stringify(order).replace(/'/g, "&apos;")})'>XEM</button>
 						${(!order._isHistory && isAdmin) ? `
 						<button class="btn btn-warning" style="padding: 6px 14px; font-size: 0.8rem; background: #f39c12; color: white; border:none; border-radius:10px; cursor:pointer;" onclick='editOrder(${JSON.stringify(order).replace(/'/g, "&apos;")})'>SỬA</button>
-						<button class="btn btn-danger" style="padding: 6px 14px; font-size: 0.8rem; background: #e74c3c; color: white; border:none; border-radius:10px; cursor:pointer;" onclick='deleteOrder("${order.id}", "${order.category}")'>XÓA</button>
+						<button class="btn btn-danger" style="padding: 6px 14px; font-size: 0.8rem; background: #e74c3c; color: white; border:none; border-radius:10px; cursor:pointer;" onclick='deleteOrder(event, "${order.id}", "${order.category}")'>XÓA</button>
 						` : ''}
                     </td>
                 </tr>
@@ -1207,7 +1246,7 @@
 						<button class="btn btn-primary" style="padding: 5px 10px; font-size: 0.75rem; ${row._isHistory || !isAdmin ? 'width:100%' : ''}" onclick='viewInvoiceFromId("${row["Mã Đơn"] || row["Mã đơn"]}", "${category}")'>XEM</button>
 						${(!row._isHistory && isAdmin) ? `
 						<button class="btn btn-warning" style="padding: 5px 10px; font-size: 0.75rem; background: #f39c12; color: white; border:none; border-radius:10px; cursor:pointer;" onclick='editOrderFromRow(${JSON.stringify(row).replace(/'/g, "&apos;")}, "${category}")'>SỬA</button>
-						<button class="btn btn-danger" style="padding: 5px 10px; font-size: 0.75rem; background: #e74c3c; color: white; border:none; border-radius:10px; cursor:pointer;" onclick='deleteOrder("${row["Mã Đơn"] || row["Mã đơn"]}", "${category}")'>XÓA</button>
+						<button class="btn btn-danger" style="padding: 5px 10px; font-size: 0.75rem; background: #e74c3c; color: white; border:none; border-radius:10px; cursor:pointer;" onclick='deleteOrder(event, "${row["Mã Đơn"] || row["Mã đơn"]}", "${category}")'>XÓA</button>
 						` : ''}
 					</td>
 				</tr>`;
@@ -1504,9 +1543,18 @@
 							setText('#summaryDiscount', `- ${formatCurrency(computedDiscount)}`);
 							setText('#summaryTotal', formatCurrency(finalDisplayTotal));
 						} else if (catNorm === 'pima') {
-							setText('#summaryTransportSupport', formatCurrency(computedSurplus));
-							setText('#summaryOrderTotal', formatCurrency(computedGross + computedSurplus));
+							setText('#summarySurplus', formatCurrency(computedSurplus));
+							setText('#summaryGross', formatCurrency(computedGross));
 							setText('#summaryTotal', formatCurrency(finalDisplayTotal));
+
+							const surplusRow = clone.querySelector('#surplusRow');
+							if (surplusRow) {
+								surplusRow.style.display = computedSurplus > 0 ? 'flex' : 'none';
+							}
+							const totalLabel = clone.querySelector('#totalLabel');
+							if (totalLabel) {
+								totalLabel.innerText = computedSurplus > 0 ? 'SỐ TIỀN CÒN LẠI:' : 'TỔNG CỘNG:';
+							}
 						} else if (catNorm === 'weber') {
 							setText('#summaryTotalBoxes', computedBoxes);
 							setText('#summaryTotal', formatCurrency(finalDisplayTotal));
@@ -1941,21 +1989,76 @@
 			editOrder(order);
 		}
 
-		async function deleteOrder(orderId, category) {
-			if (!confirm(`Bạn có chắc muốn xóa đơn hàng ${orderId}?`)) return;
+		// Hàm hiển thị Modal xác nhận tùy chỉnh (thay thế confirm)
+		function showConfirm(title, message) {
+			return new Promise((resolve) => {
+				const modal = document.getElementById('confirmModal');
+				const titleEl = document.getElementById('confirmTitle');
+				const msgEl = document.getElementById('confirmMessage');
+				const btnOk = document.getElementById('btnOkConfirm');
+				const btnCancel = document.getElementById('btnCancelConfirm');
 
-			const btn = event.target;
-			const originalText = btn.innerText;
-			btn.innerText = '...';
-			btn.disabled = true;
+				titleEl.innerText = title;
+				msgEl.innerText = message;
+				modal.style.display = 'flex';
+
+				const cleanup = (result) => {
+					modal.style.display = 'none';
+					btnOk.onclick = null;
+					btnCancel.onclick = null;
+					resolve(result);
+				};
+
+				btnOk.onclick = () => cleanup(true);
+				btnCancel.onclick = () => cleanup(false);
+			});
+		}
+
+		async function deleteOrder(event, orderId, category) {
+			if (event) {
+				event.preventDefault();
+				event.stopPropagation();
+			}
+			console.log('--- Bắt đầu lệnh xóa ---');
+			console.log('Mã đơn:', orderId);
+			console.log('Loại sản phẩm (Ban đầu):', category);
+
+			const confirmed = await showConfirm(
+				"Xác nhận xóa?",
+				`Bạn có chắc muốn xóa đơn hàng ${orderId}? Hành động này không thể hoàn tác.`
+			);
+
+			if (!confirmed) {
+				console.log('Người dùng đã hủy xóa.');
+				return;
+			}
+
+			// Xác định nút bấm để hiển thị trạng thái đang tải
+			const btn = (event && event.currentTarget) ? event.currentTarget : null;
+			const originalText = btn ? btn.innerText : 'XÓA';
+
+			if (btn) {
+				btn.innerText = 'Đang xóa...';
+				btn.disabled = true;
+			}
+
+			// Tự động nhận diện category nếu bị thiếu hoặc là 'all'
+			if (!category || category === 'all' || category === '') {
+				const idPrefix = orderId.charAt(0).toUpperCase();
+				category = idPrefix === 'W' ? 'weber' : (idPrefix === 'D' ? 'duraflex' : 'pima');
+				console.log('Tự động nhận diện category:', category);
+			}
 
 			try {
-				const form = new URLSearchParams();
-				form.append('payload', JSON.stringify({
+				const payload = {
 					action: 'delete_order',
 					orderId: orderId,
 					category: category
-				}));
+				};
+				console.log('Gửi Payload đến Server:', payload);
+
+				const form = new URLSearchParams();
+				form.append('payload', JSON.stringify(payload));
 
 				const res = await fetch(SCRIPT_URL, {
 					method: 'POST',
@@ -1963,19 +2066,35 @@
 					body: form.toString()
 				});
 
-				const json = await res.json();
+				console.log('Phản hồi HTTP Status:', res.status);
+
+				const text = await res.text();
+				console.log('Dữ liệu thô từ Server:', text);
+
+				let json;
+				try {
+					json = JSON.parse(text);
+				} catch (e) {
+					throw new Error('Lỗi phản hồi từ server (không phải JSON)');
+				}
+
 				if (json.result === 'success') {
-					alert('Đã xóa đơn hàng thành công!');
-					fetchOrders(category === 'all' ? '' : category);
+					console.log('Xóa thành công:', json);
+					alert(`Đã xóa đơn hàng ${orderId} thành công!`);
+					// Tải lại danh sách sau khi xóa
+					fetchOrders();
 				} else {
 					throw new Error(json.message || 'Lỗi không xác định');
 				}
 			} catch (e) {
-				console.error(e);
-				alert('Lỗi khi xóa đơn hàng: ' + e.message);
+				console.error('LỖI KHI XÓA:', e);
+				alert('Lỗi: ' + e.message);
 			} finally {
-				btn.innerText = originalText;
-				btn.disabled = false;
+				if (btn) {
+					btn.innerText = originalText;
+					btn.disabled = false;
+				}
+				console.log('--- Kết thúc quá trình xóa ---');
 			}
 		}
 

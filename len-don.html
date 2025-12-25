@@ -989,21 +989,19 @@
 					<div class="info-item"><label>Số kiện:</label><span>${packages} kiện</span></div>
 					<div class="info-item"><label>Chiết khấu:</label><span>${product["sản phẩm được tính chiết khấu"] === "TRUE" || product["sản phẩm được tính chiết khấu"] === true ? 'Có' : 'Không'}</span></div>
 				`;
-			} else {
-				// Pima
-				const priceChanh = parseCurrency(product["giá ra chành"] || product["gia_ra_chanh"] || product["giá hcm"] || "0");
-				const priceKho = parseCurrency(product["giá tại kho"] || product["gia_tai_kho"] || priceChanh);
+			} else if (tab === 'pima') {
+				const priceChanh = parseCurrency(product["giá ra chành hcm"] || product["Giá Ra Chành HCM"] || 0);
+				const priceKho = parseCurrency(product["giá tại kho hcm"] || product["Giá Tại Kho HCM"] || 0);
+				const isKho = row.querySelector('.delivery-btn.active').innerText === 'Tại Kho';
 
-				const toggle = document.getElementById(`delivery-toggle-${rowId}`);
-				const isKho = toggle && toggle.querySelector('.delivery-btn.active').innerText.toLowerCase().includes('kho');
-
-				unitPrice = isKho ? priceKho : priceChanh;
+				// Luôn sử dụng giá ra chành làm đơn giá và thành tiền
+				unitPrice = priceChanh;
 
 				if (isKho) {
 					const diff = priceChanh - priceKho;
 					const surplus = diff * qty;
 					if (surplus > 0) {
-						row.querySelector(`#surplus-${rowId}`).innerText = `Phần dư: +${formatCurrency(surplus)}`;
+						row.querySelector(`#surplus-${rowId}`).innerText = `Hỗ trợ VC: +${formatCurrency(surplus)}`;
 						row.setAttribute('data-surplus', surplus);
 					} else {
 						row.querySelector(`#surplus-${rowId}`).innerText = '';
@@ -1013,7 +1011,6 @@
 					row.querySelector(`#surplus-${rowId}`).innerText = '';
 					row.removeAttribute('data-surplus');
 				}
-
 				// Pima product info
 				productInfoHTML = `
 					<div class="info-item"><label>Quy cách:</label><span>${product["quy cách"] || 'N/A'}</span></div>
@@ -1164,17 +1161,17 @@
 				if (totalSurplus > 0) {
 					grossRow.style.display = 'flex';
 					surplusRow.style.display = 'flex';
-					document.getElementById('summaryGross').innerText = formatCurrency(total + totalSurplus);
+					document.getElementById('summaryGross').innerText = formatCurrency(total);
 					document.getElementById('summarySurplus').innerText = `- ${formatCurrency(totalSurplus)}`;
 					totalLabel.innerText = "SỐ TIỀN CÒN LẠI:";
-					finalTotal = total; // Số tiền còn lại = total (đã tính theo giá kho)
+					finalTotal = total - totalSurplus;
 					orderComputed.totalSupport = totalSurplus;
 					orderComputed.totalAfterSupport = finalTotal;
 				} else {
 					grossRow.style.display = 'none';
 					surplusRow.style.display = 'none';
 					totalLabel.innerText = "TỔNG CỘNG:";
-					finalTotal = total; // Ensure finalTotal is set even when no surplus
+					finalTotal = total;
 				}
 				discountRow.style.display = 'none';
 			} else {
@@ -1198,9 +1195,14 @@
 
 		// --- HELPERS ---
 		function formatCurrency(num) {
-			if (num === 0) return "0 đ";
-			if (!num || isNaN(num)) return "";
-			return new Intl.NumberFormat('vi-VN').format(num) + ' đ';
+			if (num === null || num === undefined || isNaN(num)) return "0 đ";
+			return new Intl.NumberFormat('vi-VN').format(Math.round(num)) + ' đ';
+		}
+
+		// Hàm định dạng số khi đang nhập (không có chữ đ)
+		function formatNumberInput(num) {
+			if (num === null || num === undefined || isNaN(num)) return "0";
+			return new Intl.NumberFormat('vi-VN').format(Math.round(num));
 		}
 
 		function parseCurrency(str) {

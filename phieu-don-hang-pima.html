@@ -462,16 +462,16 @@
 
 			<!-- Summary -->
 			<div class="summary-box">
-				<div class="summary-row">
-					<span>Tổng tiền hỗ trợ vận chuyển:</span>
-					<span id="summaryTransportSupport">0 đ</span>
-				</div>
-				<div class="summary-row">
+				<div class="summary-row" id="grossRow">
 					<span>Tổng tiền trong đơn:</span>
-					<span id="summaryOrderTotal">0 đ</span>
+					<span id="summaryGross">0 đ</span>
+				</div>
+				<div class="summary-row" id="surplusRow" style="display: none; color: #e67e22; font-weight: 700;">
+					<span>Tổng tiền hỗ trợ vận chuyển:</span>
+					<span id="summarySurplus">0 đ</span>
 				</div>
 				<div class="summary-row total">
-					<span id="totalLabel">SỐ TIỀN CÒN LẠI:</span>
+					<span id="totalLabel">TỔNG CỘNG:</span>
 					<span id="summaryTotal">0 đ</span>
 				</div>
 			</div>
@@ -534,18 +534,13 @@
 						const row = document.createElement('tr');
 						const deliveryBadge = item.delivery_type ? `<span class="delivery-badge">${item.delivery_type}</span>` : '-';
 
-						// Handle both old and new data structure
 						const surplus = parseInt(item.surplus || 0);
 						const subtotal = parseInt(item.subtotal || 0);
 						const price = parseInt(item.price || item.unit_price || 0);
 						const qty = parseInt(item.qty || item.quantity || 0);
 
-						if (surplus > 0) {
-							totalSurplus += surplus;
-							totalGross += subtotal + surplus;
-						} else {
-							totalGross += subtotal;
-						}
+						totalSurplus += surplus;
+						totalGross += subtotal;
 
 						row.innerHTML = `
 							<td>${index + 1}</td>
@@ -562,8 +557,9 @@
 				// Summary
 				const total = parseInt(order.total || 0);
 
+				document.getElementById('summaryGross').innerText = formatCurrency(totalGross);
+
 				if (totalSurplus > 0) {
-					document.getElementById('summaryGross').innerText = formatCurrency(totalGross);
 					document.getElementById('surplusRow').style.display = 'flex';
 					document.getElementById('summarySurplus').innerText = `- ${formatCurrency(totalSurplus)}`;
 					document.getElementById('totalLabel').innerText = 'SỐ TIỀN CÒN LẠI:';
