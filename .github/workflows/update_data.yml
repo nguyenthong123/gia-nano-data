@@ -2,7 +2,8 @@ name: Update Data from Google Drive
 
 on:
   schedule:
-     - cron: '*/30 * * * *'
+    # Chạy mỗi 30 phút một lần để đồng bộ dữ liệu nhanh nhất
+    - cron: '*/30 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -21,11 +22,17 @@ jobs:
 
       - name: Download JSONs from Drive
         run: |
+          # --- NHÓM 1: BẢNG GIÁ SẢN PHẨM ---
           curl -L "https://drive.google.com/uc?export=download&id=1cnV5Z3t_EhYCff-DRwTD2MUuMlr51Ur8" -o data/gia_web_nano.json
           curl -L "https://drive.google.com/uc?export=download&id=1jO3hntZ2Oo2A4K6R57299U9mIBk80WyT" -o data/gia_silicon_weber.json
-          curl -L "https://drive.google.com/uc?export=download&id=1404085uVa15Hw10VGUp46b0zw0Rix35m" -o data/gia_khach_hang.json
           curl -L "https://drive.google.com/uc?export=download&id=1TSwe2cASzEBByFniu-YrMjLTGwz8WY4m" -o data/gia_duraflex.json
           curl -L "https://drive.google.com/uc?export=download&id=12vy8tSc7D32IMz8JUKxIHVbNxa2llnBi" -o data/chiet_khau_duraflex.json
+
+          # --- NHÓM 2: DỮ LIỆU KHÁCH HÀNG & SẢN PHẨM KHÁCH ---
+          curl -L "https://drive.google.com/uc?export=download&id=1404085uVa15Hw10VGUp46b0zw0Rix35m" -o data/gia_khach_hang.json
+          curl -L "https://drive.google.com/uc?export=download&id=1T65VpBIpMeEOCpCXz9G-SfY5iWBSmLx6" -o data/data_san_pham_kh.json
+
+          # --- NHÓM 3: LỊCH SỬ ĐƠN HÀNG (HISTORY) ---
           curl -L "https://drive.google.com/uc?export=download&id=1sN3hBnpc6UeYSgbKl_aqc6X0lJsBgJ-e" -o data/history_don_hang_duraflex.json
           curl -L "https://drive.google.com/uc?export=download&id=15kCzmqiq-J1bJ4dxNcw8TNUS2aQkjpNg" -o data/history_don_hang_pima.json
           curl -L "https://drive.google.com/uc?export=download&id=1mM9vzNxHoYQPKUfIea_Nw-EpY0GbRDbw" -o data/history_don_hang_weber.json
@@ -36,5 +43,5 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add data/
-          git commit -m "chore: Auto-update all data files including history" || echo "No changes to commit"
+          git commit -m "chore: Auto-update all data files (added data_san_pham_kh)" || echo "No changes to commit"
           git push
