@@ -1,0 +1,217 @@
+/**
+ * GAS SCRIPT QUẢN LÝ ĐƠN HÀNG VÀ KHÁCH HÀNG (Dành cho khách hàng tự quản lý)
+ * Thực hiện: CRUD Khách hàng, CRUD Đơn hàng
+ */
+
+const SPREADSHEET_ID = '1z5GBgkEhIcIZN-mnxunQHNCdMqwMD8PkrxiGBBV5q_Q';
+const SHEET_KHACH = 'data_khach';
+const SHEET_DON = 'don_hang';
+
+function doGet(e) {
+  try {
+    const action = e.parameter.action;
+    const email = e.parameter.email;
+    
+    if (action === 'read_customers') return readData(SHEET_KHACH, email);
+    if (action === 'read_orders') return readData(SHEET_DON, email);
+    
+    return jsonResponse({success: false, message: 'Invalid GET action'});
+  } catch (err) {
+    return jsonResponse({success: false, message: err.toString()});
+  }
+}
+
+function doPost(e) {
+  let payload;
+  try { 
+    payload = JSON.parse(e.postData.contents); 
+  } catch (err) { 
+    return jsonResponse({success: false, message: 'Invalid JSON'}); 
+  }
+  
+  try {
+    const action = payload.action;
+    if (action === 'upsert_customer') return upsertCustomer(payload.data);
+    if (action === 'delete_customer') return deleteItem(SHEET_KHACH, 'id khách hàng', payload.id);
+    if (action === 'create_order') return createOrder(payload.data);
+    if (action === 'update_order') return updateOrder(payload.id, payload.data);
+    if (action === 'delete_order') return deleteItem(SHEET_DON, 'id đơn hàng', payload.id);
+    
+    return jsonResponse({success: false, message: 'Invalid POST action'});
+  } catch (err) {
+    return jsonResponse({success: false, message: err.toString()});
+  }
+}
+
+function normalizeHeader(h) {
+  return String(h).trim().toLowerCase().replace(/\s+/g, '');
+}
+
+function readData(sheetName, email) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(sheetName);
+    const values = sheet.getDataRange().getValues();
+    const rawHeaders = values[0];
+    const headers = rawHeaders.map(normalizeHeader);
+    
+    const emailIdx = headers.indexOf('mailđăngnhập') !== -1 ? headers.indexOf('mailđăngnhập') : headers.indexOf('ngườitạo');
+    const deleteIdx = headers.indexOf('trạngtháixóa');
+    
+    const data = [];
+    for (let i = 1; i < values.length; i++) {
+        if (!values[i].join('').trim()) continue;
+        let obj = {};
+        rawHeaders.forEach((h, index) => { 
+          const normH = normalizeHeader(h);
+          obj[normH] = values[i][index]; 
+          obj['raw_' + normH] = h; // Giữ header gốc để hiển thị
+        });
+        
+        // Lọc theo mail đăng nhập và chưa xóa
+        // Lưu ý: Nếu SHEET_KHACH chưa có cột mail đăng nhập, tạm thời cho phép tất cả hoặc thêm cột
+        const itemEmail = emailIdx !== -1 ? String(values[i][emailIdx]).trim() : '';
+        const isDeleted = deleteIdx !== -1 ? values[i][deleteIdx] === 'DELETED' : false;
+        
+        if (!isDeleted) {
+          if (emailIdx === -1 || itemEmail === email) {
+            data.push(obj);
+          }
+        }
+    }
+    return jsonResponse({success: true, data: data});
+  } catch (err) { return jsonResponse({success: false, message: err.toString()}); }
+}
+
+function upsertCustomer(data) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    let sheet = ss.getSheetByName(SHEET_KHACH);
+    const values = sheet.getDataRange().getValues();
+    const rawHeaders = values[0];
+    const headers = rawHeaders.map(normalizeHeader);
+    
+    const idIdx = headers.indexOf('idkháchhàng');
+    const emailIdx = headers.indexOf('mailđăngnhập'); // Giả định có cột này để quản lý theo user
+    
+    // Auto ID nếu chưa có
+    if (!data['id khách hàng']) {
+      let nextNum = 1;
+      if (values.length > 1) {
+        const ids = values.slice(1).map(r => r[idIdx]).filter(id => id && String(id).startsWith('KH'));
+        const nums = ids.map(id => parseInt(id.replace('KH', '')) || 0);
+        nextNum = Math.max(...nums, 0) + 1;
+      }
+      data['id khách hàng'] = 'KH' + String(nextNum).padStart(3, '0');
+    }
+
+    let foundRow = -1;
+    if (idIdx !== -1) {
+      for (let i = 1; i < values.length; i++) {
+        if (String(values[i][idIdx]) === String(data['id khách hàng'])) {
+          foundRow = i + 1;
+          break;
+        }
+      }
+    }
+
+    const rowData = rawHeaders.map(h => {
+      const normH = normalizeHeader(h);
+      return data[h] !== undefined ? data[h] : (data[normH] !== undefined ? data[normH] : '');
+    });
+
+    if (foundRow !== -1) {
+      sheet.getRange(foundRow, 1, 1, rowData.length).setValues([rowData]);
+    } else {
+      sheet.appendRow(rowData);
+    }
+    
+    return jsonResponse({success: true, id: data['id khách hàng']});
+  } catch (err) { return jsonResponse({success: false, message: err.toString()}); }
+}
+
+function createOrder(orderDataArray) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(SHEET_DON);
+    const rawHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    const headers = rawHeaders.map(normalizeHeader);
+    
+    // Sinh mã đơn hàng dùng chung cho các dòng cùng đơn
+    const lastValues = sheet.getDataRange().getValues();
+    const idDonIdx = headers.indexOf('idđơnhàng');
+    let nextNum = 1;
+    if (lastValues.length > 1) {
+      const ids = lastValues.slice(1).map(r => r[idDonIdx]).filter(id => id && String(id).startsWith('DH'));
+      const nums = ids.map(id => parseInt(id.replace('DH', '')) || 0);
+      nextNum = Math.max(...nums, 0) + 1;
+    }
+    const orderId = 'DH' + String(nextNum).padStart(3, '0');
+
+    orderDataArray.forEach(item => {
+      item['id đơn hàng'] = orderId;
+      const rowData = rawHeaders.map(h => {
+        const normH = normalizeHeader(h);
+        return item[h] !== undefined ? item[h] : (item[normH] !== undefined ? item[normH] : '');
+      });
+      sheet.appendRow(rowData);
+    });
+
+    return jsonResponse({success: true, orderId: orderId});
+  } catch (err) { return jsonResponse({success: false, message: err.toString()}); }
+}
+
+function updateOrder(orderId, orderDataArray) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(SHEET_DON);
+    const lastValues = sheet.getDataRange().getValues();
+    const rawHeaders = lastValues[0];
+    const headers = rawHeaders.map(normalizeHeader);
+    const idDonIdx = headers.indexOf('idđơnhàng');
+    
+    // Xóa các dòng cũ của đơn hàng này (hoặc đánh dấu xóa)
+    // Để đơn giản và chính xác, ta ghi đè bằng cách tìm các dòng có ID này
+    for (let i = lastValues.length - 1; i >= 1; i--) {
+      if (String(lastValues[i][idDonIdx]) === String(orderId)) {
+        sheet.deleteRow(i + 1);
+      }
+    }
+    
+    // Thêm các dòng mới
+    orderDataArray.forEach(item => {
+      item['id đơn hàng'] = orderId;
+      const rowData = rawHeaders.map(h => {
+        const normH = normalizeHeader(h);
+        return item[h] !== undefined ? item[h] : (item[normH] !== undefined ? item[normH] : '');
+      });
+      sheet.appendRow(rowData);
+    });
+
+    return jsonResponse({success: true});
+  } catch (err) { return jsonResponse({success: false, message: err.toString()}); }
+}
+
+function deleteItem(sheetName, idColName, idValue) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(sheetName);
+    const values = sheet.getDataRange().getValues();
+    const headers = values[0].map(normalizeHeader);
+    const idIdx = headers.indexOf(normalizeHeader(idColName));
+    const deleteIdx = headers.indexOf('trạngtháixóa');
+    
+    if (idIdx === -1 || deleteIdx === -1) throw new Error('Cột ID hoặc Trạng thái xóa không tồn tại');
+
+    for (let i = 1; i < values.length; i++) {
+      if (String(values[i][idIdx]) === String(idValue)) {
+        sheet.getRange(i + 1, deleteIdx + 1).setValue('DELETED');
+      }
+    }
+    return jsonResponse({success: true});
+  } catch (err) { return jsonResponse({success: false, message: err.toString()}); }
+}
+
+function jsonResponse(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
