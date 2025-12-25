@@ -808,6 +808,7 @@
 						id: id,
 						customer: row.tênkháchhàng,
 						total: row.tổngtiềntrongđơn,
+						date: row.ngàytạo,
 						rows: []
 					};
 				}
@@ -820,7 +821,7 @@
 					<td style="font-weight:700; color:var(--primary);">${o.id}</td>
 					<td style="font-weight:600;">${o.customer}</td>
 					<td style="color:var(--accent); font-weight:700;">${formatCurrency(o.total)}</td>
-					<td>-</td>
+					<td style="font-size:0.85rem; color:var(--text-gray);">${o.date || '-'}</td>
 					<td>
 						<div style="display:flex; gap:10px;">
 							<button class="btn-glass" style="padding:5px 10px;" onclick="openOrderModal('edit', '${o.id}')">Sửa</button>
@@ -980,7 +981,8 @@
 					'tổng tiền trong đơn': 0, // Sẽ tính sau
 					'ghi chú': globalNote,
 					'mail đăng nhập': userData.email,
-					'trạng thái xóa': 'ACTIVE'
+					'trạng thái xóa': 'ACTIVE',
+					'ngày tạo': new Date().toLocaleString('vi-VN')
 				});
 			});
 
