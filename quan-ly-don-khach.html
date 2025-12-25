@@ -382,9 +382,118 @@
 			animation: spin 1s linear infinite;
 		}
 
-		@keyframes spin {
-			100% {
-				transform: rotate(360deg);
+		/* Invoice Styling */
+		.invoice-preview {
+			background: white;
+			color: #333;
+			padding: 40px;
+			border-radius: 8px;
+			min-height: 100%;
+		}
+
+		.invoice-header {
+			display: flex;
+			justify-content: space-between;
+			border-bottom: 2px solid #f0f0f0;
+			padding-bottom: 20px;
+			margin-bottom: 30px;
+		}
+
+		.invoice-title {
+			color: #1a1a1a;
+			font-size: 1.8rem;
+			font-weight: 800;
+		}
+
+		.invoice-info-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 40px;
+			margin-bottom: 30px;
+		}
+
+		.info-item label {
+			display: block;
+			color: #888;
+			font-size: 0.8rem;
+			text-transform: uppercase;
+			margin-bottom: 5px;
+		}
+
+		.info-item p {
+			font-weight: 600;
+			color: #333;
+		}
+
+		.invoice-table {
+			width: 100%;
+			border-collapse: collapse;
+			margin-bottom: 30px;
+		}
+
+		.invoice-table th {
+			background: #f8f9fa;
+			color: #555;
+			border: none;
+			padding: 12px 15px;
+			font-size: 0.85rem;
+		}
+
+		.invoice-table td {
+			padding: 15px;
+			border-bottom: 1px solid #f0f0f0;
+			color: #444;
+		}
+
+		.invoice-summary {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-end;
+			gap: 10px;
+		}
+
+		.summary-row {
+			display: flex;
+			justify-content: space-between;
+			width: 250px;
+		}
+
+		.summary-row.grand-total {
+			border-top: 2px solid #333;
+			padding-top: 10px;
+			margin-top: 10px;
+			font-weight: 800;
+			font-size: 1.2rem;
+			color: #000;
+		}
+
+		@media print {
+			body * {
+				visibility: hidden;
+			}
+
+			#invoiceModal,
+			#invoiceModal * {
+				visibility: visible;
+			}
+
+			#invoiceModal {
+				position: absolute;
+				left: 0;
+				top: 0;
+				width: 100%;
+				background: white !important;
+			}
+
+			.modal-header,
+			.btn-print-action {
+				display: none !important;
+			}
+
+			.invoice-preview {
+				box-shadow: none;
+				border: none;
+				padding: 0;
 			}
 		}
 	</style>
@@ -611,6 +720,24 @@
 		</div>
 	</div>
 
+	<!-- Modal Xem Chi Tiết Đơn Hàng (Phiếu Đơn) -->
+	<div id="invoiceModal" class="modal">
+		<div class="modal-content" style="max-width: 850px; padding: 0; overflow: hidden;">
+			<div class="modal-header" style="padding: 20px 40px; background: var(--dark-card); margin-bottom: 0;">
+				<h2 style="font-size: 1.2rem;">CHI TIẾT ĐƠN HÀNG</h2>
+				<div style="display: flex; gap: 10px;">
+					<button class="btn btn-primary btn-print-action" onclick="window.print()"
+						style="padding: 8px 15px; font-size: 0.85rem;">🖨️ IN PHIẾU</button>
+					<button class="btn btn-glass" style="padding: 5px 12px;" onclick="closeInvoiceModal()">X</button>
+				</div>
+			</div>
+
+			<div class="invoice-preview" id="invoiceContent">
+				<!-- Content dynamic -->
+			</div>
+		</div>
+	</div>
+
 	<script>
 		// --- CONFIG & DATA ---
 		const ORDER_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxOQTGo9JGfVthBQ33DMpTEwkZArvWT-7hF9abPSh7LHT3zYQYa8hErzcBarYtCg65WWA/exec';
@@ -824,6 +951,7 @@
 					<td style="font-size:0.85rem; color:var(--text-gray);">${o.date || '-'}</td>
 					<td>
 						<div style="display:flex; gap:10px;">
+							<button class="btn-glass" style="padding:5px 10px; color:var(--primary);" onclick="viewInvoice('${o.id}')">Xem</button>
 							<button class="btn-glass" style="padding:5px 10px;" onclick="openOrderModal('edit', '${o.id}')">Sửa</button>
 							<button class="btn-glass" style="padding:5px 10px; color:var(--danger);" onclick="deleteOrder('${o.id}')">Xóa</button>
 						</div>
@@ -867,6 +995,99 @@
 		}
 
 		function closeOrderModal() { document.getElementById('orderModal').classList.remove('active'); }
+
+		function viewInvoice(id) {
+			const rows = currentOrders.filter(r => r.idđơnhàng === id);
+			if (rows.length === 0) return;
+
+			const main = rows[0];
+			const content = document.getElementById('invoiceContent');
+
+			let itemsHtml = rows.map((r, i) => `
+				<tr>
+					<td style="text-align:center;">${i + 1}</td>
+					<td>
+						<div style="font-weight:700;">${r.tênsảnphẩm}</div>
+						<div style="font-size:0.75rem; color:#888;">${r.tênngànhhàng}</div>
+					</td>
+					<td style="text-align:right;">${formatCurrencyNoSign(r.giásảnphẩm)}</td>
+					<td style="text-align:center;">${r.sốlượng}</td>
+					<td style="text-align:right; font-weight:700;">${formatCurrencyNoSign(r.thànhtiền)}</td>
+				</tr>
+			`).join('');
+
+			content.innerHTML = `
+				<div class="invoice-header">
+					<div>
+						<div class="invoice-title">HÓA ĐƠN BÁN HÀNG</div>
+						<p style="color:#d35400; font-weight:800; margin-top:5px;">Mã đơn: ${main.idđơnhàng}</p>
+					</div>
+					<div style="text-align:right;">
+						<div style="font-weight:800; font-size:1.1rem; color: #1976d2;">HỆ THỐNG GIA NANO</div>
+						<p style="font-size:0.85rem; color:#666;">Nhân viên: <strong style="color:#333;">${userData.name}</strong></p>
+						<p style="font-size:0.85rem; color:#666;">Ngày lập: ${main.ngàytạo || '-'}</p>
+					</div>
+				</div>
+
+				<div class="invoice-info-grid">
+					<div class="info-item">
+						<label>Khách hàng</label>
+						<p style="font-size:1.1rem;">${main.tênkháchhàng}</p>
+						<p style="font-size:0.85rem; font-weight:400; color:#666;">Mã KH: ${main.idkháchhàng}</p>
+					</div>
+					<div class="info-item" style="text-align:right;">
+						<label>Ghi chú đơn hàng</label>
+						<p style="font-weight:400; color:#555;">${main.ghichú || 'Không có ghi chú'}</p>
+					</div>
+				</div>
+
+				<table class="invoice-table">
+					<thead>
+						<tr>
+							<th style="width:40px;">STT</th>
+							<th>Sản phẩm / Ngành hàng</th>
+							<th style="width:120px; text-align:right;">Đơn giá</th>
+							<th style="width:60px; text-align:center;">SL</th>
+							<th style="width:120px; text-align:right;">Thành tiền</th>
+						</tr>
+					</thead>
+					<tbody>
+						${itemsHtml}
+					</tbody>
+				</table>
+
+				<div class="invoice-summary">
+					<div class="summary-row">
+						<span>Tiền hàng:</span>
+						<span style="font-weight:600;">${formatCurrency(main.tổngtiềnhàng)}</span>
+					</div>
+					<div class="summary-row">
+						<span>Dịch vụ khác:</span>
+						<span style="font-weight:600;">${formatCurrency(main.dịchvụthêmtrongđơn)}</span>
+					</div>
+					<div class="summary-row grand-total">
+						<span>TỔNG CỘNG:</span>
+						<span>${formatCurrency(main.tổngtiềntrongđơn)}</span>
+					</div>
+				</div>
+
+				<div style="margin-top:50px; display:flex; justify-content:space-between; padding:0 40px;">
+					<div style="text-align:center;">
+						<p style="font-size:0.85rem; font-weight:700;">NGƯỜI MUA HÀNG</p>
+						<p style="font-size:0.75rem; color:#888; margin-top:40px;">(Ký và ghi rõ họ tên)</p>
+					</div>
+					<div style="text-align:center;">
+						<p style="font-size:0.85rem; font-weight:700;">NGƯỜI LẬP ĐƠN</p>
+						<p style="font-size:0.9rem; margin-top:5px; color:#1976d2;">${userData.name}</p>
+						<p style="font-size:0.75rem; color:#888; margin-top:20px;">(Ký và ghi rõ họ tên)</p>
+					</div>
+				</div>
+			`;
+
+			document.getElementById('invoiceModal').classList.add('active');
+		}
+
+		function closeInvoiceModal() { document.getElementById('invoiceModal').classList.remove('active'); }
 
 		function addOrderRow(data = null) {
 			const tbody = document.getElementById('orderItemsBody');
