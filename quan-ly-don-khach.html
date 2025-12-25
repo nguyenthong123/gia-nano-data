@@ -873,7 +873,7 @@
 
 			// Lấy danh sách ngành hàng duy nhất
 			const categories = [...new Set(availableProducts.map(p => p.ten_nghanh_hang))].filter(Boolean);
-			const catOptions = categories.map(cat => `<option value="${cat}" ${data && data.tênngànhhàng === cat ? 'selected' : ''}>${cat}</option>`).join('');
+			const catOptions = categories.map(cat => `<option value="${cat}" ${data && data.tênnghànhhàng === cat ? 'selected' : ''}>${cat}</option>`).join('');
 
 			row.innerHTML = `
 				<td>
@@ -966,10 +966,10 @@
 				productTotal += subTotal;
 
 				rows.push({
-					'phân loại khách hàng': window.isNewCustomerFlow ? 'Khách mới' : 'Khách cũ',
+					'phân loại khác hàng': window.isNewCustomerFlow ? 'Khách mới' : 'Khách cũ',
 					'tên khách hàng': customer.tênkháchhàng,
 					'id khách hàng': customer.idkháchhàng,
-					'tên ngành hàng': option.getAttribute('data-cat'),
+					'tên nghành hàng': option.getAttribute('data-cat'),
 					'tên sản phẩm': option.text,
 					'id sản phẩm': option.value,
 					'giá sản phẩm': price,
