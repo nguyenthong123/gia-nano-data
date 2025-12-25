@@ -16,11 +16,27 @@
     "ten_dang_nhap": "ctyngoctram4@gmail.com"
   },
   {
-    "id _san_pham": "S003",
-    "image_san_pham": "https://lh3.googleusercontent.com/d/1qFTuKxokwOFmB6HoipgUeRpd813-z3CD",
-    "ten_nghanh_hang": "silicon",
-    "ten_san_pham": "weber a500",
-    "gia_san_pham": "67000",
+    "id _san_pham": "S004",
+    "image_san_pham": "https://lh3.googleusercontent.com/d/1CEBEDyvbZu5RL9NP4BMneGcukfqDnthg",
+    "ten_nghanh_hang": "Đồ gia dụng",
+    "ten_san_pham": "Bàn tròn ngoài trời",
+    "gia_san_pham": "1200000",
+    "ten_dang_nhap": "Vlxdngoclinh74@gmail.com"
+  },
+  {
+    "id _san_pham": "S005",
+    "image_san_pham": "https://lh3.googleusercontent.com/d/1k9UkdStqgP86xlfQ1p9nLyXvQfxI9zgd",
+    "ten_nghanh_hang": "sắt thép",
+    "ten_san_pham": "sắt  hộp  hoa sen 40x80x1,2 ly",
+    "gia_san_pham": "340000",
+    "ten_dang_nhap": "ctyngoctram4@gmail.com"
+  },
+  {
+    "id _san_pham": "S006",
+    "image_san_pham": "https://lh3.googleusercontent.com/d/14dx1RwwPkIkEFBEB0sdVL6kSZ41Mbh_K",
+    "ten_nghanh_hang": "ván nhựa",
+    "ten_san_pham": "ván nhựa pima 40x3000",
+    "gia_san_pham": "60000",
     "ten_dang_nhap": "ctyngoctram4@gmail.com"
   }
 ]
