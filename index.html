@@ -598,6 +598,8 @@
 			<a href="len-don.html" id="menuLenDon"
 				style="background: #fff8e1; color: #d35400; border-top: 2px solid #f1c40f; display: none;">🛍️ LÊN
 				ĐƠN HÀNG</a>
+			<a href="san-pham-khach.html" id="menuSanPhamKH"
+				style="background: #f1f8e9; color: #2e7d32; display: none;">📦 QUẢN LÝ SẢN PHẨM</a>
 			<a href="quan-ly-don-hang.html" style="background: #e3f2fd; color: #1976d2;">📋 QUẢN LÝ ĐƠN HÀNG</a>
 		</div>
 		<div class="menu-btn" onclick="toggleMenu()">
@@ -692,12 +694,16 @@
 				`;
 				floatingMenu.style.display = 'block';
 
-				// Hide "LÊN ĐƠN HÀNG" if not admin
+				// Show/Hide menu items based on phan_loai
 				const menuLenDon = document.getElementById('menuLenDon');
+				const menuSanPhamKH = document.getElementById('menuSanPhamKH');
+
 				if (userData.phan_loai === 'ad mind') {
 					menuLenDon.style.display = 'block';
+					menuSanPhamKH.style.display = 'none';
 				} else {
 					menuLenDon.style.display = 'none';
+					menuSanPhamKH.style.display = 'block';
 				}
 			} else {
 				// Not Logged In

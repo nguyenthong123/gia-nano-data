@@ -1,0 +1,149 @@
+/**
+ * GAS SCRIPT CHO QUẢN LÝ SẢN PHẨM KHÁCH HÀNG (data_san_pham_kh)
+ * Phiên bản: Chuẩn hóa tiêu đề và ID tự động
+ */
+
+const SPREADSHEET_ID = '1x_DgdgVJVjkzZt8_e7Zg0gqDnG7oHmV0H7DgebVzD3E';
+const SHEET_NAME = 'data_san_pham_kh';
+const IMAGE_FOLDER_ID = '1iIG2DNVH7hYKG0z74oDGaY3ndGWLqu_S';
+
+function doGet(e) {
+  try {
+    const params = e.parameter;
+    if (params.action === 'read') return readData(params.username);
+    return jsonResponse({success: false, message: 'Invalid GET action'});
+  } catch (err) {
+    return jsonResponse({success: false, message: err.toString()});
+  }
+}
+
+function doPost(e) {
+  let data;
+  try { 
+    data = JSON.parse(e.postData.contents); 
+  } catch (err) { 
+    return jsonResponse({success: false, message: 'Invalid JSON'}); 
+  }
+  
+  try {
+    if (data.action === 'upload') return uploadFile(data);
+    if (data.action === 'create') return createData(data);
+    if (data.action === 'update') return updateData(data);
+    if (data.action === 'delete') return deleteData(data);
+    return jsonResponse({success: false, message: 'Invalid POST action'});
+  } catch (err) {
+    return jsonResponse({success: false, message: err.toString()});
+  }
+}
+
+function normalizeHeader(h) {
+  return String(h).trim().replace(/\s+/g, '');
+}
+
+function readData(username) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(SHEET_NAME);
+    const values = sheet.getDataRange().getValues();
+    const rawHeaders = values[0];
+    const headers = rawHeaders.map(normalizeHeader);
+    const data = [];
+    
+    for (let i = 1; i < values.length; i++) {
+        if (!values[i].join('').trim()) continue;
+        let obj = {};
+        headers.forEach((header, index) => { if (header) obj[header] = values[i][index]; });
+        
+        if (obj['ten_dang_nhap'] === username && obj['trang_thai_xoa_sp'] !== 'DELETED') {
+          data.push(obj);
+        }
+    }
+    return jsonResponse({success: true, data: data});
+  } catch (err) { return jsonResponse({success: false, message: err.toString()}); }
+}
+
+function createData(payload) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(SHEET_NAME);
+    const lastRow = sheet.getLastRow();
+    const rawHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    const headers = rawHeaders.map(normalizeHeader);
+    
+    if (!payload.data.id_san_pham) {
+      let nextNum = 1;
+      const idIdx = headers.indexOf('id_san_pham');
+      if (idIdx !== -1 && lastRow > 1) {
+        const ids = sheet.getRange(2, idIdx + 1, lastRow - 1, 1).getValues().flat();
+        const nums = ids.map(id => {
+          const m = String(id).match(/S(\d+)/);
+          return m ? parseInt(m[1]) : 0;
+        });
+        nextNum = Math.max(...nums, 0) + 1;
+      }
+      payload.data.id_san_pham = 'S' + String(nextNum).padStart(3, '0');
+    }
+    
+    const newRow = rawHeaders.map((h, i) => {
+      const normH = headers[i];
+      return payload.data[normH] !== undefined ? payload.data[normH] : '';
+    });
+    
+    sheet.appendRow(newRow);
+    return jsonResponse({success: true, id: payload.data.id_san_pham});
+  } catch (err) { return jsonResponse({success: false, message: err.toString()}); }
+}
+
+function updateData(payload) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(SHEET_NAME);
+    const values = sheet.getDataRange().getValues();
+    const rawHeaders = values[0];
+    const headers = rawHeaders.map(normalizeHeader);
+    const idIdx = headers.indexOf('id_san_pham');
+    
+    for (let i = 1; i < values.length; i++) {
+      if (String(values[i][idIdx]).trim() === String(payload.idValue).trim()) {
+        headers.forEach((h, index) => {
+          if (h && payload.data[h] !== undefined) sheet.getRange(i + 1, index + 1).setValue(payload.data[h]);
+        });
+        return jsonResponse({success: true});
+      }
+    }
+    return jsonResponse({success: false, message: 'Not found'});
+  } catch (err) { return jsonResponse({success: false, message: err.toString()}); }
+}
+
+function deleteData(payload) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(SHEET_NAME);
+    const values = sheet.getDataRange().getValues();
+    const headers = values[0].map(normalizeHeader);
+    const idIdx = headers.indexOf('id_san_pham');
+    const delIdx = headers.indexOf('trang_thai_xoa_sp');
+    
+    for (let i = 1; i < values.length; i++) {
+      if (String(values[i][idIdx]).trim() === String(payload.idValue).trim()) {
+        sheet.getRange(i + 1, delIdx + 1).setValue('DELETED');
+        return jsonResponse({success: true});
+      }
+    }
+    return jsonResponse({success: false, message: 'Not found'});
+  } catch (err) { return jsonResponse({success: false, message: err.toString()}); }
+}
+
+function uploadFile(payload) {
+  try {
+    const folder = DriveApp.getFolderById(IMAGE_FOLDER_ID);
+    const blob = Utilities.newBlob(Utilities.base64Decode(payload.file), payload.mimeType, payload.filename);
+    const file = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    return jsonResponse({success: true, url: 'https://lh3.googleusercontent.com/d/' + file.getId()});
+  } catch (err) { return jsonResponse({success: false, message: err.toString()}); }
+}
+
+function jsonResponse(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
