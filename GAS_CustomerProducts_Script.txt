@@ -1,6 +1,6 @@
 /**
  * GAS SCRIPT CHO QUẢN LÝ SẢN PHẨM KHÁCH HÀNG (data_san_pham_kh)
- * Phiên bản: Chuẩn hóa tiêu đề và ID tự động
+ * Phiên bản: SỬA LỖI MẤT ID KHI SYNC JSON & SHEET
  */
 
 const SPREADSHEET_ID = '1x_DgdgVJVjkzZt8_e7Zg0gqDnG7oHmV0H7DgebVzD3E';
@@ -44,17 +44,17 @@ function readData(username) {
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const sheet = ss.getSheetByName(SHEET_NAME);
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 1) return jsonResponse({success: true, data: []});
+    
     const values = sheet.getDataRange().getValues();
-    const rawHeaders = values[0];
-    const headers = rawHeaders.map(normalizeHeader);
+    const headers = values[0].map(normalizeHeader);
     const data = [];
     
     for (let i = 1; i < values.length; i++) {
-        if (!values[i].join('').trim()) continue;
         let obj = {};
         headers.forEach((header, index) => { if (header) obj[header] = values[i][index]; });
-        
-        if (obj['ten_dang_nhap'] === username && obj['trang_thai_xoa_sp'] !== 'DELETED') {
+        if (obj['ten_dang_nhap'] === username) {
           data.push(obj);
         }
     }
@@ -70,6 +70,7 @@ function createData(payload) {
     const rawHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
     const headers = rawHeaders.map(normalizeHeader);
     
+    // Nếu payload không có ID, tự tạo ID mới theo format S001
     if (!payload.data.id_san_pham) {
       let nextNum = 1;
       const idIdx = headers.indexOf('id_san_pham');
@@ -103,15 +104,29 @@ function updateData(payload) {
     const headers = rawHeaders.map(normalizeHeader);
     const idIdx = headers.indexOf('id_san_pham');
     
+    let foundRow = -1;
     for (let i = 1; i < values.length; i++) {
       if (String(values[i][idIdx]).trim() === String(payload.idValue).trim()) {
-        headers.forEach((h, index) => {
-          if (h && payload.data[h] !== undefined) sheet.getRange(i + 1, index + 1).setValue(payload.data[h]);
-        });
-        return jsonResponse({success: true});
+        foundRow = i + 1;
+        break;
       }
     }
-    return jsonResponse({success: false, message: 'Not found'});
+    
+    if (foundRow !== -1) {
+      // Nếu tìm thấy row, cập nhật
+      headers.forEach((h, index) => {
+        if (h && payload.data[h] !== undefined) sheet.getRange(foundRow, index + 1).setValue(payload.data[h]);
+      });
+    } else {
+      // Nếu không thấy (Data từ JSON), thêm dòng mới vào Sheet
+      const newRow = rawHeaders.map((h, i) => {
+        const normH = headers[i];
+        return payload.data[normH] !== undefined ? payload.data[normH] : '';
+      });
+      sheet.appendRow(newRow);
+    }
+    
+    return jsonResponse({success: true});
   } catch (err) { return jsonResponse({success: false, message: err.toString()}); }
 }
 
@@ -120,17 +135,34 @@ function deleteData(payload) {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const sheet = ss.getSheetByName(SHEET_NAME);
     const values = sheet.getDataRange().getValues();
-    const headers = values[0].map(normalizeHeader);
+    const rawHeaders = values[0];
+    const headers = rawHeaders.map(normalizeHeader);
     const idIdx = headers.indexOf('id_san_pham');
     const delIdx = headers.indexOf('trang_thai_xoa_sp');
     
+    if (idIdx === -1 || delIdx === -1) throw new Error('Cột id_san_pham hoặc trang_thai_xoa_sp không tồn tại');
+
+    let foundRow = -1;
     for (let i = 1; i < values.length; i++) {
       if (String(values[i][idIdx]).trim() === String(payload.idValue).trim()) {
-        sheet.getRange(i + 1, delIdx + 1).setValue('DELETED');
-        return jsonResponse({success: true});
+        foundRow = i + 1;
+        break;
       }
     }
-    return jsonResponse({success: false, message: 'Not found'});
+    
+    if (foundRow !== -1) {
+      sheet.getRange(foundRow, delIdx + 1).setValue('DELETED');
+    } else if (payload.data) {
+      // Nếu là data JSON chưa có trong Sheet, copy data đó vào Sheet với trạng thái DELETED
+      const fullData = {...payload.data, trang_thai_xoa_sp: 'DELETED'};
+      const newRow = rawHeaders.map((h, i) => {
+        const normH = headers[i];
+        return fullData[normH] !== undefined ? fullData[normH] : '';
+      });
+      sheet.appendRow(newRow);
+    }
+    
+    return jsonResponse({success: true});
   } catch (err) { return jsonResponse({success: false, message: err.toString()}); }
 }
 

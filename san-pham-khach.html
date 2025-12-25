@@ -673,6 +673,34 @@
 		</div>
 	</div>
 
+	<!-- Custom Confirm Modal -->
+	<div id="confirmModal" class="modal">
+		<div class="modal-content" style="max-width: 400px; text-align: center;">
+			<div style="margin-bottom: 25px;">
+				<div
+					style="width: 70px; height: 70px; background: rgba(255, 61, 0, 0.1); color: var(--danger); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+					<svg width="35" height="35" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+						stroke-width="2.5">
+						<path
+							d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+						</path>
+						<line x1="12" y1="9" x2="12" y2="13"></line>
+						<line x1="12" y1="17" x2="12.01" y2="17"></line>
+					</svg>
+				</div>
+				<h2 id="confirmTitle" style="font-size: 1.5rem; margin-bottom: 10px;">Xác nhận xóa</h2>
+				<p id="confirmMessage" style="color: var(--text-gray); font-size: 0.95rem; line-height: 1.6;">Bạn có
+					chắc chắn muốn xóa sản phẩm này không? Hành động này không thể hoàn tác.</p>
+			</div>
+			<div style="display: flex; gap: 15px;">
+				<button class="btn btn-glass" style="flex: 1; justify-content: center;"
+					onclick="closeConfirmModal()">HỦY</button>
+				<button id="confirmExecuteBtn" class="btn btn-primary"
+					style="flex: 1; justify-content: center; background: var(--danger); color: white;">XÓA NGAY</button>
+			</div>
+		</div>
+	</div>
+
 	<!-- Product Modal -->
 	<div id="productModal" class="modal">
 		<div class="modal-content">
@@ -782,11 +810,62 @@
 					return;
 				}
 
+				// 1. Fetch JSON data
+				let jsonData = [];
+				try {
+					const jsonRes = await fetch('data/data_san_pham_kh.json');
+					if (jsonRes.ok) {
+						const rawJson = await jsonRes.json();
+						// Chuẩn hóa key id cho JSON
+						jsonData = rawJson.map(item => {
+							const newItem = { ...item };
+							// Tìm bất kỳ key nào chứa chữ 'id' và 'san' và 'pham' (bất kể dấu cách)
+							const idKey = Object.keys(item).find(key =>
+								key.replace(/\s+/g, '') === 'id_san_pham' ||
+								key.replace(/\s+/g, '') === 'idsanpham'
+							);
+							if (idKey) {
+								newItem.id_san_pham = item[idKey];
+								if (idKey !== 'id_san_pham') delete newItem[idKey];
+							}
+							return newItem;
+						}).filter(item => item.ten_dang_nhap === userData.email);
+					}
+				} catch (e) { console.warn("Không tìm thấy file JSON hoặc lỗi đọc file", e); }
+
+				// 2. Fetch Sheet data
 				const response = await fetch(`${SCRIPT_URL}?action=read&username=${encodeURIComponent(userData.email)}`);
 				const result = await response.json();
 
 				if (result.success) {
-					currentProducts = result.data;
+					const sheetData = result.data;
+
+					// 3. Merging logic
+					const merged = [];
+					const sheetIds = new Set(sheetData.map(s => s.id_san_pham));
+
+					// Ưu tiên Sheet data cho các sản phẩm đã có ID trong JSON
+					jsonData.forEach(j => {
+						const fromSheet = sheetData.find(s => s.id_san_pham === j.id_san_pham);
+						if (fromSheet) {
+							if (fromSheet.trang_thai_xoa_sp !== 'DELETED') {
+								merged.push(fromSheet);
+							}
+							// Nếu DELETED thì bỏ qua
+						} else {
+							merged.push(j);
+						}
+					});
+
+					// Thêm các sản phẩm mới chỉ có ở Sheet
+					sheetData.forEach(s => {
+						const inJson = jsonData.find(j => j.id_san_pham === s.id_san_pham);
+						if (!inJson && s.trang_thai_xoa_sp !== 'DELETED') {
+							merged.push(s);
+						}
+					});
+
+					currentProducts = merged;
 					renderProducts(currentProducts);
 					updateCategoryDatalist(currentProducts);
 				} else {
@@ -980,6 +1059,7 @@
 
 				// 2. Prepare Data
 				const pData = {
+					id_san_pham: editId || '', // ĐẶC BIỆT QUAN TRỌNG: Gửi ID về để Sheet nhận diện
 					ten_san_pham: document.getElementById('productName').value,
 					ten_nghanh_hang: document.getElementById('productCategory').value,
 					gia_san_pham: parsePrice(document.getElementById('productPrice').value),
@@ -990,8 +1070,6 @@
 
 				const payload = {
 					action: editId ? 'update' : 'create',
-					sheetId: '', // Handled in GAS
-					sheetName: '', // Handled in GAS
 					idValue: editId,
 					data: pData
 				};
@@ -1018,31 +1096,61 @@
 		});
 
 		async function deleteProduct(id) {
-			if (!confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) return;
+			if (!id) {
+				alert("Lỗi: Không tìm thấy mã sản phẩm để xóa. (Có thể sản phẩm này chưa có ID trong Sheet)");
+				return;
+			}
 
-			const showLoader = (show) => document.getElementById('loader').style.display = show ? 'flex' : 'none';
-			showLoader(true);
+			const product = currentProducts.find(p => p.id_san_pham === id);
+			if (!product) {
+				alert("Lỗi: Dữ liệu sản phẩm không hợp lệ.");
+				return;
+			}
+
+			// Hiện Modal xác nhận thay vì confirm() của trình duyệt
+			const modal = document.getElementById('confirmModal');
+			document.getElementById('confirmMessage').innerText = `Bạn có chắc chắn muốn xóa sản phẩm "${product.ten_san_pham}"?`;
+			document.getElementById('confirmExecuteBtn').onclick = async () => {
+				closeConfirmModal();
+				await executeDelete(id, product);
+			};
+			modal.classList.add('active');
+		}
+
+		function closeConfirmModal() {
+			document.getElementById('confirmModal').classList.remove('active');
+		}
+
+		async function executeDelete(id, product) {
+			const updateLoader = (msg) => {
+				document.getElementById('loader').style.display = 'flex';
+				document.querySelector('#loader p').innerText = msg;
+			};
+			const hideLoader = () => document.getElementById('loader').style.display = 'none';
+
+			updateLoader('Đang thực hiện xóa sản phẩm...');
 
 			try {
 				const response = await fetch(SCRIPT_URL, {
 					method: 'POST',
 					body: JSON.stringify({
 						action: 'delete',
-						idValue: id
+						idValue: id,
+						data: product
 					})
 				});
 				const result = await response.json();
 				if (result.success) {
 					await loadProducts();
-					alert("Đã xóa sản phẩm.");
+					alert("Đã xóa sản phẩm thành công.");
 				} else {
 					alert("Lỗi: " + result.message);
 				}
 			} catch (err) {
 				console.error(err);
-				alert("Không thể xóa sản phẩm.");
+				alert("Không thể xóa sản phẩm. Lỗi kết nối.");
 			} finally {
-				showLoader(false);
+				hideLoader();
 			}
 		}
 
