@@ -136,10 +136,11 @@ function createOrder(orderDataArray) {
     const sheet = ss.getSheetByName(SHEET_DON);
     const rawHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
     const headers = rawHeaders.map(normalizeHeader);
-    
-    // Sinh mã đơn hàng dùng chung cho các dòng cùng đơn
+
     const lastValues = sheet.getDataRange().getValues();
     const idDonIdx = headers.indexOf('idđơnhàng');
+    const statusIdx = headers.indexOf('trạngtháilênđơn');
+
     let nextNum = 1;
     if (lastValues.length > 1) {
       const ids = lastValues.slice(1).map(r => r[idDonIdx]).filter(id => id && String(id).startsWith('DH'));
@@ -150,6 +151,10 @@ function createOrder(orderDataArray) {
 
     orderDataArray.forEach(item => {
       item['id đơn hàng'] = orderId;
+      // If frontend sent English codes map them to Vietnamese labels; if missing, leave empty
+      if (item['trạng thái lên đơn'] === 'draft') item['trạng thái lên đơn'] = 'Đơn Nháp';
+      if (item['trạng thái lên đơn'] === 'finalized') item['trạng thái lên đơn'] = 'Đơn Chốt';
+      if (item['trạng thái lên đơn'] === undefined) item['trạng thái lên đơn'] = '';
       const rowData = rawHeaders.map(h => {
         const normH = normalizeHeader(h);
         return item[h] !== undefined ? item[h] : (item[normH] !== undefined ? item[normH] : '');
@@ -158,7 +163,9 @@ function createOrder(orderDataArray) {
     });
 
     return jsonResponse({success: true, orderId: orderId});
-  } catch (err) { return jsonResponse({success: false, message: err.toString()}); }
+  } catch (err) {
+    return jsonResponse({success: false, message: err.toString()});
+  }
 }
 
 function updateOrder(orderId, orderDataArray) {
@@ -169,18 +176,20 @@ function updateOrder(orderId, orderDataArray) {
     const rawHeaders = lastValues[0];
     const headers = rawHeaders.map(normalizeHeader);
     const idDonIdx = headers.indexOf('idđơnhàng');
-    
-    // Xóa các dòng cũ của đơn hàng này (hoặc đánh dấu xóa)
-    // Để đơn giản và chính xác, ta ghi đè bằng cách tìm các dòng có ID này
+    const statusIdx = headers.indexOf('trạngtháilênđơn');
+
     for (let i = lastValues.length - 1; i >= 1; i--) {
       if (String(lastValues[i][idDonIdx]) === String(orderId)) {
         sheet.deleteRow(i + 1);
       }
     }
-    
-    // Thêm các dòng mới
+
     orderDataArray.forEach(item => {
       item['id đơn hàng'] = orderId;
+      // If frontend sent English codes map them to Vietnamese labels; if missing, leave empty
+      if (item['trạng thái lên đơn'] === 'draft') item['trạng thái lên đơn'] = 'Đơn Nháp';
+      if (item['trạng thái lên đơn'] === 'finalized') item['trạng thái lên đơn'] = 'Đơn Chốt';
+      if (item['trạng thái lên đơn'] === undefined) item['trạng thái lên đơn'] = '';
       const rowData = rawHeaders.map(h => {
         const normH = normalizeHeader(h);
         return item[h] !== undefined ? item[h] : (item[normH] !== undefined ? item[normH] : '');
@@ -189,7 +198,9 @@ function updateOrder(orderId, orderDataArray) {
     });
 
     return jsonResponse({success: true});
-  } catch (err) { return jsonResponse({success: false, message: err.toString()}); }
+  } catch (err) {
+    return jsonResponse({success: false, message: err.toString()});
+  }
 }
 
 function deleteItem(sheetName, idColName, idValue) {

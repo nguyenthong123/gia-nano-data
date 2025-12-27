@@ -5,7 +5,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Quản Lý Đơn Hàng - Khách Hàng</title>
-	<link rel="icon"
+	<link rel="icon
 		href="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgC6ibu0IT2Ihhik57NmlGYZgx57h3XvSk5dLipgo7cZTS0pEV7dmPGQZhwXAxTFqFH9l2C74l14MamphdzEWaRBZbeWSUsyIh2Wd-wKuPv274PMjrAgMtirxbfrK-eUcFp5Rx0cFL7uPMA93RBiWrnp5sghMDD78oBCEk3FA_QbZUY4eG3jTZK_nt65vM/s1600/logo12.png"
 		type="image/png">
 	<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
@@ -675,8 +675,11 @@
 
 			<div style="margin: 20px 0; display: flex; justify-content: space-between; align-items: center;">
 				<h3 style="font-size: 1rem; color: var(--primary);">DANH SÁCH SẢN PHẨM TRONG ĐƠN</h3>
-				<button class="btn btn-glass" style="padding: 8px 15px; font-size: 0.85rem;" onclick="addOrderRow()">+
-					Thêm dòng</button>
+				<div style="display:flex; gap:8px; align-items:center;">
+					<button class="btn btn-glass" type="button" id="addRowButton" style="padding:6px 10px;">+ Thêm dòng</button>
+					<button class="btn" type="button" id="draftButton" style="background:#fff;border-radius:6px;padding:6px 10px;">Đơn Nháp</button>
+					<button class="btn btn-primary" type="button" id="finalizedButton" style="padding:6px 10px;">Đơn Chốt</button>
+				</div>
 			</div>
 
 			<div class="table-wrapper" style="border-radius: 12px; max-height: 400px;">
@@ -1220,7 +1223,7 @@
 					</select>
 				</td>
 				<td><input type="text" class="item-price" value="0" style="width:100%; text-align:right;" readonly></td>
-				<td><input type="number" class="item-qty" value="${data ? data.sốlượng : '1'}" style="width:100%;" onchange="calculateOrderTotal()" onkeyup="calculateOrderTotal()"></td>
+				<td><input type="text" inputmode="decimal" class="item-qty" value="${data ? data.sốlượng : '1'}" style="width:100%;" oninput="calculateOrderTotal()" onkeyup="calculateOrderTotal()"></td>
 				<td><span class="item-total" style="font-weight:600;">0 đ</span></td>
 				<td><button class="btn-glass" style="padding:5px; color:var(--danger);" onclick="this.closest('tr').remove(); calculateOrderTotal();">X</button></td>
 			`;
@@ -1261,19 +1264,20 @@
 
 		function calculateOrderTotal() {
 			let productTotal = 0;
-			document.querySelectorAll('#orderItemsBody tr').forEach(row => {
-				const select = row.querySelector('.item-product');
-				const option = select.options[select.selectedIndex];
-				const priceText = row.querySelector('.item-price').value.replace(/\./g, '');
-				const price = parseInt(priceText) || 0;
-				const qty = parseInt(row.querySelector('.item-qty').value) || 0;
-				const rowTotal = price * qty;
-				row.querySelector('.item-total').innerText = formatCurrency(rowTotal);
-				productTotal += rowTotal;
-			});
+				document.querySelectorAll('#orderItemsBody tr').forEach(row => {
+					const select = row.querySelector('.item-product');
+					const option = select.options[select.selectedIndex];
+					const priceText = row.querySelector('.item-price').value;
+					const price = parseFlexibleNumber(priceText);
+					const qtyText = row.querySelector('.item-qty').value;
+					const qty = parseFlexibleNumber(qtyText);
+					const rowTotal = price * qty;
+					row.querySelector('.item-total').innerText = formatCurrency(rowTotal);
+					productTotal += rowTotal;
+				});
 
 			const type = document.getElementById('extraServiceType').value;
-			let extra = parseInt(document.getElementById('orderExtraService').value.replace(/\./g, '')) || 0;
+			let extra = parseFlexibleNumber(document.getElementById('orderExtraService').value);
 			if (type === 'chiết khấu') {
 				document.getElementById('minusSign').style.display = 'inline';
 				extra = -Math.abs(extra);
@@ -1303,8 +1307,8 @@
 				const option = select.options[select.selectedIndex];
 				if (!option.value) return;
 
-				const qty = parseInt(tr.querySelector('.item-qty').value) || 0;
-				const price = parseInt(tr.querySelector('.item-price').value.replace(/\./g, '')) || 0;
+				const qty = parseFlexibleNumber(tr.querySelector('.item-qty').value);
+				const price = parseFlexibleNumber(tr.querySelector('.item-price').value);
 				const subTotal = price * qty;
 				productTotal += subTotal;
 
@@ -1317,6 +1321,7 @@
 					'id sản phẩm': option.value,
 					'giá sản phẩm': price,
 					'số lượng': qty,
+					'trạng thái lên đơn': window.orderStatus || '',
 					'thành tiền': subTotal,
 					'tổng tiền hàng': 0, // Sẽ tính sau hoặc fill cho dòng đầu
 					'dịch vụ thêm trong đơn': extra,
@@ -1334,6 +1339,7 @@
 			rows.forEach(r => {
 				r['tổng tiền hàng'] = productTotal;
 				r['tổng tiền trong đơn'] = finalTotal;
+				r['trạng thái lên đơn'] = window.orderStatus || '';
 			});
 
 			showLoader(true);
@@ -1380,6 +1386,39 @@
 			input.value = new Intl.NumberFormat('vi-VN').format(val);
 		}
 
+		// Parse flexible number formats: supports "1.234,56", "1234.56", "1 234,56", or plain digits
+		function parseFlexibleNumber(s) {
+			if (s === undefined || s === null) return 0;
+			s = String(s).trim();
+			if (!s) return 0;
+			// remove spaces
+			s = s.replace(/\s/g, '');
+			// If contains both dot and comma, assume dot thousands, comma decimal
+			if (s.indexOf('.') !== -1 && s.indexOf(',') !== -1) {
+				// e.g. 1.234,56 -> 1234.56
+				s = s.replace(/\./g, '').replace(',', '.');
+			} else if (s.indexOf(',') !== -1) {
+				// comma as decimal separator e.g. 1.5 -> 1.5 or "1,5" -> 1.5
+				s = s.replace(',', '.');
+			} else if (s.indexOf('.') !== -1) {
+				// Only dots present. Could be thousand separators (e.g. 340.000) or decimal (e.g. 1234.56)
+				// Heuristic: if last group after dot has exactly 3 digits, treat dots as thousand separators
+				const parts = s.split('.');
+				if (parts.length > 1 && parts[parts.length - 1].length === 3 && parts.every(p => /^\d+$/.test(p))) {
+					// remove dots
+					s = parts.join('');
+				} else {
+					// keep dot as decimal point, remove other non-digit chars
+					s = s.replace(/[^0-9.\-]/g, '');
+				}
+			} else {
+				// no separators, remove any non-digit
+				s = s.replace(/[^0-9\-]/g, '');
+			}
+			const n = parseFloat(s);
+			return isNaN(n) ? 0 : n;
+		}
+
 		function filterOrders() {
 			const q = document.getElementById('orderSearch').value.toLowerCase();
 			const rows = document.querySelectorAll('#ordersBody tr');
@@ -1395,6 +1434,32 @@
 				r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none';
 			});
 		}
+
+		// --- TRẠNG THÁI ĐƠN HÀNG ---
+		// No default selection: user must explicitly choose before saving (or leave blank)
+		window.orderStatus = null;
+		document.getElementById('addRowButton').addEventListener('click', function() { addOrderRow(); });
+
+		// Visual toggle helper
+		function setOrderStatus(status) {
+			window.orderStatus = status;
+			const draftBtn = document.getElementById('draftButton');
+			const finalBtn = document.getElementById('finalizedButton');
+			draftBtn.classList.toggle('btn-primary', status === 'Đơn Nháp');
+			draftBtn.classList.toggle('btn', status !== 'Đơn Nháp');
+			finalBtn.classList.toggle('btn-primary', status === 'Đơn Chốt');
+			finalBtn.classList.toggle('btn', status !== 'Đơn Chốt');
+		}
+
+		document.getElementById('draftButton').addEventListener('click', function() {
+			setOrderStatus('Đơn Nháp');
+			// do NOT auto-save; user must press XÁC NHẬN LƯU ĐƠN
+		});
+
+		document.getElementById('finalizedButton').addEventListener('click', function() {
+			setOrderStatus('Đơn Chốt');
+			// do NOT auto-save; user must press XÁC NHẬN LƯU ĐƠN
+		});
 	</script>
 </body>
 
