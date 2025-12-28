@@ -10,5 +10,17 @@
   {
     "Category": "PIMA",
     "Counter": "3"
+  },
+  {
+    "Category": "PIMA",
+    "Counter": "4"
+  },
+  {
+    "Category": "WEBER",
+    "Counter": "5"
+  },
+  {
+    "Category": "DURAFLEX",
+    "Counter": "7"
   }
 ]
