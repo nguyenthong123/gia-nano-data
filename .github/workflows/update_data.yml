@@ -29,11 +29,12 @@ jobs:
           curl -L "https://drive.google.com/uc?export=download&id=1TSwe2cASzEBByFniu-YrMjLTGwz8WY4m" -o data/gia_duraflex.json
           curl -L "https://drive.google.com/uc?export=download&id=12vy8tSc7D32IMz8JUKxIHVbNxa2llnBi" -o data/chiet_khau_duraflex.json
 
-          # --- NHÓM 2: DỮ LIỆU KHÁCH HÀNG & ĐƠN HÀNG MỚI ---
+          # --- NHÓM 2: DỮ LIỆU KHÁCH HÀNG & TỒN KHO ---
           curl -L "https://drive.google.com/uc?export=download&id=1404085uVa15Hw10VGUp46b0zw0Rix35m" -o data/gia_khach_hang.json
           curl -L "https://drive.google.com/uc?export=download&id=1T65VpBIpMeEOCpCXz9G-SfY5iWBSmLx6" -o data/data_san_pham_kh.json
+          curl -L "https://drive.google.com/uc?export=download&id=1xIYGdxVyWfrirWXI_dDHHKaiy-Ips3-0" -o data/data_ton_kho.json
           
-          # HAI FILE MỚI THÊM (Lưu ý: Bạn hãy thay ID_CUA_FILE_DATA_KHACH bằng ID thật của file)
+          # HAI FILE QUẢN LÝ ĐƠN (Lưu ý: Nhớ thay ID thật cho file data_khach nếu bạn chưa làm)
           curl -L "https://drive.google.com/uc?export=download&id=ID_CUA_FILE_DATA_KHACH" -o data/data_khach.json
           curl -L "https://drive.google.com/uc?export=download&id=1gqVFgLVHxVYTo7o3CF7SDaAm41-PDtIG" -o data/data_don_hang.json
 
@@ -48,7 +49,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add data/
-          git commit -m "chore: Auto-update data files (added data_khach and data_don_hang)" || echo "No changes to commit"
+          git commit -m "chore: Auto-update data files (added data_ton_kho)" || echo "No changes to commit"
           
           # ĐỒNG BỘ CODE MỚI NHẤT TRƯỚC KHI PUSH ĐỂ TRÁNH LỖI REJECTED
           git pull --rebase origin main
