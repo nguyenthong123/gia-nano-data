@@ -34,11 +34,12 @@ jobs:
           curl -L "https://drive.google.com/uc?export=download&id=1T65VpBIpMeEOCpCXz9G-SfY5iWBSmLx6" -o data/data_san_pham_kh.json
           curl -L "https://drive.google.com/uc?export=download&id=1xIYGdxVyWfrirWXI_dDHHKaiy-Ips3-0" -o data/data_ton_kho.json
           
-          # HAI FILE QUẢN LÝ ĐƠN (HÃY THAY ID_THAT_CUA_FILE_KHACH VÀO DÒNG DƯỚI)
-          curl -L "https://drive.google.com/file/d/1gqVFgLVHxVYTo7o3CF7SDaAm41-PDtIG/view" -o data/data_khach.json
+          # --- NHÓM 3: QUẢN LÝ ĐƠN (SỬA LẠI ĐÚNG ĐỊNH DẠNG) ---
+          # THAY ID_THAT_CUA_FILE_KHACH_VAO_DONG_DUOI
+          curl -L "https://drive.google.com/uc?export=download&id=ID_THAT_CUA_FILE_KHACH" -o data/data_khach.json
           curl -L "https://drive.google.com/uc?export=download&id=1gqVFgLVHxVYTo7o3CF7SDaAm41-PDtIG" -o data/data_don_hang.json
 
-          # --- NHÓM 3: LỊCH SỬ ĐƠN HÀNG (HISTORY) ---
+          # --- NHÓM 4: LỊCH SỬ ĐƠN HÀNG (HISTORY) ---
           curl -L "https://drive.google.com/uc?export=download&id=1sN3hBnpc6UeYSgbKl_aqc6X0lJsBgJ-e" -o data/history_don_hang_duraflex.json
           curl -L "https://drive.google.com/uc?export=download&id=15kCzmqiq-J1bJ4dxNcw8TNUS2aQkjpNg" -o data/history_don_hang_pima.json
           curl -L "https://drive.google.com/uc?export=download&id=1mM9vzNxHoYQPKUfIea_Nw-EpY0GbRDbw" -o data/history_don_hang_weber.json
@@ -49,9 +50,6 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add data/
-          git commit -m "chore: Auto-update data files (added data_ton_kho)" || echo "No changes to commit"
-          
-          # ĐỒNG BỘ CODE MỚI NHẤT TRƯỚC KHI PUSH ĐỂ TRÁNH LỖI REJECTED
+          git commit -m "chore: Auto-update all data files from Drive" || echo "No changes to commit"
           git pull --rebase origin main
-          
           git push
