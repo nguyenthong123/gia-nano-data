@@ -2,7 +2,7 @@ name: Update Data from Google Drive
 
 on:
   schedule:
-    # Chạy mỗi 30 phút một lần để đồng bộ dữ liệu nhanh nhất
+    # Chạy mỗi 30 phút để đồng bộ dữ liệu nhanh nhất
     - cron: '*/30 * * * *'
   workflow_dispatch:
 
@@ -34,10 +34,12 @@ jobs:
           curl -L "https://drive.google.com/uc?export=download&id=1T65VpBIpMeEOCpCXz9G-SfY5iWBSmLx6" -o data/data_san_pham_kh.json
           curl -L "https://drive.google.com/uc?export=download&id=1xIYGdxVyWfrirWXI_dDHHKaiy-Ips3-0" -o data/data_ton_kho.json
           
-          # --- NHÓM 3: QUẢN LÝ ĐƠN (SỬA LẠI ĐÚNG ĐỊNH DẠNG) ---
-          # THAY ID_THAT_CUA_FILE_KHACH_VAO_DONG_DUOI
-          curl -L "https://drive.google.com/uc?export=download&id=ID_THAT_CUA_FILE_KHACH" -o data/data_khach.json
+          # --- NHÓM 3: QUẢN LÝ ĐƠN & KHÁCH (DÙNG ID TỪ LINK BẠN GỬI) ---
+          # Link: 1gqVFgLVHxVYTo7o3CF7SDaAm41-PDtIG
           curl -L "https://drive.google.com/uc?export=download&id=1gqVFgLVHxVYTo7o3CF7SDaAm41-PDtIG" -o data/data_don_hang.json
+          
+          # LƯU Ý: Bạn cần lấy đúng ID của tệp data_khach.json (không lấy ID thư mục) dán vào dưới đây
+          curl -L "https://drive.google.com/uc?export=download&id=ID_CUA_FILE_DATA_KHACH_THAT" -o data/data_khach.json
 
           # --- NHÓM 4: LỊCH SỬ ĐƠN HÀNG (HISTORY) ---
           curl -L "https://drive.google.com/uc?export=download&id=1sN3hBnpc6UeYSgbKl_aqc6X0lJsBgJ-e" -o data/history_don_hang_duraflex.json
@@ -50,6 +52,9 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add data/
-          git commit -m "chore: Auto-update all data files from Drive" || echo "No changes to commit"
+          git commit -m "chore: Auto-update all 13 data files from Drive" || echo "No changes to commit"
+          
+          # ĐỒNG BỘ ĐỂ TRÁNH LỖI REJECTED
           git pull --rebase origin main
+          
           git push
