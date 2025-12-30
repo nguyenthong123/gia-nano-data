@@ -43,5 +43,59 @@
     "gia_san_pham": "40000",
     "ten_dang_nhap": "bathong2410@gmail.com",
     "trang_thai_xoa_sp": "ACTIVE"
+  },
+  {
+    "id_san_pham": "S001",
+    "image_san_pham": "https://lh3.googleusercontent.com/d/1rzDxplgRNRamzKZdNun4LAZ67IfNoOGb",
+    "ten_nghanh_hang": "nháp 3",
+    "ten_san_pham": "nháp 7",
+    "gia_san_pham": "30000",
+    "ten_dang_nhap": "bathong2410@gmail.com",
+    "trang_thai_xoa_sp": "DELETED"
+  },
+  {
+    "id_san_pham": "S004",
+    "image_san_pham": "https://lh3.googleusercontent.com/d/10RXzEOwcheA4TTNdW-I4l7VjjVrH1X0F",
+    "ten_nghanh_hang": "keo durafiler",
+    "ten_san_pham": "thùng keo xử lý múi nối 1 kg",
+    "gia_san_pham": "88000",
+    "ten_dang_nhap": "bathong2410@gmail.com",
+    "trang_thai_xoa_sp": "DELETED"
+  },
+  {
+    "id_san_pham": "S007",
+    "image_san_pham": "https://lh3.googleusercontent.com/d/1u-Jy-LEqkwoJ0DaRy3bZgVk_qD_gOke0",
+    "ten_nghanh_hang": "nháp 3",
+    "ten_san_pham": "nháp tiếp",
+    "gia_san_pham": "90000",
+    "ten_dang_nhap": "bathong2410@gmail.com",
+    "trang_thai_xoa_sp": "ACTIVE"
+  },
+  {
+    "id_san_pham": "S008",
+    "image_san_pham": "https://lh3.googleusercontent.com/d/18uDUQ3dqlMePigL27P_YhCesJRRXDOXU",
+    "ten_nghanh_hang": "nháp 3",
+    "ten_san_pham": "nháp lần nửa",
+    "gia_san_pham": "20000",
+    "ten_dang_nhap": "bathong2410@gmail.com",
+    "trang_thai_xoa_sp": "ACTIVE"
+  },
+  {
+    "id_san_pham": "S006",
+    "image_san_pham": "https://lh3.googleusercontent.com/d/1Xh5J_DeHg2nchnt9sPI1YHSJx0Vj2B0Q",
+    "ten_nghanh_hang": "duraflex bán lẽ",
+    "ten_san_pham": "Tấm duraflex 12mm x 1m22 x 2m44",
+    "gia_san_pham": "425000",
+    "ten_dang_nhap": "bathong2410@gmail.com",
+    "trang_thai_xoa_sp": "DELETED"
+  },
+  {
+    "id_san_pham": "S005",
+    "image_san_pham": "https://lh3.googleusercontent.com/d/1Zk21uAxe5RcDDk-YdewdSWVPDWEaZATk",
+    "ten_nghanh_hang": "nháp 2",
+    "ten_san_pham": "tấm  duraflex 8mm x 1m22 x2m44",
+    "gia_san_pham": "276114",
+    "ten_dang_nhap": "bathong2410@gmail.com",
+    "trang_thai_xoa_sp": "ACTIVE"
   }
 ]
