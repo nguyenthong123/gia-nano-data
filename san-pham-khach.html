@@ -1000,7 +1000,7 @@
 				// 1. Fetch JSON data (Dữ liệu cũ)
 				let jsonData = [];
 				try {
-					const jsonRes = await fetch('data/data_san_pham_kh.json');
+					const jsonRes = await fetch(`https://docs.google.com/uc?export=download&id=1Gt36oOwInVsa2VJXepZicTNQoQWJKT5A&t=${new Date().getTime()}`);
 					if (jsonRes.ok) {
 						let rawJson = await jsonRes.json();
 						// Chuẩn hóa key cho JSON (Xóa khoảng trắng thừa trong key như "id _san_pham")

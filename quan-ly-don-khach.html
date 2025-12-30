@@ -817,7 +817,7 @@
 		async function fetchProducts() {
 			let jsonData = [];
 			try {
-				const res = await fetch('data/data_san_pham_kh.json');
+				const res = await fetch(`https://docs.google.com/uc?export=download&id=1Gt36oOwInVsa2VJXepZicTNQoQWJKT5A&t=${new Date().getTime()}`);
 				if (res.ok) {
 					const raw = await res.json();
 					jsonData = raw.map(item => {
