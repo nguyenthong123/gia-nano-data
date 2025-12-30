@@ -33,8 +33,8 @@ jobs:
           # 1. data_khach.json (ID Mới: 1WN_IIlcF6_4vRgxnQVLvmEqZVrE66n-A)
           curl -L "https://drive.google.com/uc?export=download&id=1WN_IIlcF6_4vRgxnQVLvmEqZVrE66n-A" -o data/data_khach.json
           
-          # 2. data_san_pham_kh.json (ID: 1T65VpBIpMeEOCpCXz9G-SfY5iWBSmLx6)
-          curl -L "https://drive.google.com/uc?export=download&id=1T65VpBIpMeEOCpCXz9G-SfY5iWBSmLx6" -o data/data_san_pham_kh.json
+          # 2. data_tao_san_pham.json (ID: 1Gt36oOwInVsa2VJXepZicTNQoQWJKT5A)
+          curl -L "https://drive.google.com/uc?export=download&id=1Gt36oOwInVsa2VJXepZicTNQoQWJKT5A" -o data/data_tao_san_pham.json
           
           # 3. data_ton_kho.json (ID: 1xIYGdxVyWfrirWXI_dDHHKaiy-Ips3-0)
           curl -L "https://drive.google.com/uc?export=download&id=1xIYGdxVyWfrirWXI_dDHHKaiy-Ips3-0" -o data/data_ton_kho.json
