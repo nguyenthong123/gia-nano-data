@@ -4,7 +4,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Thông Tin Khách Hàng - Form</title>
+	<title>Chỉnh Sửa Khách Hàng - Premium</title>
 	<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
 		rel="stylesheet">
 	<style>
@@ -44,6 +44,7 @@
 			border: 1px solid var(--glass-border);
 			box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
 			animation: fadeIn 0.5s ease-out;
+			position: relative;
 		}
 
 		@keyframes fadeIn {
@@ -56,6 +57,19 @@
 				opacity: 1;
 				transform: translateY(0);
 			}
+		}
+
+		.edit-badge {
+			position: absolute;
+			top: 20px;
+			right: 40px;
+			background: var(--primary);
+			color: var(--dark);
+			padding: 4px 12px;
+			border-radius: 8px;
+			font-size: 0.75rem;
+			font-weight: 800;
+			text-transform: uppercase;
 		}
 
 		h2 {
@@ -94,6 +108,13 @@
 		input:focus {
 			border-color: var(--primary);
 			background: rgba(255, 215, 0, 0.05);
+		}
+
+		input[readonly] {
+			background: rgba(255, 255, 255, 0.05);
+			color: #888;
+			cursor: not-allowed;
+			border-style: dashed;
 		}
 
 		.location-container {
@@ -160,6 +181,7 @@
 			justify-content: center;
 			align-items: center;
 			z-index: 1000;
+			backdrop-filter: blur(5px);
 		}
 
 		/* Floating Menu Styles */
@@ -264,7 +286,7 @@
 			<div
 				style="width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px;">
 			</div>
-			<p>Đang tải dữ liệu cũ...</p>
+			<p id="loaderText">Đang tải dữ liệu cũ...</p>
 		</div>
 	</div>
 
@@ -277,14 +299,12 @@
 	</style>
 
 	<div class="form-card">
-		<h2 id="formTitle">Tạo Khách Hàng</h2>
-		<form id="customerForm">
-			<input type="hidden" id="editId">
-
-			<div class="form-group" id="idDisplayGroup" style="display: none;">
-				<label>Mã khách hàng (Chỉ đọc)</label>
-				<input type="text" id="displayId" readonly
-					style="background: rgba(255,255,255,0.05); color: #888; cursor: not-allowed;">
+		<div class="edit-badge">Mode: Edit</div>
+		<h2>Sửa Thông Tin</h2>
+		<form id="editForm">
+			<div class="form-group">
+				<label>Mã khách hàng (Cố định)</label>
+				<input type="text" id="idDisplay" readonly>
 			</div>
 
 			<div class="form-group">
@@ -322,8 +342,8 @@
 				<textarea id="ghiChu" rows="3" placeholder="Nhập thêm ghi chú (nếu có)"></textarea>
 			</div>
 
-			<button type="submit" class="btn-submit" id="btnSubmit">LƯU THÔNG TIN</button>
-			<a href="danh-sach-khach-hang.html" class="btn-back">Quay lại danh sách</a>
+			<button type="submit" class="btn-submit" id="btnSubmit">CẬP NHẬT THAY ĐỔI</button>
+			<a href="danh-sach-khach-hang.html" class="btn-back">Hủy bỏ và quay lại</a>
 		</form>
 	</div>
 
@@ -374,136 +394,140 @@
 	</div>
 
 	<script>
-        const KHACH_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxJ_SMcR1BOrVrZ9Ym0pmhuAa4XbP0ASvYPM5LhQxZLenCLvWy-Nc0jBiv3finAByac/exec';
-        let userData = null;
+		const KHACH_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxJ_SMcR1BOrVrZ9Ym0pmhuAa4XbP0ASvYPM5LhQxZLenCLvWy-Nc0jBiv3finAByac/exec';
+		let userData = null;
+		let customerId = null;
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            const userStr = localStorage.getItem('userLoggedIn');
-            if (!userStr) {
-                window.location.href = 'index.html';
-                return;
-            }
-            userData = JSON.parse(userStr);
+		document.addEventListener('DOMContentLoaded', async () => {
+			const userStr = localStorage.getItem('userLoggedIn');
+			if (!userStr) {
+				window.location.href = 'index.html';
+				return;
+			}
+			userData = JSON.parse(userStr);
 
-            const params = new URLSearchParams(window.location.search);
-            const id = params.get('id');
-            if (id) {
-                document.getElementById('formTitle').innerText = "Chỉnh Sửa Khách Hàng";
-                document.getElementById('editId').value = id;
-                document.getElementById('displayId').value = id;
-                document.getElementById('idDisplayGroup').style.display = 'block';
-                loadCustomerDetail(id);
-            }
-        });
+			const params = new URLSearchParams(window.location.search);
+			customerId = params.get('id');
 
-        async function loadCustomerDetail(id) {
-            showLoader(true);
-            try {
-                const url = `${KHACH_SCRIPT_URL}?action=read&username=${encodeURIComponent(userData.email)}`;
-                const res = await fetch(url);
-                const result = await res.json();
-                
-                if (result.success) {
-                    // Tìm kiếm linh hoạt với các trường đã chuẩn hóa
-                    const customer = result.data.find(c => {
-                        const cid = c.idkhachhang || c.id_khach_hang || c.id_khachhang;
-                        return String(cid).trim() === String(id).trim();
-                    });
+			if (!customerId) {
+				alert("Lỗi: Không tìm thấy tham số ID khách hàng trên URL. Hãy chắc chắn bạn mở trang này từ nút Chỉnh sửa trong danh sách!");
+				window.location.href = 'danh-sach-khach-hang.html';
+				return;
+			}
 
-                    if (customer) {
-                        document.getElementById('tenKhach').value = customer.tenkhachhang || customer.ten_khach_hang || '';
-                        document.getElementById('phone').value = customer.phone || customer.so_dien_thoai || '';
-                        document.getElementById('diaChi').value = customer.diachi || customer.dia_chi || '';
-                        document.getElementById('viTri').value = customer.vitri || customer.vi_tri || '';
-                        document.getElementById('ghiChu').value = customer.ghichu || customer.ghi_chu || '';
-                    } else {
-                        console.warn("Không tìm thấy khách hàng với ID:", id);
-                    }
-                }
-            } catch (err) { 
-                console.error("Lỗi tải chi tiết:", err); 
-            }
-            showLoader(false);
-        }
+			document.getElementById('idDisplay').value = customerId;
+			loadCustomerDetail(customerId);
+		});
 
-        function getLocation() {
-            if (navigator.geolocation) {
-                showLoader(true);
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        const pos = `${position.coords.latitude}, ${position.coords.longitude}`;
-                        document.getElementById('viTri').value = pos;
-                        showLoader(false);
-                    },
-                    (error) => {
-                        alert("Không thể truy cập GPS. Vui lòng cấp quyền hoặc nhập thủ công.");
-                        showLoader(false);
-                    }
-                );
-            } else {
-                alert("Trình duyệt không hỗ trợ định vị GPS.");
-            }
-        }
+		async function loadCustomerDetail(id) {
+			showLoader(true, "Đang truy xuất dữ liệu cũ...");
+			try {
+				const url = `${KHACH_SCRIPT_URL}?action=read&username=${encodeURIComponent(userData.email)}`;
+				const res = await fetch(url);
+				const result = await res.json();
 
-        function toggleFabMenu(e) {
-            e.stopPropagation();
-            document.getElementById('fabMenu').classList.toggle('active');
-            document.querySelector('.fab-btn').classList.toggle('active');
-        }
+				if (result.success) {
+					// Tìm khách hàng theo ID (kiểm tra linh hoạt các biến thể key)
+					const customer = result.data.find(c => {
+						const cid = c.id_khach_hang || c.idkhachhang || c.id_khachhang;
+						return String(cid).trim() === String(id).trim();
+					});
 
-        document.addEventListener('click', (e) => {
-            const fabMenu = document.getElementById('fabMenu');
-            const fabBtn = document.querySelector('.fab-btn');
-            if (fabMenu && !fabMenu.contains(e.target) && !fabBtn.contains(e.target)) {
-                fabMenu.classList.remove('active');
-                fabBtn.classList.remove('active');
-            }
-        });
+					if (customer) {
+						document.getElementById('tenKhach').value = customer.ten_khach_hang || customer.tenkhachhang || '';
+						document.getElementById('phone').value = customer.phone || customer.so_dien_thoai || '';
+						document.getElementById('diaChi').value = customer.dia_chi || customer.diachi || '';
+						document.getElementById('viTri').value = customer.vi_tri || customer.vitri || '';
+						document.getElementById('ghiChu').value = customer.ghi_chu || customer.ghichu || '';
+					} else {
+						alert("Không tìm thấy dữ liệu khách hàng này trên hệ thống!");
+						window.location.href = 'danh-sach-khach-hang.html';
+					}
+				}
+			} catch (err) {
+				console.error("Lỗi:", err);
+				alert("Lỗi khi kết nối với máy chủ!");
+			}
+			showLoader(false);
+		}
 
-        document.getElementById('customerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const editId = document.getElementById('editId').value;
-            
-            const data = {
-                ten_khach_hang: document.getElementById('tenKhach').value,
-                phone: document.getElementById('phone').value,
-                dia_chi: document.getElementById('diaChi').value,
-                vi_tri: document.getElementById('viTri').value,
-                ghi_chu: document.getElementById('ghiChu').value,
-                ten_dang_nhap: userData.email
-            };
+		function getLocation() {
+			if (navigator.geolocation) {
+				showLoader(true, "Đang lấy vị trí GPS...");
+				navigator.geolocation.getCurrentPosition(
+					(position) => {
+						document.getElementById('viTri').value = `${position.coords.latitude}, ${position.coords.longitude}`;
+						showLoader(false);
+					},
+					(error) => {
+						alert("Không thể lấy tọa độ. Hãy kiểm tra quyền truy cập vị trí.");
+						showLoader(false);
+					}
+				);
+			}
+		}
 
-            showLoader(true);
-            try {
-                const payload = {
-                    action: editId ? 'update' : 'create',
-                    idValue: editId,
-                    data: data
-                };
+		function toggleFabMenu(e) {
+			e.stopPropagation();
+			document.getElementById('fabMenu').classList.toggle('active');
+			document.querySelector('.fab-btn').classList.toggle('active');
+		}
 
-                const fd = new URLSearchParams();
-                fd.append('payload', JSON.stringify(payload));
+		document.getElementById('editForm').addEventListener('submit', async (e) => {
+			e.preventDefault();
 
-                const res = await fetch(KHACH_SCRIPT_URL, {
-                    method: 'POST',
-                    body: fd
-                });
-                const result = await res.json();
-                if (result.success) {
-                    window.location.href = 'danh-sach-khach-hang.html';
-                } else {
-                    alert("Lỗi: " + result.message);
-                }
-            } catch (err) {
-                alert("Lỗi kết nối: " + err.toString());
-            } finally {
-                showLoader(false);
-            }
-        });
+			const data = {
+				ten_khach_hang: document.getElementById('tenKhach').value,
+				phone: document.getElementById('phone').value,
+				dia_chi: document.getElementById('diaChi').value,
+				vi_tri: document.getElementById('viTri').value,
+				ghi_chu: document.getElementById('ghiChu').value,
+				ten_dang_nhap: userData.email
+			};
 
-        function showLoader(show) {
-            document.getElementById('loader').style.display = show ? 'flex' : 'none';
-        }
+			showLoader(true, "Đang gửi yêu cầu cập nhật lên Sheet...");
+			try {
+				const payload = {
+					action: 'update',
+					idValue: customerId,
+					data: data
+				};
+
+				const fd = new URLSearchParams();
+				fd.append('payload', JSON.stringify(payload));
+
+				const res = await fetch(KHACH_SCRIPT_URL, {
+					method: 'POST',
+					body: fd
+				});
+				const result = await res.json();
+				if (result.success) {
+					window.location.href = 'danh-sach-khach-hang.html';
+				} else {
+					alert("Cập nhật thất bại: " + result.message);
+				}
+			} catch (err) {
+				alert("Lỗi mạng: " + err.toString());
+			} finally {
+				showLoader(false);
+			}
+		});
+
+		function showLoader(show, text = "") {
+			const loader = document.getElementById('loader');
+			if (text) document.getElementById('loaderText').innerText = text;
+			loader.style.display = show ? 'flex' : 'none';
+		}
+
+		// Close menu
+		document.addEventListener('click', (e) => {
+			const fabMenu = document.getElementById('fabMenu');
+			const fabBtn = document.querySelector('.fab-btn');
+			if (fabMenu && !fabMenu.contains(e.target) && !fabBtn.contains(e.target)) {
+				fabMenu.classList.remove('active');
+				fabBtn.classList.remove('active');
+			}
+		});
 	</script>
 </body>
 

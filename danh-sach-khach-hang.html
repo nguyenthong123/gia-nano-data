@@ -42,34 +42,109 @@
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
-			margin-bottom: 40px;
+			margin-bottom: 50px;
+			animation: fadeInDown 0.8s ease-out;
 		}
 
-		.title-area h1 {
+		@keyframes fadeInDown {
+			from {
+				opacity: 0;
+				transform: translateY(-20px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		.header-left h1 {
 			font-size: 2.5rem;
 			font-weight: 800;
 			background: linear-gradient(to right, #fff, var(--primary));
 			-webkit-background-clip: text;
+			background-clip: text;
 			-webkit-text-fill-color: transparent;
+			letter-spacing: -1px;
 		}
 
-		.btn-add {
-			background: var(--primary);
-			color: var(--dark);
-			padding: 12px 24px;
-			border-radius: 16px;
-			text-decoration: none;
-			font-weight: 700;
+		.header-left p {
+			color: var(--text-gray);
+			font-size: 1rem;
+			margin-top: 5px;
+		}
+
+		.header-right {
+			display: flex;
+			gap: 15px;
+			align-items: center;
+		}
+
+		.user-chip {
+			background: var(--glass);
+			border: 1px solid var(--glass-border);
+			padding: 8px 15px;
+			border-radius: 30px;
 			display: flex;
 			align-items: center;
 			gap: 10px;
-			transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+			backdrop-filter: blur(10px);
+		}
+
+		.user-chip span {
+			font-weight: 600;
+			font-size: 0.9rem;
+		}
+
+		.user-chip .avatar {
+			width: 30px;
+			height: 30px;
+			background: var(--primary);
+			color: var(--dark);
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-weight: 800;
+			font-size: 0.8rem;
+		}
+
+		/* Buttons */
+		.btn {
+			padding: 12px 24px;
+			border-radius: 14px;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+			border: none;
+			display: inline-flex;
+			align-items: center;
+			gap: 10px;
+			text-decoration: none;
+			font-size: 0.95rem;
+		}
+
+		.btn-primary {
+			background: var(--primary);
+			color: var(--dark);
 			box-shadow: 0 10px 20px rgba(255, 215, 0, 0.2);
 		}
 
-		.btn-add:hover {
+		.btn-primary:hover {
 			transform: translateY(-3px);
 			box-shadow: 0 15px 30px rgba(255, 215, 0, 0.3);
+		}
+
+		.btn-glass {
+			background: var(--glass);
+			color: var(--text-light);
+			border: 1px solid var(--glass-border);
+			backdrop-filter: blur(10px);
+		}
+
+		.btn-glass:hover {
+			background: rgba(255, 255, 255, 0.1);
+			transform: translateY(-2px);
 		}
 
 		.search-box {
@@ -77,10 +152,16 @@
 			border: 1px solid var(--glass-border);
 			padding: 15px 25px;
 			border-radius: 20px;
-			margin-bottom: 30px;
+			margin-bottom: 40px;
 			display: flex;
 			align-items: center;
 			backdrop-filter: blur(10px);
+			transition: all 0.3s;
+		}
+
+		.search-box:focus-within {
+			border-color: var(--primary);
+			background: rgba(255, 255, 255, 0.05);
 		}
 
 		.search-box input {
@@ -89,7 +170,7 @@
 			color: white;
 			width: 100%;
 			margin-left: 15px;
-			font-size: 1rem;
+			font-size: 1.1rem;
 			outline: none;
 		}
 
@@ -99,6 +180,19 @@
 			border: 1px solid var(--glass-border);
 			overflow: hidden;
 			box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+			animation: fadeInUp 0.8s ease-out;
+		}
+
+		@keyframes fadeInUp {
+			from {
+				opacity: 0;
+				transform: translateY(30px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
 		}
 
 		table {
@@ -107,44 +201,58 @@
 		}
 
 		th {
-			background: rgba(255, 255, 255, 0.05);
+			background: rgba(255, 255, 255, 0.03);
 			text-align: left;
-			padding: 20px;
-			font-size: 0.85rem;
+			padding: 22px 25px;
+			font-size: 0.8rem;
 			text-transform: uppercase;
-			letter-spacing: 1px;
+			letter-spacing: 1.5px;
 			color: var(--text-gray);
-		}
-
-		td {
-			padding: 20px;
 			border-bottom: 1px solid var(--glass-border);
 		}
 
+		td {
+			padding: 22px 25px;
+			border-bottom: 1px solid var(--glass-border);
+			font-size: 1rem;
+		}
+
+		tr:last-child td {
+			border-bottom: none;
+		}
+
 		tr:hover {
-			background: rgba(255, 215, 0, 0.02);
+			background: rgba(255, 215, 0, 0.03);
 		}
 
 		.customer-id {
 			color: var(--primary);
-			font-weight: 700;
+			font-weight: 800;
+			font-size: 0.9rem;
 		}
 
-		.phone {
-			color: var(--text-gray);
-			font-family: monospace;
+		.phone-text {
+			color: var(--text-light);
+			font-weight: 600;
 		}
 
 		.location-badge {
 			display: inline-flex;
 			align-items: center;
-			gap: 5px;
+			gap: 6px;
 			background: rgba(0, 200, 83, 0.1);
-			color: #00c853;
-			padding: 4px 10px;
-			border-radius: 8px;
-			font-size: 0.8rem;
+			color: #00e676;
+			padding: 6px 14px;
+			border-radius: 12px;
+			font-size: 0.85rem;
+			font-weight: 700;
 			text-decoration: none;
+			transition: all 0.2s;
+		}
+
+		.location-badge:hover {
+			background: #00e676;
+			color: var(--dark);
 		}
 
 		.actions {
@@ -153,8 +261,8 @@
 		}
 
 		.btn-icon {
-			width: 38px;
-			height: 38px;
+			width: 40px;
+			height: 40px;
 			border-radius: 12px;
 			display: flex;
 			align-items: center;
@@ -169,21 +277,22 @@
 		.btn-icon:hover {
 			background: white;
 			color: var(--dark);
+			transform: scale(1.1);
 		}
 
-		.loader {
+		.loader-overlay {
 			text-align: center;
-			padding: 50px;
+			padding: 80px;
 		}
 
 		.spinner {
 			width: 40px;
 			height: 40px;
-			border: 3px solid var(--glass-border);
+			border: 4px solid rgba(255, 215, 0, 0.1);
 			border-top-color: var(--primary);
 			border-radius: 50%;
 			animation: spin 1s linear infinite;
-			margin: 0 auto 15px;
+			margin: 0 auto 20px;
 		}
 
 		@keyframes spin {
@@ -192,26 +301,114 @@
 			}
 		}
 
-		/* Responsive */
-		@media (max-width: 768px) {
+		@media (max-width: 992px) {
 			header {
 				flex-direction: column;
-				gap: 20px;
 				align-items: flex-start;
-			}
-
-			.search-box {
-				padding: 12px 15px;
-			}
-
-			td,
-			th {
-				padding: 12px;
-				font-size: 0.9rem;
+				gap: 25px;
 			}
 
 			.hide-mobile {
 				display: none;
+			}
+		}
+
+		/* Floating Menu Styles */
+		.floating-menu {
+			position: fixed;
+			bottom: 30px;
+			right: 30px;
+			z-index: 1000;
+			display: flex;
+			flex-direction: column;
+			align-items: flex-end;
+			gap: 15px;
+		}
+
+		.fab-btn {
+			width: 60px;
+			height: 60px;
+			background: var(--primary);
+			border: none;
+			border-radius: 50%;
+			color: var(--dark);
+			cursor: pointer;
+			box-shadow: 0 10px 25px rgba(255, 215, 0, 0.4);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+			z-index: 1001;
+		}
+
+		.fab-btn svg {
+			width: 28px;
+			height: 28px;
+			transition: transform 0.4s;
+		}
+
+		.fab-btn.active svg {
+			transform: rotate(135deg);
+		}
+
+		.fab-menu-list {
+			position: absolute;
+			bottom: 80px;
+			right: 0;
+			background: #1a1a1a;
+			border: 1px solid var(--glass-border);
+			border-radius: 20px;
+			padding: 10px;
+			width: 240px;
+			display: none;
+			flex-direction: column;
+			gap: 5px;
+			backdrop-filter: blur(20px);
+			box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+			animation: slideUp 0.3s ease-out;
+		}
+
+		.fab-menu-list.active {
+			display: flex;
+		}
+
+		.menu-item {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			padding: 12px 15px;
+			color: var(--text-light);
+			text-decoration: none;
+			border-radius: 12px;
+			font-weight: 600;
+			font-size: 0.9rem;
+			transition: all 0.2s;
+		}
+
+		.menu-item:hover {
+			background: rgba(255, 215, 0, 0.1);
+			color: var(--primary);
+		}
+
+		.menu-item.active {
+			background: var(--primary);
+			color: var(--dark);
+		}
+
+		.menu-item svg {
+			width: 20px;
+			height: 20px;
+		}
+
+		@keyframes slideUp {
+			from {
+				opacity: 0;
+				transform: translateY(20px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
 			}
 		}
 	</style>
@@ -220,80 +417,163 @@
 <body>
 	<div class="container">
 		<header>
-			<div class="title-area">
-				<h1>Khách Hàng</h1>
-				<p style="color: var(--text-gray);">Quản lý đối tác và thông tin liên hệ</p>
+			<div class="header-left">
+				<h1>Hệ Thống Khách Hàng</h1>
+				<p>Quản lý dữ liệu chuyên nghiệp và tinh gọn</p>
 			</div>
-			<a href="khach-hang-form.html" class="btn-add">
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+			<div class="header-right">
+				<div class="user-chip" id="userChip" style="display: none;">
+					<div class="avatar" id="userAvatar">U</div>
+					<span id="userName">User</span>
+				</div>
+				<a href="index.html" class="btn btn-glass">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+						<polyline points="9 22 9 12 15 12 15 22"></polyline>
+					</svg>
+					Trang chủ
+				</a>
+				<button class="btn btn-primary" onclick="logout()">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+						<polyline points="16 17 21 12 16 7"></polyline>
+						<line x1="21" y1="12" x2="9" y2="12"></line>
+					</svg>
+					Đăng xuất
+				</button>
+			</div>
+		</header>
+
+		<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+			<div class="search-box" style="flex: 1; margin-bottom: 0; margin-right: 20px;">
+				<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-gray)"
+					stroke-width="2.5">
+					<circle cx="11" cy="11" r="8"></circle>
+					<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+				</svg>
+				<input type="text" id="searchInput" placeholder="Tìm kiếm theo tên, số điện thoại..."
+					oninput="handleSearch()">
+			</div>
+			<a href="khach-hang-form.html" class="btn btn-primary" style="padding: 15px 30px; font-size: 1rem;">
+				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
 					<line x1="12" y1="5" x2="12" y2="19"></line>
 					<line x1="5" y1="12" x2="19" y2="12"></line>
 				</svg>
-				THÊM KHÁCH HÀNG
+				LÊN KHÁCH HÀNG MỚI
 			</a>
-		</header>
-
-		<div class="search-box">
-			<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-gray)" stroke-width="2">
-				<circle cx="11" cy="11" r="8"></circle>
-				<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-			</svg>
-			<input type="text" id="searchInput" placeholder="Tìm kiếm theo tên, số điện thoại, ID..."
-				oninput="handleSearch()">
 		</div>
 
 		<div class="table-container">
-			<table id="customerTable">
+			<table>
 				<thead>
 					<tr>
-						<th>ID</th>
-						<th>Khách Hàng</th>
-						<th class="hide-mobile">Liên Hệ</th>
-						<th class="hide-mobile">Khu Vực</th>
-						<th>Vị Trí</th>
-						<th>Thao Tác</th>
+						<th width="100">ID</th>
+						<th>Tên Khách Hàng</th>
+						<th class="hide-mobile">Điện Thoại</th>
+						<th class="hide-mobile">Địa Chỉ</th>
+						<th width="140">Vị Trí</th>
+						<th width="120">Thao Tác</th>
 					</tr>
 				</thead>
-				<tbody id="tableBody">
-					<!-- Data will be loaded here -->
-				</tbody>
+				<tbody id="tableBody"></tbody>
 			</table>
-			<div id="loader" class="loader">
+			<div id="loader" class="loader-overlay">
 				<div class="spinner"></div>
-				<p>Đang tải dữ liệu...</p>
+				<p style="color: var(--text-gray); font-size: 1rem; font-weight: 600;">Đang xử lý dữ liệu...</p>
 			</div>
+		</div>
+
+		<!-- Floating Menu -->
+		<div class="floating-menu">
+			<div class="fab-menu-list" id="fabMenu">
+				<a href="len-don.html" class="menu-item" style="color: var(--primary);">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<path d="M12 5v14M5 12h14" />
+					</svg>
+					<span>Lên đơn hàng mới</span>
+				</a>
+				<a href="quan-ly-don-khach.html" class="menu-item">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+						<line x1="3" y1="10" x2="21" y2="10" />
+						<line x1="9" y1="21" x2="9" y2="10" />
+						<line x1="15" y1="21" x2="15" y2="10" />
+					</svg>
+					<span>Danh sách đơn hàng</span>
+				</a>
+				<a href="san-pham-khach.html" class="menu-item">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<rect x="3" y="3" width="7" height="7" />
+						<rect x="14" y="3" width="7" height="7" />
+						<rect x="14" y="14" width="7" height="7" />
+						<rect x="3" y="14" width="7" height="7" />
+					</svg>
+					<span>Quản lý sản phẩm</span>
+				</a>
+				<a href="danh-sach-khach-hang.html" class="menu-item active">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+						<circle cx="9" cy="7" r="4" />
+						<path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+						<path d="M16 3.13a4 4 0 0 1 0 7.75" />
+					</svg>
+					<span>Danh sách khách hàng</span>
+				</a>
+			</div>
+			<button class="fab-btn" onclick="toggleFabMenu(event)">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+					<line x1="3" y1="12" x2="21" y2="12" />
+					<line x1="3" y1="6" x2="21" y2="6" />
+					<line x1="3" y1="18" x2="21" y2="18" />
+				</svg>
+			</button>
 		</div>
 	</div>
 
 	<script>
-		// Cùng SCRIPT_URL với các trang khác hoặc cái mới cho project này
-		const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzM8tzbdJJvXE0r6NcP8cJGO2RHsgYUR6Jy73U4NDLkSQRjT3fus_i4lugwVQZIKI8zhw/exec'; // Vẫn dùng script cũ vì nó đa năng, hoặc thay bằng script riêng của Khách hàng
-		const KHACH_SCRIPT_URL = 'YOUR_NEW_DEPLOYED_URL_HERE'; // Thay bằng URL sau khi bạn Deploy GAS_KhachHang_Script.txt
-
+		const KHACH_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxJ_SMcR1BOrVrZ9Ym0pmhuAa4XbP0ASvYPM5LhQxZLenCLvWy-Nc0jBiv3finAByac/exec';
 		let allCustomers = [];
+		let userData = null;
 
-		async function loadCustomers() {
+		document.addEventListener('DOMContentLoaded', () => {
 			const userStr = localStorage.getItem('userLoggedIn');
 			if (!userStr) {
 				window.location.href = 'index.html';
 				return;
 			}
-			const user = JSON.parse(userStr);
+			userData = JSON.parse(userStr);
 
+			// Update Header User Info
+			const userChip = document.getElementById('userChip');
+			const userName = document.getElementById('userName');
+			const userAvatar = document.getElementById('userAvatar');
+
+			if (userChip && userName && userAvatar) {
+				userChip.style.display = 'flex';
+				userName.innerText = userData.name || userData.email;
+				userAvatar.innerText = (userData.name || userData.email || 'U').charAt(0).toUpperCase();
+			}
+
+			loadCustomers();
+		});
+
+		function logout() {
+			localStorage.removeItem('userLoggedIn');
+			window.location.href = 'index.html';
+		}
+
+		async function loadCustomers() {
 			try {
-				// Sử dụng KHACH_SCRIPT_URL nếu bạn deploy file mới, hoặc SCRIPT_URL nếu gộp
-				// Để demo tôi sẽ giả định KHACH_SCRIPT_URL
-				const url = `${KHACH_SCRIPT_URL}?action=read&username=${encodeURIComponent(user.email)}`;
+				const url = `${KHACH_SCRIPT_URL}?action=read&username=${encodeURIComponent(userData.email)}`;
 				const res = await fetch(url);
 				const result = await res.json();
-
 				if (result.success) {
 					allCustomers = result.data;
 					renderTable(allCustomers);
 				}
 			} catch (err) {
 				console.error(err);
-				document.getElementById('loader').innerHTML = '<p style="color: #ff3d00;">Lỗi không thể tải dữ liệu</p>';
+				document.getElementById('loader').innerHTML = '<p style="color: #ff5252;">Lỗi kết nối dữ liệu</p>';
 			} finally {
 				document.getElementById('loader').style.display = 'none';
 			}
@@ -302,42 +582,57 @@
 		function renderTable(data) {
 			const tbody = document.getElementById('tableBody');
 			if (data.length === 0) {
-				tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 40px; color: var(--text-gray);">Chưa có khách hàng nào</td></tr>';
+				tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 60px; color: var(--text-gray);">Chưa có dữ liệu khách hàng</td></tr>';
 				return;
 			}
 
 			tbody.innerHTML = data.map(item => {
-				const viTri = item.vi_tri || '';
-				const mapLink = viTri ? `https://www.google.com/maps?q=${viTri}` : '#';
+				let idkh = "";
+				for (let key in item) {
+					const cleanK = key.toLowerCase().replace(/[\s_]/g, '');
+					if (cleanK === 'idkhachhang' || cleanK === 'idkh' || cleanK === 'makh' || cleanK === 'makhachhang') {
+						idkh = item[key];
+						break;
+					}
+				}
+				if (!idkh) idkh = item.idkhachhang || item.id_khach_hang || item['Mã khách hàng'] || item['id khách hàng'] || "";
+
+				const ten = item.tenkhachhang || item.ten_khach_hang || item['Tên khách hàng'] || "Chưa có tên";
+				const phone = item.phone || item.sodienthoai || item.sdt || item['Số điện thoại'] || "";
+				const diachi = item.diachi || item.dia_chi || "";
+				const viTri = item.vitri || item.vi_tri || "";
+				const ngaytao = item.ngaytao || item.ngay_tao || "";
+
+				const mapLink = viTri ? `https://www.google.com/maps?q=${encodeURIComponent(viTri)}` : '#';
 
 				return `
                     <tr>
-                        <td><span class="customer-id">${item.id_khach_hang}</span></td>
+                        <td><span class="customer-id">${idkh || '---'}</span></td>
                         <td>
-                            <div style="font-weight: 700;">${item.ten_khach_hang}</div>
-                            <div style="font-size: 0.8rem; color: var(--text-gray);" class="show-mobile">${item.so_dien_thoai}</div>
+                            <div style="font-weight: 700; color: var(--primary);">${ten}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-gray); margin-top: 4px;">Ngày tạo: ${ngaytao || '---'}</div>
                         </td>
                         <td class="hide-mobile">
-                            <div class="phone">${item.so_dien_thoai}</div>
+                            <div class="phone-text">${phone || '---'}</div>
                         </td>
                         <td class="hide-mobile">
-                            <div style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${item.dia_chi}">
-                                ${item.dia_chi}
+                            <div style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-gray);" title="${diachi}">
+                                ${diachi || '---'}
                             </div>
                         </td>
                         <td>
                             ${viTri ? `<a href="${mapLink}" target="_blank" class="location-badge">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                                 Maps
-                            </a>` : '<span style="color:var(--text-gray); font-size: 0.8rem;">---</span>'}
+                            </a>` : '<span style="color:rgba(255,255,255,0.1); font-size: 0.8rem;">---</span>'}
                         </td>
                         <td>
                             <div class="actions">
-                                <button class="btn-icon" onclick="editCustomer('${item.id_khach_hang}')">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                <button class="btn-icon" onclick="editCustomer('${idkh}')" title="Sửa">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                 </button>
-                                <button class="btn-icon" style="color: #ff3d00;" onclick="deleteCustomer('${item.id_khach_hang}')">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                <button class="btn-icon" style="color: #ff5252;" onclick="deleteCustomer('${idkh}')" title="Xóa">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                 </button>
                             </div>
                         </td>
@@ -348,40 +643,49 @@
 
 		function handleSearch() {
 			const query = document.getElementById('searchInput').value.toLowerCase();
-			const filtered = allCustomers.filter(c =>
-				(c.ten_khach_hang || '').toLowerCase().includes(query) ||
-				(c.so_dien_thoai || '').includes(query) ||
-				(c.id_khach_hang || '').toLowerCase().includes(query)
-			);
+			const filtered = allCustomers.filter(c => {
+				const ten = (c.tenkhachhang || c.ten_khach_hang || '').toLowerCase();
+				const phone = (c.phone || c.sodienthoai || '');
+				const idkh = (c.idkhachhang || c.id_khach_hang || '').toLowerCase();
+				return ten.includes(query) || phone.includes(query) || idkh.includes(query);
+			});
 			renderTable(filtered);
 		}
 
 		function editCustomer(id) {
-			window.location.href = `khach-hang-form.html?id=${id}`;
+			if (!id || id === '---') {
+				alert("Lỗi: Không tìm thấy Mã khách hàng trong dữ liệu này. Hãy kiểm tra lại Sheet hoặc đảm bảo đã copy nội dung Script GAS mới nhất!");
+				return;
+			}
+			window.location.href = `khach-hang-edit?id=${encodeURIComponent(id)}`;
 		}
 
 		async function deleteCustomer(id) {
 			if (!confirm('Bạn có chắc chắn muốn xóa khách hàng này?')) return;
-
 			try {
 				const payload = { action: 'delete', idValue: id };
 				const fd = new URLSearchParams();
 				fd.append('payload', JSON.stringify(payload));
-
-				const res = await fetch(KHACH_SCRIPT_URL, {
-					method: 'POST',
-					body: fd
-				});
+				const res = await fetch(KHACH_SCRIPT_URL, { method: 'POST', body: fd });
 				const result = await res.json();
-				if (result.success) {
-					loadCustomers();
-				}
-			} catch (err) {
-				alert('Lỗi: ' + err.toString());
-			}
+				if (result.success) loadCustomers();
+			} catch (err) { alert('Lỗi: ' + err.toString()); }
 		}
 
-		document.addEventListener('DOMContentLoaded', loadCustomers);
+		function toggleFabMenu(e) {
+			e.stopPropagation();
+			document.getElementById('fabMenu').classList.toggle('active');
+			document.querySelector('.fab-btn').classList.toggle('active');
+		}
+
+		document.addEventListener('click', (e) => {
+			const fabMenu = document.getElementById('fabMenu');
+			const fabBtn = document.querySelector('.fab-btn');
+			if (fabMenu && !fabMenu.contains(e.target) && !fabBtn.contains(e.target)) {
+				fabMenu.classList.remove('active');
+				fabBtn.classList.remove('active');
+			}
+		});
 	</script>
 </body>
 

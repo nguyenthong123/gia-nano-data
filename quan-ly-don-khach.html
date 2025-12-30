@@ -6,7 +6,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Quản Lý Đơn Hàng - Khách Hàng</title>
 	<link rel="icon
-		href="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgC6ibu0IT2Ihhik57NmlGYZgx57h3XvSk5dLipgo7cZTS0pEV7dmPGQZhwXAxTFqFH9l2C74l14MamphdzEWaRBZbeWSUsyIh2Wd-wKuPv274PMjrAgMtirxbfrK-eUcFp5Rx0cFL7uPMA93RBiWrnp5sghMDD78oBCEk3FA_QbZUY4eG3jTZK_nt65vM/s1600/logo12.png"
+		href="
+		https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgC6ibu0IT2Ihhik57NmlGYZgx57h3XvSk5dLipgo7cZTS0pEV7dmPGQZhwXAxTFqFH9l2C74l14MamphdzEWaRBZbeWSUsyIh2Wd-wKuPv274PMjrAgMtirxbfrK-eUcFp5Rx0cFL7uPMA93RBiWrnp5sghMDD78oBCEk3FA_QbZUY4eG3jTZK_nt65vM/s1600/logo12.png"
 		type="image/png">
 	<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
 		rel="stylesheet">
@@ -522,8 +523,7 @@
 		</header>
 
 		<div class="tab-container">
-			<button class="tab-btn active" onclick="switchTab('orders')">📦 LỊCH SỬ ĐƠN HÀNG</button>
-			<button class="tab-btn" onclick="switchTab('customers')">👥 DANH SÁCH KHÁCH HÀNG</button>
+			<button class="tab-btn active">📦 LỊCH SỬ ĐƠN HÀNG</button>
 		</div>
 
 		<!-- Tab Đơn Hàng -->
@@ -559,36 +559,6 @@
 						</tr>
 					</thead>
 					<tbody id="ordersBody"></tbody>
-				</table>
-			</div>
-		</div>
-
-		<!-- Tab Khách Hàng -->
-		<div id="customersTab" class="tab-content">
-			<div class="actions-bar">
-				<div class="search-box">
-					<svg style="position: absolute; left: 15px; top: 12px; color: var(--text-gray);" width="20"
-						height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<circle cx="11" cy="11" r="8"></circle>
-						<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-					</svg>
-					<input type="text" id="customerSearch" placeholder="Tìm tên khách, số điện thoại..."
-						onkeyup="filterCustomers()">
-				</div>
-				<button class="btn btn-primary" onclick="openCustomerModal('create')">+ THÊM KHÁCH HÀNG</button>
-			</div>
-			<div class="table-wrapper">
-				<table>
-					<thead>
-						<tr>
-							<th>Mã KH</th>
-							<th>Tên Khách Hàng</th>
-							<th>Phone</th>
-							<th>Ghi Chú</th>
-							<th>Thao Tác</th>
-						</tr>
-					</thead>
-					<tbody id="customersBody"></tbody>
 				</table>
 			</div>
 		</div>
@@ -676,9 +646,12 @@
 			<div style="margin: 20px 0; display: flex; justify-content: space-between; align-items: center;">
 				<h3 style="font-size: 1rem; color: var(--primary);">DANH SÁCH SẢN PHẨM TRONG ĐƠN</h3>
 				<div style="display:flex; gap:8px; align-items:center;">
-					<button class="btn btn-glass" type="button" id="addRowButton" style="padding:6px 10px;">+ Thêm dòng</button>
-					<button class="btn" type="button" id="draftButton" style="background:#fff;border-radius:6px;padding:6px 10px;">Đơn Nháp</button>
-					<button class="btn btn-primary" type="button" id="finalizedButton" style="padding:6px 10px;">Đơn Chốt</button>
+					<button class="btn btn-glass" type="button" id="addRowButton" style="padding:6px 10px;">+ Thêm
+						dòng</button>
+					<button class="btn" type="button" id="draftButton"
+						style="background:#fff;border-radius:6px;padding:6px 10px;">Đơn Nháp</button>
+					<button class="btn btn-primary" type="button" id="finalizedButton" style="padding:6px 10px;">Đơn
+						Chốt</button>
 				</div>
 			</div>
 
@@ -754,7 +727,8 @@
 	<script>
 		// --- CONFIG & DATA ---
 		const ORDER_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxOQTGo9JGfVthBQ33DMpTEwkZArvWT-7hF9abPSh7LHT3zYQYa8hErzcBarYtCg65WWA/exec';
-		const PRODUCT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzM8tzbdJJvXE0r6NcP8cJGO2RHsgYUR6Jy73U4NDLkSQRjT3fus_i4lugwVQZIKI8zhw/exec'; // URL lấy sản phẩm khách đã tạo
+		const PRODUCT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzM8tzbdJJvXE0r6NcP8cJGO2RHsgYUR6Jy73U4NDLkSQRjT3fus_i4lugwVQZIKI8zhw/exec';
+		const KHACH_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxJ_SMcR1BOrVrZ9Ym0pmhuAa4XbP0ASvYPM5LhQxZLenCLvWy-Nc0jBiv3finAByac/exec';
 
 		let userData = {};
 		let currentCustomers = [];
@@ -793,38 +767,14 @@
 		}
 
 		async function fetchCustomers() {
-			let jsonData = [];
 			try {
-				const res = await fetch('data/data_khach.json');
-				if (res.ok) {
-					const raw = await res.json();
-					jsonData = raw.map(item => {
-						const newItem = {};
-						Object.keys(item).forEach(k => {
-							const normK = k.replace(/\s+/g, '').toLowerCase();
-							newItem[normK] = item[k];
-						});
-						return newItem;
-					}).filter(item => item.mailđăngnhập === userData.email);
-				}
-			} catch (e) { console.warn("No local customer JSON or error", e); }
-
-			try {
-				const res = await fetch(`${ORDER_SCRIPT_URL}?action=read_customers&email=${encodeURIComponent(userData.email)}`);
+				const url = `${KHACH_SCRIPT_URL}?action=read&username=${encodeURIComponent(userData.email)}`;
+				const res = await fetch(url);
 				const json = await res.json();
 				if (json.success) {
-					const sheetData = json.data;
-					const merged = [...sheetData];
-					const sheetIds = new Set(sheetData.map(s => s.idkháchhàng));
-
-					jsonData.forEach(j => {
-						if (!sheetIds.has(j.idkháchhàng)) merged.push(j);
-					});
-					currentCustomers = merged;
-				} else {
-					currentCustomers = jsonData;
+					currentCustomers = json.data;
 				}
-			} catch (e) { currentCustomers = jsonData; }
+			} catch (e) { console.error("Customer fetch error", e); }
 		}
 
 		async function fetchOrders() {
@@ -943,74 +893,8 @@
 				currentCustomers.map(c => `<option value="${c.idkháchhàng}">${c.tênkháchhàng} (${c.idkháchhàng})</option>`).join('');
 		}
 
-		function openCustomerModal(mode, id = null) {
-			const modal = document.getElementById('customerModal');
-			document.getElementById('customerForm').reset();
-			if (mode === 'create') {
-				document.getElementById('customerModalTitle').innerText = 'Thêm Khách Hàng Mới';
-				document.getElementById('custId').value = '';
-			} else {
-				const c = currentCustomers.find(item => item.idkháchhàng === id);
-				if (c) {
-					document.getElementById('customerModalTitle').innerText = 'Chỉnh Sửa Khách Hàng';
-					document.getElementById('custId').value = c.idkháchhàng;
-					document.getElementById('custName').value = c.tênkháchhàng;
-					document.getElementById('custPhone').value = c.phone;
-					document.getElementById('custNote').value = c.ghichú;
-				}
-			}
-			modal.classList.add('active');
-		}
-
-		function closeCustomerModal() { document.getElementById('customerModal').classList.remove('active'); }
-
-		document.getElementById('customerForm').onsubmit = async (e) => {
-			e.preventDefault();
-			const id = document.getElementById('custId').value;
-			const data = {
-				'tên khách hàng': document.getElementById('custName').value,
-				'phone': document.getElementById('custPhone').value,
-				'ghi chú': document.getElementById('custNote').value,
-				'mail đăng nhập': userData.email,
-				'trạng thái xóa': 'ACTIVE'
-			};
-			if (id) data['id khách hàng'] = id;
-
-			showLoader(true);
-			try {
-				const res = await fetch(ORDER_SCRIPT_URL, {
-					method: 'POST',
-					body: JSON.stringify({ action: 'upsert_customer', data })
-				});
-				const json = await res.json();
-				if (json.success) {
-					await fetchCustomers();
-					renderCustomers();
-					closeCustomerModal();
-					// Nếu đang trong luồng "Khách mới" của Lên đơn thì tiếp tục
-					if (window.pendingOrderFlow) {
-						window.pendingOrderFlow = false;
-						window.isNewCustomerFlow = true; // Mark this as a new customer order
-						openOrderModal('create', json.id);
-					}
-				}
-			} catch (e) { alert("Lỗi khi lưu khách hàng"); }
-			finally { showLoader(false); }
-		};
-
-		async function deleteCustomer(id) {
-			if (!confirm("Xóa khách hàng này?")) return;
-			showLoader(true);
-			try {
-				const res = await fetch(ORDER_SCRIPT_URL, {
-					method: 'POST',
-					body: JSON.stringify({ action: 'delete_customer', id })
-				});
-				if ((await res.json()).success) {
-					await fetchCustomers();
-					renderCustomers();
-				}
-			} finally { showLoader(false); }
+		function filterCustomers() {
+			// Redundant since tab removed
 		}
 
 		// --- ORDER LOGIC ---
@@ -1018,9 +902,7 @@
 		function closeChoiceModal() { document.getElementById('choiceModal').classList.remove('active'); }
 
 		function startNewCustomerOrder() {
-			closeChoiceModal();
-			window.pendingOrderFlow = true; // Cờ hiệu để sau khi lưu khách sẽ mở form đơn
-			openCustomerModal('create');
+			window.location.href = 'khach-hang-form';
 		}
 
 		function startOldCustomerOrder() {
@@ -1264,17 +1146,17 @@
 
 		function calculateOrderTotal() {
 			let productTotal = 0;
-				document.querySelectorAll('#orderItemsBody tr').forEach(row => {
-					const select = row.querySelector('.item-product');
-					const option = select.options[select.selectedIndex];
-					const priceText = row.querySelector('.item-price').value;
-					const price = parseFlexibleNumber(priceText);
-					const qtyText = row.querySelector('.item-qty').value;
-					const qty = parseFlexibleNumber(qtyText);
-					const rowTotal = price * qty;
-					row.querySelector('.item-total').innerText = formatCurrency(rowTotal);
-					productTotal += rowTotal;
-				});
+			document.querySelectorAll('#orderItemsBody tr').forEach(row => {
+				const select = row.querySelector('.item-product');
+				const option = select.options[select.selectedIndex];
+				const priceText = row.querySelector('.item-price').value;
+				const price = parseFlexibleNumber(priceText);
+				const qtyText = row.querySelector('.item-qty').value;
+				const qty = parseFlexibleNumber(qtyText);
+				const rowTotal = price * qty;
+				row.querySelector('.item-total').innerText = formatCurrency(rowTotal);
+				productTotal += rowTotal;
+			});
 
 			const type = document.getElementById('extraServiceType').value;
 			let extra = parseFlexibleNumber(document.getElementById('orderExtraService').value);
@@ -1474,7 +1356,7 @@
 		// --- TRẠNG THÁI ĐƠN HÀNG ---
 		// No default selection: user must explicitly choose before saving (or leave blank)
 		window.orderStatus = null;
-		document.getElementById('addRowButton').addEventListener('click', function() { addOrderRow(); });
+		document.getElementById('addRowButton').addEventListener('click', function () { addOrderRow(); });
 
 		// Visual toggle helper
 		function setOrderStatus(status) {
@@ -1487,12 +1369,12 @@
 			finalBtn.classList.toggle('btn', status !== 'Đơn Chốt');
 		}
 
-		document.getElementById('draftButton').addEventListener('click', function() {
+		document.getElementById('draftButton').addEventListener('click', function () {
 			setOrderStatus('Đơn Nháp');
 			// do NOT auto-save; user must press XÁC NHẬN LƯU ĐƠN
 		});
 
-		document.getElementById('finalizedButton').addEventListener('click', function() {
+		document.getElementById('finalizedButton').addEventListener('click', function () {
 			setOrderStatus('Đơn Chốt');
 			// do NOT auto-save; user must press XÁC NHẬN LƯU ĐƠN
 		});

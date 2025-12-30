@@ -602,6 +602,8 @@
 				style="background: #f1f8e9; color: #2e7d32; display: none;">📊 QUẢN LÝ TOÀN DIỆN</a>
 			<a href="quan-ly-don-hang.html" id="menuLenDonKH" style="background: #e3f2fd; color: #1976d2;">📋 QUẢN LÝ
 				ĐƠN HÀNG</a>
+			<a href="danh-sach-khach-hang.html" id="menuKhachHang"
+				style="background: #fff3e0; color: #e65100; display: none;">👥 QUẢN LÝ KHÁCH HÀNG</a>
 		</div>
 		<div class="menu-btn" onclick="toggleMenu()">
 			<!-- Hamburger Icon SVG -->
@@ -697,15 +699,18 @@
 
 				// Show/Hide menu items based on phan_loai
 				const menuLenDonKH = document.getElementById('menuLenDonKH');
+				const menuKhachHang = document.getElementById('menuKhachHang');
 
 				if (userData.phan_loai === 'ad mind') {
 					menuLenDon.style.display = 'block';
 					menuSanPhamKH.style.display = 'none';
 					menuLenDonKH.style.display = 'none';
+					menuKhachHang.style.display = 'none';
 				} else {
 					menuLenDon.style.display = 'none';
 					menuSanPhamKH.style.display = 'block';
 					menuLenDonKH.style.display = 'block';
+					menuKhachHang.style.display = 'block';
 				}
 			} else {
 				// Not Logged In
