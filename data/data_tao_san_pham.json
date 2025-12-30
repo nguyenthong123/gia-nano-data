@@ -1,0 +1,47 @@
+[
+  {
+    "id _san_pham": "S001",
+    "image_san_pham": "https://lh3.googleusercontent.com/d/1k9H-Ne0jHSnM_e40kVmBHhNeHLbKjsnI",
+    "ten_nghanh_hang": "sắt thép",
+    "ten_san_pham": "nháp 12",
+    "gia_san_pham": "130000",
+    "ten_dang_nhap": "bathong2410@gmail.com",
+    "trang_thai_xoa_sp": "DELETED"
+  },
+  {
+    "id _san_pham": "S002",
+    "image_san_pham": "https://lh3.googleusercontent.com/d/1oHHh1t4HFOowttNCPWIhMIlrD2OcUrzi",
+    "ten_nghanh_hang": "nháp 2",
+    "ten_san_pham": "nháp 2",
+    "gia_san_pham": "145000",
+    "ten_dang_nhap": "bathong2410@gmail.com",
+    "trang_thai_xoa_sp": "ACTIVE"
+  },
+  {
+    "id _san_pham": "S003",
+    "image_san_pham": "https://lh3.googleusercontent.com/d/1rJlfg1DcONLlncphZAyGM_G90QlPmH2b",
+    "ten_nghanh_hang": "nháp 2",
+    "ten_san_pham": "nháp 3",
+    "gia_san_pham": "124678",
+    "ten_dang_nhap": "bathong2410@gmail.com",
+    "trang_thai_xoa_sp": "ACTIVE"
+  },
+  {
+    "id _san_pham": "S004",
+    "image_san_pham": "https://lh3.googleusercontent.com/d/1AauHMFFOFlaF-X1Wjtb5U2-TN2N33CvP",
+    "ten_nghanh_hang": "Tấm Pima giá thầu thợ",
+    "ten_san_pham": "Tấm  nano PIMA 26",
+    "gia_san_pham": "100768",
+    "ten_dang_nhap": "bathong2410@gmail.com",
+    "trang_thai_xoa_sp": "ACTIVE"
+  },
+  {
+    "id _san_pham": "S005",
+    "image_san_pham": "https://lh3.googleusercontent.com/d/1zJscrI1qmS4pXemf1GbZpf13YPrEL2Kd",
+    "ten_nghanh_hang": "nháp 2",
+    "ten_san_pham": "nháp 4",
+    "gia_san_pham": "40000",
+    "ten_dang_nhap": "bathong2410@gmail.com",
+    "trang_thai_xoa_sp": "ACTIVE"
+  }
+]
