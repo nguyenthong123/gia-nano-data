@@ -83,12 +83,13 @@
   },
   {
     "id_san_pham": "S005",
-    "image_san_pham": "https://lh3.googleusercontent.com/d/1Zk21uAxe5RcDDk-YdewdSWVPDWEaZATk",
+    "image_san_pham": "https://lh3.googleusercontent.com/d/1zJscrI1qmS4pXemf1GbZpf13YPrEL2Kd",
     "ten_nghanh_hang": "nháp 2",
-    "ten_san_pham": "tấm  duraflex 8mm x 1m22 x2m44",
-    "gia_san_pham": "276114",
-    "ten_dang_nhap": "bathong2410@gmail.com",
-    "trang_thai_xoa_sp": "ACTIVE"
+    "ten_san_pham": "nháp 4",
+    "gia_san_pham": "40000",
+    "quy_cach": "400x3000",
+    "dong_kien": "60",
+    "ten_dang_nhap": "bathong2410@gmail.com"
   },
   {
     "id_san_pham": "S009",
