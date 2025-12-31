@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Nhập Kho - Nano Data Premium</title>
+	<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+		rel="stylesheet">
+	<style>
+		:root {
+			--primary: #FFB347;
+			--primary-dark: #f39c12;
+			--bg-dark: #0f0f0f;
+			--card-bg: #1a1a1a;
+			--glass: rgba(255, 255, 255, 0.05);
+			--glass-border: rgba(255, 255, 255, 0.1);
+			--text-main: #ffffff;
+			--text-gray: #a0a0a0;
+			--success: #2ecc71;
+			--error: #e74c3c;
+		}
+
+		* {
+			box-sizing: border-box;
+			margin: 0;
+			padding: 0;
+			-webkit-tap-highlight-color: transparent;
+		}
+
+		body {
+			background: var(--bg-dark);
+			color: var(--text-main);
+			font-family: 'Plus Jakarta Sans', sans-serif;
+			min-height: 100vh;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			padding: 20px;
+		}
+
+		.container {
+			width: 100%;
+			max-width: 500px;
+			animation: fadeIn 0.6s ease-out;
+		}
+
+		@keyframes fadeIn {
+			from {
+				opacity: 0;
+				transform: translateY(20px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		.header {
+			text-align: center;
+			margin-bottom: 30px;
+		}
+
+		.header h1 {
+			font-size: 2rem;
+			font-weight: 800;
+			background: linear-gradient(45deg, #fff, var(--primary));
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			margin-bottom: 10px;
+		}
+
+		.card {
+			background: var(--card-bg);
+			border: 1px solid var(--glass-border);
+			padding: 30px;
+			border-radius: 24px;
+			box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+		}
+
+		.form-group {
+			margin-bottom: 20px;
+		}
+
+		.form-group label {
+			display: block;
+			color: var(--text-gray);
+			font-size: 0.85rem;
+			text-transform: uppercase;
+			letter-spacing: 1px;
+			font-weight: 700;
+			margin-bottom: 10px;
+		}
+
+		.form-group select,
+		.form-group input {
+			width: 100%;
+			background: #222;
+			border: 1px solid var(--glass-border);
+			padding: 14px 18px;
+			border-radius: 14px;
+			color: white;
+			font-size: 1rem;
+			outline: none;
+			transition: 0.3s;
+		}
+
+		.form-group select:focus,
+		.form-group input:focus {
+			border-color: var(--primary);
+			box-shadow: 0 0 15px rgba(255, 179, 71, 0.1);
+		}
+
+		.form-group input:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+			background: #111;
+		}
+
+		.btn-submit {
+			width: 100%;
+			padding: 16px;
+			background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+			color: #000;
+			border: none;
+			border-radius: 16px;
+			font-size: 1rem;
+			font-weight: 800;
+			cursor: pointer;
+			transition: 0.3s;
+			margin-top: 10px;
+		}
+
+		.btn-submit:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 10px 20px rgba(255, 179, 71, 0.2);
+		}
+
+		.btn-submit:disabled {
+			opacity: 0.5;
+			cursor: wait;
+		}
+
+		.nav-links {
+			text-align: center;
+			margin-top: 25px;
+		}
+
+		.nav-links a {
+			color: var(--text-gray);
+			text-decoration: none;
+			font-size: 0.9rem;
+			font-weight: 600;
+			transition: 0.2s;
+		}
+
+		.nav-links a:hover {
+			color: var(--primary);
+		}
+
+		#statusMsg {
+			text-align: center;
+			margin-top: 15px;
+			font-size: 0.9rem;
+			font-weight: 600;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="container">
+		<div class="header">
+			<h1>Nhập Kho Hàng</h1>
+			<p style="color: var(--text-gray);">Quản lý nguồn hàng vào Nano Data</p>
+		</div>
+
+		<div class="card">
+			<div class="form-group">
+				<label>Mã Đơn Nhập</label>
+				<input type="text" id="idDonNhap" disabled>
+			</div>
+
+			<div class="form-group">
+				<label>Tên Sản Phẩm</label>
+				<select id="selectProduct" onchange="updateProductId()">
+					<option value="">-- Chọn sản phẩm --</option>
+				</select>
+			</div>
+
+			<div class="form-group">
+				<label>ID Sản Phẩm</label>
+				<input type="text" id="idSanPham" disabled placeholder="Tự động...">
+			</div>
+
+			<div class="form-group">
+				<label>Số Lượng Nhập</label>
+				<input type="number" id="soLuongNhap" placeholder="0.00" step="0.01">
+			</div>
+
+			<button class="btn-submit" id="btnSubmit" onclick="submitNhapKho()">XÁC NHẬN NHẬP KHO</button>
+			<div id="statusMsg"></div>
+		</div>
+
+		<div class="nav-links">
+			<a href="ton-kho.html">← Xem Báo Cáo Tồn Kho</a>
+		</div>
+	</div>
+
+	<script>
+		const TONKHO_URL = 'https://script.google.com/macros/s/AKfycbzz-PASTE_YOUR_NEW_TONKHO_URL_HERE/exec'; // Cần thay URL sau khi deploy
+		const PRODUCT_URL = 'https://script.google.com/macros/s/AKfycbzM8tzbdJJvXE0r6NcP8cJGO2RHsgYUR6Jy73U4NDLkSQRjT3fus_i4lugwVQZIKI8zhw/exec';
+
+		let allProducts = [];
+		let userData = JSON.parse(localStorage.getItem('userLoggedIn') || '{}');
+
+		document.addEventListener('DOMContentLoaded', () => {
+			if (!userData.email) window.location.href = 'index.html';
+			generateIdDon();
+			loadProducts();
+		});
+
+		function generateIdDon() {
+			const char = "N"; // N là Nhập
+			const num = Math.floor(100 + Math.random() * 900);
+			document.getElementById('idDonNhap').value = char + num;
+		}
+
+		async function loadProducts() {
+			try {
+				const res = await fetch(`${PRODUCT_URL}?action=read&username=${encodeURIComponent(userData.email)}`);
+				const result = await res.json();
+				if (result.success) {
+					allProducts = result.data;
+					const select = document.getElementById('selectProduct');
+					allProducts.forEach(p => {
+						const opt = document.createElement('option');
+						opt.value = p.ten_san_pham || p.ten_sp;
+						opt.innerText = p.ten_san_pham || p.ten_sp;
+						select.appendChild(opt);
+					});
+				}
+			} catch (e) { console.error("Lỗi tải sản phẩm", e); }
+		}
+
+		function updateProductId() {
+			const name = document.getElementById('selectProduct').value;
+			const product = allProducts.find(p => (p.ten_san_pham || p.ten_sp) === name);
+			document.getElementById('idSanPham').value = product ? (product.id_san_pham || product.id) : '';
+		}
+
+		async function submitNhapKho() {
+			const idDon = document.getElementById('idDonNhap').value;
+			const name = document.getElementById('selectProduct').value;
+			const idSP = document.getElementById('idSanPham').value;
+			const qty = parseFloat(document.getElementById('soLuongNhap').value);
+
+			if (!name || isNaN(qty) || qty <= 0) {
+				alert("Vui lòng chọn sản phẩm và nhập số lượng hợp lệ!");
+				return;
+			}
+
+			const btn = document.getElementById('btnSubmit');
+			const msg = document.getElementById('statusMsg');
+			btn.disabled = true;
+			btn.innerText = "ĐANG XỬ LÝ...";
+			msg.innerText = "";
+
+			const payload = {
+				action: 'create_entry',
+				data: {
+					date: new Date().toLocaleString('vi-VN'),
+					id_don_nhap_xuat: idDon,
+					id_san_pham: idSP,
+					ten_san_pham: name,
+					so_luong_nhap: qty,
+					so_luong_xuat: 0,
+					mail_dang_nhap: userData.email
+				}
+			};
+
+			try {
+				// Tạm thời nếu chưa có URL thì báo lỗi để người dùng gắn vào
+				if (TONKHO_URL.includes('PASTE_YOUR_NEW_TONKHO_URL_HERE')) {
+					alert("Bạn cần deploy Script Tồn Kho và dán URL vào biến TONKHO_URL trong file nhap-kho.html nhé!");
+					btn.disabled = false;
+					btn.innerText = "XÁC NHẬN NHẬP KHO";
+					return;
+				}
+
+				const res = await fetch(TONKHO_URL, {
+					method: 'POST',
+					body: JSON.stringify(payload)
+				});
+				const result = await res.json();
+				if (result.success) {
+					msg.style.color = "var(--success)";
+					msg.innerText = "NHẬP KHO THÀNH CÔNG!";
+					setTimeout(() => window.location.reload(), 2000);
+				} else {
+					msg.style.color = "var(--error)";
+					msg.innerText = "LỖI: " + result.message;
+				}
+			} catch (e) {
+				msg.style.color = "var(--error)";
+				msg.innerText = "LỖI KẾT NỐI SERVER";
+			} finally {
+				btn.disabled = false;
+				btn.innerText = "XÁC NHẬN NHẬP KHO";
+			}
+		}
+	</script>
+</body>
+
+</html>

@@ -6,6 +6,7 @@
 const SPREADSHEET_ID = '1CmH89TjGd5OeSsJ7ioWp4oWyG-ig9fGJq9RFpLhW_5Y';
 const LEGACY_ORDER_FILE_ID = '1Bjv-cE-VRxGmrbIX4GAmST2elbqatPPJ';
 const LEGACY_DETAIL_FILE_ID = '1dQQJKXz9qHwuxaSS9uW2b2iqkO_nmd6K';
+const TONKHO_URL = 'https://script.google.com/macros/s/AKfycbwugXwFGv-z0h8ZU2tTAVyZ7tKt34idUqu6DlxdOV_nXGJf3ES4YGuSn7t0RMa9KJZI/exec';
 
 function doGet(e) {
   try {
@@ -73,6 +74,13 @@ function createOrder(payload) {
       ]);
     });
     
+    // ĐỒNG BỘ TỒN KHO: Ghi nhận xuất kho nếu đơn ở trạng thái xác nhận
+    if (order.trang_thai_don_hang !== 'Đơn nháp' && order.trang_thai_don_hang !== 'Đã hủy') {
+      try {
+        recordStockOut(order.id_don_hang, items, order.nguoi_len_don, order.ngay_len_don);
+      } catch (e) {}
+    }
+
     return jsonResponse({success: true, orderId: order.id_don_hang});
   } catch (err) {
     return jsonResponse({success: false, message: err.toString()});
@@ -166,6 +174,15 @@ function updateOrder(payload) {
       });
     }
 
+    // ĐỒNG BỘ TỒN KHO: Cập nhật xuất kho
+    try {
+      if (updateHeader.trang_thai_don_hang === 'Đã hủy' || updateHeader.trang_thai_don_hang === 'Đơn nháp') {
+        recordStockRemoval(orderId);
+      } else {
+        recordStockOut(orderId, updateItems, '', ''); // Sẽ ghi đè hoặc tạo mới trong sheet ton_kho
+      }
+    } catch (e) {}
+
     return jsonResponse({success: true, message: 'Updated successfully'});
   } catch (err) {
     return jsonResponse({success: false, message: err.toString()});
@@ -230,6 +247,11 @@ function deleteOrder(orderId) {
           foundItemsInSheet = true;
        }
     }
+    
+    // ĐỒNG BỘ TỒN KHO: Xóa các bản ghi xuất kho liên quan
+    try {
+      recordStockRemoval(orderId);
+    } catch(e) {}
 
     // Nếu chi tiết đơn cũ chưa có trên sheet, lấy từ JSON ghi vào đầy đủ
     if (!foundItemsInSheet && LEGACY_DETAIL_FILE_ID) {
@@ -367,4 +389,52 @@ function getOrderDetail(orderId) {
 
 function jsonResponse(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * Các hàm hỗ trợ đồng bộ Tồn Kho
+ */
+function recordStockOut(orderId, items, mail, date) {
+  // Vì GAS không thể fetch chính mình một cách dễ dàng qua URL nếu chưa deploy, 
+  // ta nên mở trực tiếp Spreadsheet Tồn kho để ghi
+  const TONKHO_SS_ID = '14fUCqVn-5sZ1xwPY0D5dXs-guz7phl5R9gguSajMnSs';
+  const ss = SpreadsheetApp.openById(TONKHO_SS_ID);
+  const sheet = ss.getSheetByName('ton_kho') || ss.insertSheet('ton_kho');
+  
+  // Xóa sạch các bản ghi xuất cũ của đơn này để ghi lại (tránh trùng khi update đơn)
+  const data = sheet.getDataRange().getValues();
+  for (let i = data.length - 1; i >= 1; i--) {
+    if (String(data[i][1]).trim() === String(orderId).trim() && (parseFloat(data[i][5]) > 0)) {
+      sheet.deleteRow(i + 1);
+    }
+  }
+  
+  // Ghi mới
+  items.forEach(item => {
+    sheet.appendRow([
+      date || new Date().toLocaleString('vi-VN'),
+      orderId,
+      item.id_san_pham,
+      item.ten_san_pham,
+      0, // Nhập
+      item.so_luong || 0, // Xuất
+      0, // Còn lại (tính sau)
+      mail || '',
+      'ACTIVE'
+    ]);
+  });
+}
+
+function recordStockRemoval(orderId) {
+  const TONKHO_SS_ID = '14fUCqVn-5sZ1xwPY0D5dXs-guz7phl5R9gguSajMnSs';
+  const ss = SpreadsheetApp.openById(TONKHO_SS_ID);
+  const sheet = ss.getSheetByName('ton_kho');
+  if (!sheet) return;
+  
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][1]).trim() === String(orderId).trim()) {
+      sheet.getRange(i + 1, 9).setValue('DELETED');
+    }
+  }
 }
