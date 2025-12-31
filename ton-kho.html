@@ -261,12 +261,16 @@
 
 		<div class="stats-grid" id="statsGrid">
 			<div class="stat-card">
-				<label>Tổng ID Sản Phẩm</label>
+				<label>Tổng mã sản phẩm</label>
 				<span class="value" id="valTotalItems">0</span>
 			</div>
 			<div class="stat-card">
-				<label>Sản phẩm sắp hết</label>
-				<span class="value" id="valLowStock" style="color: var(--error);">0</span>
+				<label>Đang có hàng</label>
+				<span class="value" id="valInStock" style="color: var(--success);">0</span>
+			</div>
+			<div class="stat-card">
+				<label>Sắp hết hàng ( < 10 )</label>
+						<span class="value" id="valLowStock" style="color: var(--error);">0</span>
 			</div>
 		</div>
 
@@ -323,7 +327,7 @@
 		async function fetchInventory() {
 			try {
 				if (TONKHO_URL.includes('PASTE_YOUR_NEW_TONKHO_URL_HERE')) {
-					document.getElementById('inventoryBody').innerHTML = '<tr><td colspan="6" class="loader">Hệ thống Tồn Kho chưa được kích hoạt. Hãy liên hệ kỷ thuật!</td></tr>';
+					document.getElementById('inventoryBody').innerHTML = '<tr><td colspan="7" class="loader">Hệ thống Tồn Kho chưa được kích hoạt. Hãy liên hệ kỷ thuật!</td></tr>';
 					return;
 				}
 
@@ -333,7 +337,7 @@
 					renderTable(result.data, result.summary);
 				}
 			} catch (e) {
-				document.getElementById('inventoryBody').innerHTML = '<tr><td colspan="6" class="loader" style="color:var(--error)">LỖI KẾT NỐI SERVER</td></tr>';
+				document.getElementById('inventoryBody').innerHTML = '<tr><td colspan="7" class="loader" style="color:var(--error)">LỖI KẾT NỐI SERVER</td></tr>';
 			}
 		}
 
@@ -378,9 +382,13 @@
 			}).join('');
 
 			// Cập nhật stats
-			const productIds = Object.keys(summary);
-			document.getElementById('valTotalItems').innerText = productIds.length;
-			const lowStock = productIds.filter(id => summary[id] < 5).length;
+			const productIdsWithHistory = Object.keys(summary);
+			document.getElementById('valTotalItems').innerText = productIdsWithHistory.length;
+
+			const inStock = productIdsWithHistory.filter(id => summary[id] > 0).length;
+			document.getElementById('valInStock').innerText = inStock;
+
+			const lowStock = productIdsWithHistory.filter(id => summary[id] > 0 && summary[id] < 10).length;
 			document.getElementById('valLowStock').innerText = lowStock;
 		}
 
