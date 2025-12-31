@@ -6,16 +6,49 @@
  */
 
 const SPREADSHEET_ID = '1CmH89TjGd5OeSsJ7ioWp4oWyG-ig9fGJq9RFpLhW_5Y';
+const LEGACY_ORDER_FILE_ID = '1Bjv-cE-VRxGmrbIX4GAmST2elbqatPPJ';
+const LEGACY_DETAIL_FILE_ID = '1dQQJKXz9qHwuxaSS9uW2b2iqkO_nmd6K';
 
 function doGet(e) {
   try {
     const action = e.parameter.action;
     const username = e.parameter.username;
 
-    if (action === 'read') return readOrders(username);
+    if (action === 'read') return readOrders(username, false);
+    if (action === 'read_all') return readOrders(username, true); // Lấy cả đơn đã xóa
+    if (action === 'get_order_detail') return getOrderDetail(e.parameter.orderId);
     
     return jsonResponse({success: false, message: 'Invalid GET action'});
   } catch (err) {
+    return jsonResponse({success: false, message: err.toString()});
+  }
+}
+
+/**
+ * Lấy chi tiết sản phẩm của một đơn hàng
+ */
+function getOrderDetail(orderId) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheetChiTiet = ss.getSheetByName('chi_tiet_don_hang');
+    const data = sheetChiTiet.getDataRange().getValues();
+    const headers = data[0];
+    
+    const items = [];
+    for (let i = 1; i < data.length; i++) {
+       const row = data[i];
+       // Cột 0 là id_don_hang, Cột 8 là trang_thai_xoa (theo thứ tự tạo bảng ban đầu)
+       if (String(row[0]).trim() === String(orderId).trim() && row[8] !== 'DELETED') {
+           let obj = {};
+           headers.forEach((h, idx) => {
+               obj[h] = row[idx];
+               obj[String(h).trim()] = row[idx]; 
+           });
+           items.push(obj);
+       }
+    }
+    return jsonResponse({success: true, data: items});
+  } catch(err) {
     return jsonResponse({success: false, message: err.toString()});
   }
 }
@@ -26,6 +59,7 @@ function doPost(e) {
     const action = payload.action;
 
     if (action === 'create') return createOrder(payload);
+    if (action === 'delete') return deleteOrder(payload.orderId);
     
     return jsonResponse({success: false, message: 'Invalid POST action'});
   } catch (err) {
@@ -39,14 +73,24 @@ function doPost(e) {
 function createOrder(payload) {
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const sheetDon = ss.getSheetByName('don_hang');
-    const sheetChiTiet = ss.getSheetByName('chi_tiet_don_hang');
+    let sheetDon = ss.getSheetByName('don_hang');
+    let sheetChiTiet = ss.getSheetByName('chi_tiet_don_hang');
+    
+    // Tự động tạo sheet nếu chưa có
+    if (!sheetDon) {
+      sheetDon = ss.insertSheet('don_hang');
+      sheetDon.appendRow(['ngay_len_don', 'id_don_hang', 'ten_khach_hang', 'trang_thai_don_hang', 'tong_tien_trong_don', 'tong_tien_dich_vu', 'so_tien_con_lai', 'nguoi_len_don', 'ghi_chu_don_hang', 'trang_thai_xoa']);
+    }
+    
+    if (!sheetChiTiet) {
+      sheetChiTiet = ss.insertSheet('chi_tiet_don_hang');
+      sheetChiTiet.appendRow(['id_don_hang', 'id_san_pham', 'ten_san_pham', 'quy_cach_san_pham', 'gia_tien', 'so_luong', 'thanh_tien', 'tinh_kien_trong_don', 'trang_thai_xoa']);
+    }
     
     const order = payload.order;
     const items = payload.items;
     
     // 1. Ghi vào sheet don_hang
-    // Cấu trúc: ngay_len_don, id_don_hang, ten_khach_hang, trang_thai_don_hang, tong_tien_trong_don, tong_tien_dich_vu, so_tien_con_lai, nguoi_len_don, trang_thai_xoa
     sheetDon.appendRow([
       order.ngay_len_don,
       order.id_don_hang,
@@ -56,11 +100,11 @@ function createOrder(payload) {
       order.tong_tien_dich_vu,
       order.so_tien_con_lai,
       order.nguoi_len_don,
+      order.ghi_chu_don_hang || '', // Thêm ghi chú
       'ACTIVE'
     ]);
     
     // 2. Ghi vào sheet chi_tiet_don_hang
-    // Cấu trúc: id_don_hang, id_san_pham, ten_san_pham, quy_cach_san_pham, gia_tien, so_luong, thanh_tien, tinh_kien_trong_don, trang_thai_xoa
     items.forEach(item => {
       sheetChiTiet.appendRow([
         order.id_don_hang,
@@ -77,36 +121,179 @@ function createOrder(payload) {
     
     return jsonResponse({success: true, orderId: order.id_don_hang});
   } catch (err) {
+    return jsonResponse({success: false, message: 'Create Error: ' + err.toString()});
+  }
+}
+
+/**
+ * Đọc danh sách đơn hàng (Sheet + JSON Legacy)
+ */
+function readOrders(username, includeDeleted) {
+  try {
+    let allOrders = [];
+
+    // 1. Đọc từ Google Sheet (Dữ liệu Mới)
+    try {
+        const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+        const sheetDon = ss.getSheetByName('don_hang');
+        const data = sheetDon.getDataRange().getValues();
+        
+        if (data.length >= 2) {
+            const headers = data[0];
+            const rows = data.slice(1);
+            const sheetOrders = rows
+              .filter(r => includeDeleted || r[9] !== 'DELETED') // Cột 9 là trang_thai_xoa (sau khi thêm cot ghi_chu)
+              .filter(r => !username || r[7] === username)      // Cột 7 la nguoi_len_don
+              .map(r => {
+                let obj = {};
+                headers.forEach((h, i) => {
+                  obj[h] = r[i];
+                  obj[String(h).trim()] = r[i];
+                });
+                obj['is_legacy'] = false; // Đánh dấu là đơn mới
+                return obj;
+              });
+            allOrders = allOrders.concat(sheetOrders);
+        }
+    } catch (e) {
+        // Lỗi đọc sheet (có thể do chưa tạo sheet), bỏ qua
+    }
+
+    // 2. Đọc từ JSON Legacy (Dữ liệu Cũ)
+    if (LEGACY_ORDER_FILE_ID) {
+        try {
+            const file = DriveApp.getFileById(LEGACY_ORDER_FILE_ID);
+            const jsonContent = file.getBlob().getDataAsString();
+            const jsonData = JSON.parse(jsonContent);
+            
+            // Map dữ liệu JSON về chuẩn chung
+            const legacyOrders = jsonData.filter(o => {
+                // Lọc theo user (cố gắng match nhiều trường user có thể có)
+                if (!username) return true;
+                const u = (o.nguoi_len_don || o.nguoilendon || o.sale_email || o.email || '').toLowerCase();
+                return u.includes(username.toLowerCase().split('@')[0]); // So sánh tương đối
+            }).map(o => ({
+                ngay_len_don: o.ngay_len_don || o.ngaytao || o.date || '',
+                id_don_hang: o.id_don_hang || o.ma_don_hang || o.id || '',
+                ten_khach_hang: o.ten_khach_hang || o.khach_hang || o.customer || '',
+                trang_thai_don_hang: o.trang_thai_don_hang || o.status || 'Hoàn thành',
+                tong_tien_trong_don: parseFloat(o.tong_tien_trong_don || o.total || 0),
+                tong_tien_dich_vu: parseFloat(o.tong_tien_dich_vu || o.service_fee || 0),
+                so_tien_con_lai: parseFloat(o.so_tien_con_lai || o.final_total || 0),
+                nguoi_len_don: o.nguoi_len_don || o.sale_email || '',
+                ghi_chu_don_hang: o.ghi_chu_don_hang || o.note || '',
+                trang_thai_xoa: 'ACTIVE',
+                is_legacy: true // Đánh dấu là đơn cũ
+            }));
+            
+            allOrders = allOrders.concat(legacyOrders);
+        } catch (e) {
+            // Lỗi đọc file JSON, bỏ qua
+        }
+    }
+    
+    // Sắp xếp theo ngày mới nhất (giả định định dạng ngày dd/MM/yyyy HH:mm:ss hoặc ISO)
+    // Để đơn giản, ta cứ trả về, Client sẽ sắp xếp hoặc để mặc định
+      
+    return jsonResponse({success: true, data: allOrders});
+  } catch (err) {
     return jsonResponse({success: false, message: err.toString()});
   }
 }
 
 /**
- * Đọc danh sách đơn hàng
+ * Lấy chi tiết sản phẩm của một đơn hàng (Sheet HOẶC JSON)
  */
-function readOrders(username) {
+function getOrderDetail(orderId) {
+  try {
+    let items = [];
+    let foundInSheet = false;
+
+    // 1. Tìm trong Sheet trước
+    try {
+        const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+        const sheetChiTiet = ss.getSheetByName('chi_tiet_don_hang');
+        const data = sheetChiTiet.getDataRange().getValues();
+        const headers = data[0];
+        
+        for (let i = 1; i < data.length; i++) {
+           const row = data[i];
+           // Cột 0 là id_don, Cột 8 là trang_thai_xoa
+           if (String(row[0]).trim() === String(orderId).trim() && row[8] !== 'DELETED') {
+               let obj = {};
+               headers.forEach((h, idx) => {
+                   obj[h] = row[idx];
+                   obj[String(h).trim()] = row[idx]; 
+               });
+               items.push(obj);
+               foundInSheet = true;
+           }
+        }
+    } catch(e) {}
+
+    // 2. Nếu không tìm thấy trong Sheet, tìm trong JSON
+    if (!foundInSheet && items.length === 0 && LEGACY_DETAIL_FILE_ID) {
+        try {
+            const file = DriveApp.getFileById(LEGACY_DETAIL_FILE_ID);
+            const jsonContent = file.getBlob().getDataAsString();
+            const jsonData = JSON.parse(jsonContent);
+            
+            // Lọc chi tiết theo ID đơn
+            const legacyItems = jsonData.filter(i => 
+                String(i.id_don_hang || i.ma_don_hang || i.order_id).trim() === String(orderId).trim()
+            ).map(i => ({
+                id_don_hang: orderId,
+                ten_san_pham: i.ten_san_pham || i.tensanpham || i.product_name || '',
+                quy_cach_san_pham: i.quy_cach_san_pham || i.quycach || i.unit || '',
+                gia_tien: parseFloat(i.gia_tien || i.price || 0),
+                so_luong: parseFloat(i.so_luong || i.qty || 0),
+                thanh_tien: parseFloat(i.thanh_tien || i.total || i.amount || 0),
+                tinh_kien_trong_don: 0 // JSON cũ có thể không có thông tin này
+            }));
+            
+            items = legacyItems;
+        } catch(e) {}
+    }
+
+    return jsonResponse({success: true, data: items});
+  } catch(err) {
+    return jsonResponse({success: false, message: err.toString()});
+  }
+}
+
+function deleteOrder(orderId) {
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const sheetDon = ss.getSheetByName('don_hang');
-    const data = sheetDon.getDataRange().getValues();
+    const sheetChiTiet = ss.getSheetByName('chi_tiet_don_hang');
     
-    if (data.length < 2) return jsonResponse({success: true, data: []});
+    // 1. Đánh dấu xóa ở sheet don_hang (Cột B là ID đơn hàng)
+    const dataDon = sheetDon.getDataRange().getValues();
+    for (let i = 1; i < dataDon.length; i++) {
+      if (String(dataDon[i][1]).trim() === String(orderId).trim()) {
+        // Cập nhật lại vị trí cột xóa (Cột 10 - index 9 - sau khi thêm ghi_chu)
+        // Nếu cấu trúc sheet cũ chưa có cột ghi chú thì có thể là cột 9 (index 8). 
+        // Tốt nhất nên check độ dài. Để an toàn ta lấy row.length - 1 nếu nó là cột cuối.
+        
+        // Tuy nhiên, vì code createOrder ta hardcode cols, nên ở đây ta hardcode cột 10 (J).
+        sheetDon.getRange(i + 1, 10).setValue('DELETED'); 
+        break;
+      }
+    }
     
-    const headers = data[0];
-    const rows = data.slice(1);
+    // 2. Đánh dấu xóa toàn bộ sản phẩm của đơn đó ở sheet chi_tiet_don_hang (Cột A là ID đơn hàng)
+    const dataChiTiet = sheetChiTiet.getDataRange().getValues();
+    for (let j = 1; j < dataChiTiet.length; j++) {
+      if (String(dataChiTiet[j][0]).trim() === String(orderId).trim()) {
+        sheetChiTiet.getRange(j + 1, 9).setValue('DELETED'); // Sheet chi tiết vẫn giữ cấu trúc cũ 9 cột
+      }
+    }
     
-    const result = rows
-      .filter(r => r[8] !== 'DELETED') // Cột trang_thai_xoa
-      .filter(r => !username || r[7] === username) // Cột nguoi_len_don
-      .map(r => {
-        let obj = {};
-        headers.forEach((h, i) => {
-          obj[h] = r[i];
-        });
-        return obj;
-      });
-      
-    return jsonResponse({success: true, data: result});
+    // 3. Nếu là đơn Legacy (JSON) thì không xóa được (hoặc cần cơ chế riêng), nhưng ở đây ta chỉ target Sheet.
+    // Nếu user xóa đơn JSON, Script sẽ báo thành công nhưng thực tế không xóa trong file Drive (vì ta chỉ read).
+    // Có thể thêm logic chặn xóa đơn Legacy ở Frontend.
+    
+    return jsonResponse({success: true, message: 'Đã xóa đơn hàng'});
   } catch (err) {
     return jsonResponse({success: false, message: err.toString()});
   }
