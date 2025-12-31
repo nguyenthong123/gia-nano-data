@@ -315,19 +315,49 @@
 
 		async function loadProducts() {
 			try {
-				const res = await fetch(`${PRODUCT_URL}?action=read&username=${encodeURIComponent(userData.email)}`);
+				const res = await fetch(`${PRODUCT_URL}?action=read&username=${encodeURIComponent(userData.email)}&t=${new Date().getTime()}`);
 				const result = await res.json();
 				if (result.success) {
-					allProducts = result.data;
+					const sheetData = result.data || [];
+					let legacyData = [];
+
+					if (result.legacyData) {
+						legacyData = result.legacyData.map(item => {
+							let normalizedItem = {};
+							for (let key in item) {
+								let normKey = key.replace(/\s+/g, ''); // Xóa mọi khoảng trắng để chuẩn hóa
+								normalizedItem[normKey] = item[key];
+							}
+							return normalizedItem;
+						}).filter(item => {
+							const email = item.tendangnhap || item.ten_dang_nhap;
+							return email === userData.email;
+						});
+					}
+
+					// Hợp nhất: Ưu tiên Sheet
+					const sheetIds = new Set(sheetData.map(p => String(p.id_san_pham || p.idsanpham || '').trim().toUpperCase()));
+					const filteredLegacy = legacyData.filter(p => !sheetIds.has(String(p.id_san_pham || p.idsanpham || '').trim().toUpperCase()));
+
+					// Lọc sản phẩm bị xóa
+					allProducts = [...sheetData, ...filteredLegacy].filter(p => {
+						const status = String(p.trang_thai_xoa_sp || p.trangthaixoasp || p.trangthaixoa || p.trang_thai_xoa || '').trim().toUpperCase();
+						return status !== 'DELETED';
+					});
+
 					const select = document.getElementById('selectProduct');
 					allProducts.forEach(p => {
+						const name = p.ten_san_pham || p.ten_sp || p.tensanpham;
+						if (!name) return;
 						const opt = document.createElement('option');
-						opt.value = p.ten_san_pham || p.ten_sp;
-						opt.innerText = p.ten_san_pham || p.ten_sp;
+						opt.value = name;
+						opt.innerText = name;
 						select.appendChild(opt);
 					});
 				}
-			} catch (e) { console.error("Lỗi tải sản phẩm", e); }
+			} catch (e) {
+				console.error("Lỗi tải sản phẩm", e);
+			}
 		}
 
 		function updateProductId() {
