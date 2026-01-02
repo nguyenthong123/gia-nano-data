@@ -3790,5 +3790,17 @@
     "name": "Nhôm kính thuận phát",
     "phan_loai": "thợ nhôm kính",
     "mail": ""
+  },
+  {
+    "id_name": "1f11774f",
+    "name": "Nhà máy tôn kim sơn 2",
+    "phan_loai": "nhà máy tôn",
+    "mail": ""
+  },
+  {
+    "id_name": "96cbbf5a",
+    "name": "Nhôm kính minh tuấn",
+    "phan_loai": "thợ nhôm kính",
+    "mail": ""
   }
 ]
