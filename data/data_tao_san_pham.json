@@ -38,5 +38,15 @@
     "quy_cach": "6000",
     "dong_kien": "20",
     "ten_dang_nhap": "bathong2410@gmail.com"
+  },
+  {
+    "id_san_pham": "S013",
+    "image_san_pham": "https://lh3.googleusercontent.com/d/1uJW4pvAVsVp5CPL7x_4SLLDYomeDzb6r",
+    "ten_nghanh_hang": "giá công trình đồng nai",
+    "ten_san_pham": "Tấm duraflex 6mm",
+    "gia_san_pham": "183502",
+    "quy_cach": "1m22x2m44",
+    "dong_kien": "100",
+    "ten_dang_nhap": "bathong2410@gmail.com"
   }
 ]
