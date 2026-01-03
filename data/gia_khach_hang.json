@@ -3802,5 +3802,23 @@
     "name": "Nhôm kính minh tuấn",
     "phan_loai": "thợ nhôm kính",
     "mail": ""
+  },
+  {
+    "id_name": "686c79a0",
+    "name": "Đá hoa cương đại gia phúc",
+    "phan_loai": "Kho đá hoa cương",
+    "mail": ""
+  },
+  {
+    "id_name": "e6a5f317",
+    "name": "Nhôm kính đức toàn kho 2",
+    "phan_loai": "Kho phân phối nhôm",
+    "mail": ""
+  },
+  {
+    "id_name": "11e19f38",
+    "name": "Kim khí lưu gia bảo",
+    "phan_loai": "Cửa hàng kim khí",
+    "mail": ""
   }
 ]
