@@ -78,5 +78,135 @@
     "quy_cach": "3000",
     "dong_kien": "",
     "ten_dang_nhap": "bathong2410@gmail.com"
+  },
+  {
+    "id_san_pham": "S017",
+    "image_san_pham": "",
+    "ten_nghanh_hang": "tấm nano sơn",
+    "ten_san_pham": "Nẹp len Chân Tường 10",
+    "gia_san_pham": "63000",
+    "quy_cach": "100x3000",
+    "dong_kien": "",
+    "ten_dang_nhap": "bathong2410@gmail.com"
+  },
+  {
+    "id_san_pham": "S018",
+    "image_san_pham": "",
+    "ten_nghanh_hang": "tấm nano sơn",
+    "ten_san_pham": "Phào chỉ cửa 10",
+    "gia_san_pham": "55000",
+    "quy_cach": "70x3000",
+    "dong_kien": "",
+    "ten_dang_nhap": "bathong2410@gmail.com"
+  },
+  {
+    "id_san_pham": "S019",
+    "image_san_pham": "",
+    "ten_nghanh_hang": "tấm nano sơn",
+    "ten_san_pham": "Nẹp V 03",
+    "gia_san_pham": "27000",
+    "quy_cach": "3000",
+    "dong_kien": "",
+    "ten_dang_nhap": "bathong2410@gmail.com"
+  },
+  {
+    "id_san_pham": "S020",
+    "image_san_pham": "",
+    "ten_nghanh_hang": "tấm nano sơn",
+    "ten_san_pham": "Nẹp V 10",
+    "gia_san_pham": "27000",
+    "quy_cach": "3000",
+    "dong_kien": "",
+    "ten_dang_nhap": "bathong2410@gmail.com"
+  },
+  {
+    "id_san_pham": "S021",
+    "image_san_pham": "",
+    "ten_nghanh_hang": "tấm nano sơn",
+    "ten_san_pham": "nẹp kết thúc 10",
+    "gia_san_pham": "27000",
+    "quy_cach": "3000",
+    "dong_kien": "",
+    "ten_dang_nhap": "bathong2410@gmail.com"
+  },
+  {
+    "id_san_pham": "S022",
+    "image_san_pham": "",
+    "ten_nghanh_hang": "tấm nano sơn",
+    "ten_san_pham": "Nẹp Góc Trong 03",
+    "gia_san_pham": "30000",
+    "quy_cach": "3000",
+    "dong_kien": "",
+    "ten_dang_nhap": "bathong2410@gmail.com"
+  },
+  {
+    "id_san_pham": "S023",
+    "image_san_pham": "",
+    "ten_nghanh_hang": "tấm nano sơn",
+    "ten_san_pham": "Nẹp Góc Trong 10",
+    "gia_san_pham": "30000",
+    "quy_cach": "3000",
+    "dong_kien": "",
+    "ten_dang_nhap": "bathong2410@gmail.com"
+  },
+  {
+    "id_san_pham": "S024",
+    "image_san_pham": "",
+    "ten_nghanh_hang": "tấm nano sơn",
+    "ten_san_pham": "keo dán nhựa ",
+    "gia_san_pham": "21000",
+    "quy_cach": "300ml",
+    "dong_kien": "",
+    "ten_dang_nhap": "bathong2410@gmail.com"
+  },
+  {
+    "id_san_pham": "S025",
+    "image_san_pham": "",
+    "ten_nghanh_hang": "tấm nano sơn",
+    "ten_san_pham": "Ke inox (Pass)",
+    "gia_san_pham": "40000",
+    "quy_cach": "bọc 100 con",
+    "dong_kien": "",
+    "ten_dang_nhap": "bathong2410@gmail.com"
+  },
+  {
+    "id_san_pham": "S026",
+    "image_san_pham": "",
+    "ten_nghanh_hang": "tấm nano sơn",
+    "ten_san_pham": "Tấm Nano 17",
+    "gia_san_pham": "83000",
+    "quy_cach": "",
+    "dong_kien": "",
+    "ten_dang_nhap": "bathong2410@gmail.com"
+  },
+  {
+    "id_san_pham": "S027",
+    "image_san_pham": "",
+    "ten_nghanh_hang": "tấm nano sơn",
+    "ten_san_pham": "Nẹp Góc Trong 17",
+    "gia_san_pham": "30000",
+    "quy_cach": "3000",
+    "dong_kien": "",
+    "ten_dang_nhap": "bathong2410@gmail.com"
+  },
+  {
+    "id_san_pham": "S028",
+    "image_san_pham": "",
+    "ten_nghanh_hang": "tấm nano sơn",
+    "ten_san_pham": "Nẹp V 17",
+    "gia_san_pham": "27000",
+    "quy_cach": "3000",
+    "dong_kien": "",
+    "ten_dang_nhap": "bathong2410@gmail.com"
+  },
+  {
+    "id_san_pham": "S029",
+    "image_san_pham": "",
+    "ten_nghanh_hang": "tấm nano sơn",
+    "ten_san_pham": "Lam 4 Sóng Thấp 10",
+    "gia_san_pham": "64000",
+    "quy_cach": "3000",
+    "dong_kien": "",
+    "ten_dang_nhap": "bathong2410@gmail.com"
   }
 ]
