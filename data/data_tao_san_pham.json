@@ -248,5 +248,75 @@
     "quy_cach": "400x3000",
     "dong_kien": "",
     "ten_dang_nhap": "bathong2410@gmail.com"
+  },
+  {
+    "id_san_pham": "S034",
+    "image_san_pham": "",
+    "ten_nghanh_hang": "tấm nano thành",
+    "ten_san_pham": "Phào Cửa  05",
+    "gia_san_pham": "55000",
+    "quy_cach": "3000",
+    "dong_kien": "",
+    "ten_dang_nhap": "bathong2410@gmail.com"
+  },
+  {
+    "id_san_pham": "S035",
+    "image_san_pham": "",
+    "ten_nghanh_hang": "tấm nano thành",
+    "ten_san_pham": "Nẹp Góc Âm 05",
+    "gia_san_pham": "30000",
+    "quy_cach": "3000",
+    "dong_kien": "",
+    "ten_dang_nhap": "bathong2410@gmail.com"
+  },
+  {
+    "id_san_pham": "S036",
+    "image_san_pham": "",
+    "ten_nghanh_hang": "tấm nano thành",
+    "ten_san_pham": "Nẹp V  05",
+    "gia_san_pham": "27000",
+    "quy_cach": "3000",
+    "dong_kien": "",
+    "ten_dang_nhap": "bathong2410@gmail.com"
+  },
+  {
+    "id_san_pham": "S037",
+    "image_san_pham": "",
+    "ten_nghanh_hang": "tấm nano thành",
+    "ten_san_pham": "Nẹp H  05",
+    "gia_san_pham": "27000",
+    "quy_cach": "3000",
+    "dong_kien": "",
+    "ten_dang_nhap": "bathong2410@gmail.com"
+  },
+  {
+    "id_san_pham": "S038",
+    "image_san_pham": "",
+    "ten_nghanh_hang": "tấm nano thành",
+    "ten_san_pham": "nẹp viền thắt lưng 05 (phào chỉ )",
+    "gia_san_pham": "40000",
+    "quy_cach": "3000",
+    "dong_kien": "",
+    "ten_dang_nhap": "bathong2410@gmail.com"
+  },
+  {
+    "id_san_pham": "S039",
+    "image_san_pham": "",
+    "ten_nghanh_hang": "tấm nano thành",
+    "ten_san_pham": "Ke Inox (Pass)",
+    "gia_san_pham": "40000",
+    "quy_cach": "100 con /bọc",
+    "dong_kien": "",
+    "ten_dang_nhap": "bathong2410@gmail.com"
+  },
+  {
+    "id_san_pham": "S040",
+    "image_san_pham": "",
+    "ten_nghanh_hang": "tấm nano thành",
+    "ten_san_pham": "keo nhựa  đa năng",
+    "gia_san_pham": "21000",
+    "quy_cach": "300ml",
+    "dong_kien": "24",
+    "ten_dang_nhap": "bathong2410@gmail.com"
   }
 ]
