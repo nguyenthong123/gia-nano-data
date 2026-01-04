@@ -208,5 +208,15 @@
     "quy_cach": "3000",
     "dong_kien": "",
     "ten_dang_nhap": "bathong2410@gmail.com"
+  },
+  {
+    "id_san_pham": "S030",
+    "image_san_pham": "",
+    "ten_nghanh_hang": "tấm nano thành",
+    "ten_san_pham": "tấm nano 05",
+    "gia_san_pham": "83000",
+    "quy_cach": "400x3000",
+    "dong_kien": "8",
+    "ten_dang_nhap": "bathong2410@gmail.com"
   }
 ]
