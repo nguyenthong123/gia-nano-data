@@ -1,0 +1,201 @@
+const DATA_FOLDER_ID = '1_LT4rzVui2E3BgfcwUSfMsUGQMN9NRTs';
+const ORDER_HEADER_FILE = 'order.json';
+const ORDER_DETAIL_FILE = 'order_chi_tiet.json';
+const PURCHASE_PRODUCT_FILE = 'san_pham_mua_vao.json';
+
+const XOR_SECRET = 'dunvex_secure_key_2025_custom';
+const API_SECRET = 'dv_api_secret_2025_prod_v2';
+const AES_KEY = Utilities.newBlob('dunvex_secure_16').getBytes();
+
+const SafeStore = {
+  read: function(filename) {
+    try {
+      const folder = DriveApp.getFolderById(DATA_FOLDER_ID);
+      const fileIterator = folder.getFilesByName(filename);
+      if (!fileIterator.hasNext()) return [];
+      
+      let bestFile = fileIterator.next();
+      while (fileIterator.hasNext()) {
+        let f = fileIterator.next();
+        if (f.getLastUpdated() > bestFile.getLastUpdated()) bestFile = f;
+      }
+
+      const content = bestFile.getBlob().getDataAsString().trim();
+      if (!content) return [];
+      
+      if (content.startsWith('[')) return JSON.parse(content);
+      return content.split('\n').filter(line => line.trim()).map(line => {
+          try { return JSON.parse(line); } catch(e) { return null; }
+      }).filter(item => item !== null);
+    } catch (e) { return []; }
+  }
+};
+
+function decryptXOR(base64Text) {
+  if (!base64Text || base64Text.length < 5) return base64Text;
+  try {
+    const inputBytes = Utilities.base64Decode(base64Text);
+    const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+    const outputBytes = [];
+    for (let i = 0; i < inputBytes.length; i++) {
+        outputBytes.push(inputBytes[i] ^ keyBytes[i % keyBytes.length]);
+    }
+    return Utilities.newBlob(outputBytes).getDataAsString();
+  } catch (e) { return base64Text; }
+}
+
+function decryptAES(base64Text) {
+  if (!base64Text || base64Text.length < 10) return base64Text;
+  try {
+    const decoded = Utilities.base64Decode(base64Text);
+    const decrypted = Utilities.decrypt(Utilities.CipherAlgorithm.AES_128, AES_KEY, decoded);
+    return decrypted.getDataAsString();
+  } catch (e) { return base64Text; }
+}
+
+function decryptData(base64Text) {
+  if (!base64Text || typeof base64Text !== 'string') return base64Text;
+  let dec = decryptXOR(base64Text);
+  if ((!dec || !dec.includes('@')) && base64Text.length > 5) {
+     const aes = decryptAES(base64Text);
+     if (aes && aes.includes('@')) return aes;
+  }
+  return dec || base64Text;
+}
+
+function encryptXOR(text) {
+  if (!text) return "";
+  try {
+    const inputBytes = Utilities.newBlob(text.toString()).getBytes();
+    const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+    const outputBytes = [];
+    for (let i = 0; i < inputBytes.length; i++) {
+        outputBytes.push(inputBytes[i] ^ keyBytes[i % keyBytes.length]);
+    }
+    return Utilities.base64Encode(outputBytes);
+  } catch (e) { return "ENC_ERR: " + e.toString(); }
+}
+
+function doPost(e) {
+  let result;
+  try {
+    const contents = e.postData ? e.postData.contents : "";
+    if (!contents) return ContentService.createTextOutput(JSON.stringify({ success: false, message: 'Data empty' })).setMimeType(ContentService.MimeType.JSON);
+    const data = JSON.parse(contents);
+
+    // --- API SECURITY CHECK ---
+    if (data.apiKey !== API_SECRET) {
+      return ContentService.createTextOutput(JSON.stringify({ 
+        success: false, 
+        message: 'Unauthorized Profit Access' 
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const action = (data.action || "").toString().trim();
+    
+    switch (action) {
+      case 'get_profit_report': 
+        result = getProfitReport(data.userEmail, data.isAdmin, data.adminEmail, data.startDate, data.endDate); 
+        break;
+      default: 
+        result = { success: false, message: 'Invalid action: ' + action };
+    }
+  } catch (error) { result = { success: false, message: error.toString() }; }
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function getProfitReport(userEmail, isAdmin, adminEmail, startDate, endDate) {
+  try {
+    const headers = SafeStore.read(ORDER_HEADER_FILE);
+    const details = SafeStore.read(ORDER_DETAIL_FILE);
+    const purchaseProducts = SafeStore.read(PURCHASE_PRODUCT_FILE);
+    
+    const targetAdmin = (adminEmail || userEmail || "").toLowerCase().trim();
+    const encTargetAdmin = encryptXOR(targetAdmin);
+
+    // 1. Map purchase prices for quick lookup
+    const purchaseMap = {};
+    purchaseProducts.forEach(p => {
+      // purchaseProducts are already filtered by admin in their own save logic, 
+      // but let's be safe if needed. However, id_san_pham is likely unique enough per org.
+      purchaseMap[p.id_san_pham] = parseFloat(p.gia_san_pham) || 0;
+    });
+
+    // 2. Filter Orders (Header)
+    const filteredHeaders = headers.filter(h => {
+      const hStatus = h.trang_thai_don_hang || h.status;
+      if (hStatus !== 'Đơn chốt') return false;
+      
+      const hAdmin = decryptData(h.manager_email || h.adminEmail || "");
+      if (hAdmin.toLowerCase().trim() !== targetAdmin) return false;
+
+      if (startDate || endDate) {
+        const orderDateStr = h.ngay_len_don.split(' ')[1]; // HH:mm:ss dd/MM/yyyy -> dd/MM/yyyy
+        const parts = orderDateStr.split('/');
+        const orderDate = new Date(parts[2], parts[1] - 1, parts[0]);
+        
+        if (startDate) {
+          const s = new Date(startDate);
+          if (orderDate < s) return false;
+        }
+        if (endDate) {
+          const e = new Date(endDate);
+          e.setHours(23, 59, 59, 999);
+          if (orderDate > e) return false;
+        }
+      }
+      return true;
+    });
+
+    // 3. Process Profit Data
+    const reportData = [];
+    const profitByDate = {};
+    const profitByProduct = {};
+    const profitByStaff = {};
+
+    filteredHeaders.forEach(h => {
+      const orderDetails = details.filter(d => d.id_don_hang === h.id_don_hang);
+      const creator = decryptData(h.nguoi_len_don);
+      const dateKey = h.ngay_len_don.split(' ')[1]; // dd/MM/yyyy
+
+      orderDetails.forEach(d => {
+        const qty = parseFloat(d.so_luong) || 0;
+        const sellPrice = parseFloat(d.don_gia || (d.thanh_tien / qty)) || 0;
+        const buyPrice = purchaseMap[d.id_san_pham] || 0;
+        const profitPerUnit = sellPrice - buyPrice;
+        const totalProfit = profitPerUnit * qty;
+
+        const row = {
+          date: h.ngay_len_don,
+          orderId: h.id_don_hang,
+          productName: d.ten_san_pham,
+          quantity: qty,
+          sellPrice: sellPrice,
+          buyPrice: buyPrice,
+          profit: totalProfit,
+          creator: creator,
+          admin: targetAdmin
+        };
+        reportData.push(row);
+
+        // Aggregations
+        profitByDate[dateKey] = (profitByDate[dateKey] || 0) + totalProfit;
+        profitByProduct[d.ten_san_pham] = (profitByProduct[d.ten_san_pham] || 0) + totalProfit;
+        profitByStaff[creator] = (profitByStaff[creator] || 0) + totalProfit;
+      });
+    });
+
+    return {
+      success: true,
+      data: reportData,
+      summary: {
+        totalProfit: reportData.reduce((sum, r) => sum + r.profit, 0),
+        byDate: profitByDate,
+        byProduct: profitByProduct,
+        byStaff: profitByStaff
+      }
+    };
+  } catch (e) {
+    return { success: false, message: e.toString() };
+  }
+}

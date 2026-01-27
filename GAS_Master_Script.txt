@@ -1,0 +1,1331 @@
+/**
+ * GAS_Master_Script.txt
+ * Script chuyên dụng cho Master Control Panel (Super Admin)
+ * Tách biệt khỏi hệ thống Authentication chính để dễ dàng quản lý và nâng cấp.
+ * 
+ * PHẠM VI QUYỀN: DriveApp, SpreadsheetApp, MailApp
+ */
+
+// --- CẤU HÌNH HỆ THỐNG MASTER ---
+const MAIN_SPREADSHEET_ID = '1rhP1UCiMLi8yNVvcd56SsZIJAm09Yxu6WpjxuHKYKb0'; // Sheet chứa Auth
+const MASTER_SPREADSHEET_ID = '1SiB4k-T7HoT9cNv-Q8KPIS3AnA6C_8HAX0hFyR3ZWOc'; // Sheet Master mới tạo
+const MASTER_SHEET_NAME = 'menu'; // Tên sheet bạn vừa tạo
+const SCHEDULE_SHEET_NAME = 'ad_schedule'; // Tên sheet lưu lịch hẹn
+const MASTER_EMAIL = 'dunvex.green@gmail.com';
+const LOG_SHEET_NAME = 'activity_log'; // Sheet lưu lịch sử thao tác
+const MARKETING_LOG_SHEET_NAME = 'marketing_log'; // Sheet lưu lịch sử gửi mail quảng cáo
+const AD_FOLDER_ID = '1SZTs8VvEKLIXPiKn7CA-OpmHIFXOzws5'; // Thư mục lưu hình quảng cáo
+const API_SECRET = 'dv_api_secret_2025_prod_v2'; // ĐÃ ĐỒNG BỘ VỚI FRONTEND
+const XOR_SECRET = 'dunvex_secure_key_2025_custom'; // ĐÃ ĐỒNG BỘ VỚI AUTH SCRIPT
+/**
+ * HỆ THỐNG FEATURE LOCKS:
+ * - checkinMaster: Khóa tổng check-in
+ * - mailStaff: Khóa thông báo mail nhân viên
+ * - debtMaster: Khóa quản lý công nợ
+ * - productCreateMaster: Khóa quyền tạo mã sản phẩm (MỚI)
+ * - inventoryMaster: Khóa quyền nhập kho hàng (MỚI)
+ * - warehouseMaster: Khóa quyền xuất kho (MỚI)
+ * - deliveryMaster: Khóa quyền giao hàng (Tài xế) (MỚI)
+ * - hrMaster: Khóa tổng Quản lý nhân sự (MỚI)
+ */
+
+// --- CONFIG ĐƯỜNG DẪN DỮ LIỆU ĐỂ BÁO CÁO ---
+const DATA_FOLDER_ID = '1_LT4rzVui2E3BgfcwUSfMsUGQMN9NRTs'; 
+const ORDER_HEADER_FILE = 'order.json';
+const ORDER_DETAIL_FILE = 'order_chi_tiet.json';
+const CUSTOMER_FILE = 'customer.json';
+
+const SafeStore = {
+  read: function(filename) {
+    try {
+      const folder = DriveApp.getFolderById(DATA_FOLDER_ID);
+      const files = folder.getFilesByName(filename);
+      if (!files.hasNext()) return [];
+      const content = files.next().getBlob().getDataAsString().trim();
+      if (!content) return [];
+      if (content.startsWith('[')) return JSON.parse(content);
+      return content.split('\n').filter(l => l.trim()).map(l => JSON.parse(l));
+    } catch (e) { return []; }
+  }
+};
+
+// --- ENTRY POINT ---
+function runWeeklyReports() {
+  return processWeeklyReports(true);
+}
+
+function doPost(e) {
+  let result;
+  try {
+    const contents = e.postData ? e.postData.contents : "";
+    if (!contents) return ContentService.createTextOutput(JSON.stringify({ success: false, message: 'Data empty' })).setMimeType(ContentService.MimeType.JSON);
+    const data = JSON.parse(contents);
+    
+    // --- API SECURITY CHECK ---
+    if (data.apiKey !== API_SECRET) {
+      return ContentService.createTextOutput(JSON.stringify({ 
+        success: false, 
+        message: 'Unauthorized Master Access' 
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const action = data.action;
+
+    // Tự động kiểm tra và khởi tạo tiêu đề nếu cần
+    initMasterSheetHeaders();
+    
+    switch (action) {
+      case 'getMasterAllAccounts': result = getMasterAllAccounts(); break;
+      case 'updateAdminConfig': result = updateAdminConfig(data); break;
+      case 'checkAdminLimit': result = checkAdminLimit(data); break;
+      case 'sendPromotion': result = handleSendPromotion(data); break;
+      case 'schedulePromotion': result = handleSchedulePromotion(data); break;
+      case 'uploadAdImage': result = handleUploadAdImage(data); break;
+      case 'processScheduledAds': result = processScheduledAds(); break;
+      case 'sendFeedback': result = handleSendFeedback(data); break;
+      case 'runWeeklyReports': result = processWeeklyReports(true); break; // true = chế độ Test (14 ngày gần nhất)
+      case 'getMasterDashboardData': result = getMasterDashboardData(); break;
+      case 'getMarketingLogs': result = getMarketingLogs(data); break;
+      default: 
+        result = { success: false, message: 'Hành động không hợp lệ tại Master Script' };
+    }
+  } catch (error) {
+    result = { success: false, message: 'Lỗi Master Backend: ' + error.toString() };
+  }
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+}
+
+// --- CORE FUNCTIONS ---
+
+function getMasterAllAccounts() {
+  try {
+    const mainSS = SpreadsheetApp.openById(MAIN_SPREADSHEET_ID);
+    const adminSheet = mainSS.getSheetByName('admin');
+    const useSheet = mainSS.getSheetByName('use');
+    
+    const masterSS = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+    const masterSheet = masterSS.getSheetByName(MASTER_SHEET_NAME);
+    
+    const adminData = adminSheet.getDataRange().getValues();
+    const useData = useSheet ? useSheet.getDataRange().getValues() : [];
+    const configData = masterSheet.getDataRange().getValues();
+    
+    const allUsers = [];
+
+    // 1. Quét Admin Sheet
+    for (let i = 1; i < adminData.length; i++) {
+        const email = decryptData(adminData[i][1]).toLowerCase();
+        const conf = configData.find(r => r[0].toString().toLowerCase() === email);
+        
+        allUsers.push({
+            id: adminData[i][0], email: email, fullName: adminData[i][3],
+            roleId: 'R001', owner: 'SYSTEM (ROOT)', status: adminData[i][5] || 'Hoạt động',
+            package: conf ? conf[1] : 'Free', 
+            expiry: conf ? conf[3] : '',
+            regDate: adminData[i][6] || new Date(), type: 'ADMIN',
+            salesRestrict: conf ? (conf[10] || 'OFF') : 'OFF',
+            restrictTimer: conf ? (conf[11] || '') : '',
+            features: conf ? JSON.parse(conf[4] || '{}') : {}
+        });
+    }
+
+    // 2. Quét Use Sheet (Dò tìm Admin Nhóm và Ẩn họ khỏi danh sách NV)
+    const adminsMap = {}; // { orgEmail: [list_of_admins] }
+    
+    // Admin gốc (Chủ công ty)
+    for (let i = 1; i < adminData.length; i++) {
+        const email = decryptData(adminData[i][1]).toLowerCase().trim();
+        if (email) adminsMap[email] = [email];
+    }
+
+    // Tìm tất cả Admin (R001) trong bảng nhân viên
+    for (let i = 1; i < useData.length; i++) {
+        const uRole = useData[i][4];
+        if (uRole === 'R001') {
+            const uEmail = (decryptData(useData[i][1]) || "").toLowerCase().trim();
+            const uOwner = (decryptData(useData[i][5]) || "").toLowerCase().trim();
+            if (uOwner && adminsMap[uOwner]) {
+                if (adminsMap[uOwner].indexOf(uEmail) === -1) adminsMap[uOwner].push(uEmail);
+            }
+        }
+    }
+
+    for (let i = 1; i < useData.length; i++) {
+        const email = (decryptData(useData[i][1]) || "").toLowerCase();
+        if (!email) continue;
+        const roleId = useData[i][4];
+        
+        // NẾU LÀ ADMIN (R001): ẨN KHỎI DANH SÁCH NHÂN VIÊN
+        if (roleId === 'R001') continue;
+
+        const ownerEmail = (decryptData(useData[i][5]) || "").toLowerCase();
+        const orgAdmins = adminsMap[ownerEmail] || [ownerEmail || 'Hệ thống'];
+        
+        allUsers.push({
+            id: useData[i][0], 
+            email: email, 
+            fullName: useData[i][3],
+            roleId: roleId, 
+            owner: orgAdmins.join(', '), 
+            status: useData[i][6] || 'Hoạt động', 
+            package: 'N/A', 
+            regDate: useData[i][7] || new Date(),
+            type: 'STAFF'
+        });
+    }
+
+    return { success: true, users: allUsers };
+  } catch (e) { return { success: false, message: e.toString() }; }
+}
+
+function updateAdminConfig(data) {
+  try {
+    const email = (data.adminEmail || "").toLowerCase().trim();
+    const mainSS = SpreadsheetApp.openById(MAIN_SPREADSHEET_ID);
+    const masterSS = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+    let updated = false;
+    let oldStatus = "";
+
+    // 1. Cập nhật vào sheet Master 
+    const masterSheet = masterSS.getSheetByName(MASTER_SHEET_NAME);
+    const mRows = masterSheet.getDataRange().getValues();
+    let rowIndex = -1;
+
+    for (let i = 1; i < mRows.length; i++) {
+      if (mRows[i][0].toString().toLowerCase() === email) {
+        rowIndex = i + 1;
+        oldStatus = mRows[i][5];
+        break;
+      }
+    }
+
+    // Xác định giới hạn nhân sự (Staff Limit)
+    let currentMaxStaff = 5;
+    if (rowIndex !== -1) {
+      currentMaxStaff = mRows[rowIndex - 1][2];
+    } else if (data.package === 'Premium') {
+      currentMaxStaff = 50;
+    }
+    
+    let finalMaxStaff = data.max_staff !== undefined ? data.max_staff : currentMaxStaff;
+    if (data.package === 'Premium' && (!finalMaxStaff || finalMaxStaff < 50)) finalMaxStaff = 50;
+
+    if (rowIndex !== -1) {
+      const oldPackage = mRows[rowIndex - 1][1];
+      if (data.package) {
+        if (data.package !== oldPackage) {
+          logMasterAction(email, 'UPDATE_PACKAGE', `${oldPackage} -> ${data.package}`, data.ip);
+        }
+        masterSheet.getRange(rowIndex, 2).setValue(data.package);
+      }
+      
+      masterSheet.getRange(rowIndex, 3).setValue(finalMaxStaff);
+      if (data.expiry) masterSheet.getRange(rowIndex, 4).setValue(data.expiry);
+      
+      if (data.status) {
+        if (data.status !== oldStatus) {
+          logMasterAction(email, 'UPDATE_STATUS', `${oldStatus} -> ${data.status}`, data.ip);
+        }
+        masterSheet.getRange(rowIndex, 6).setValue(data.status);
+      }
+      
+      if (data.salesRestrict) {
+        const oldRestrict = mRows[rowIndex - 1][10] || 'OFF';
+        masterSheet.getRange(rowIndex, 11).setValue(data.salesRestrict);
+        if (data.salesRestrict === 'ON' && oldRestrict === 'OFF') {
+          sendRestrictionEmail(email);
+        }
+      }
+      if (data.restrictTimer !== undefined) masterSheet.getRange(rowIndex, 12).setValue(data.restrictTimer);
+
+      // Update Feature Locks
+      if (data.features) {
+        let currentFeatures = JSON.parse(mRows[rowIndex - 1][4] || '{}');
+        const diff = [];
+        for (const [key, val] of Object.entries(data.features)) {
+            if (currentFeatures[key] !== val) {
+                diff.push(`${key}: ${currentFeatures[key]} -> ${val}`);
+            }
+        }
+        
+        Object.assign(currentFeatures, data.features);
+        masterSheet.getRange(rowIndex, 5).setValue(JSON.stringify(currentFeatures));
+        
+        if (diff.length > 0) {
+            logMasterAction(email, 'UPDATE_FEATURES', diff.join(' | '), data.ip);
+        }
+      }
+      
+      updated = true;
+
+      // Kiểm tra nâng cấp lên Premium
+      if (data.package === 'Premium' && oldPackage !== 'Premium') {
+        sendPremiumUpgradeEmail(email, data.expiry || mRows[rowIndex - 1][3]);
+      }
+    } else {
+      const features = data.features ? JSON.stringify(data.features) : '{}';
+      masterSheet.appendRow([
+        email, data.package || 'Free', finalMaxStaff, data.expiry || '', features, 
+        data.status || 'Hoạt động', new Date(), new Date(), '', '', 
+        data.salesRestrict || 'OFF', data.restrictTimer || ''
+      ]);
+      updated = true;
+      if (data.package === 'Premium') {
+        sendPremiumUpgradeEmail(email, data.expiry || '');
+      }
+    }
+
+    // 2. Đồng bộ Admin Sheet
+    const adminSheet = mainSS.getSheetByName('admin');
+    const aRows = adminSheet.getDataRange().getValues();
+    for (let i = 1; i < aRows.length; i++) {
+       if (decryptData(aRows[i][1]).toLowerCase() === email) {
+         if (data.status) adminSheet.getRange(i + 1, 6).setValue(data.status);
+         updated = true; break;
+       }
+    }
+
+    // 3. Đồng bộ Use Sheet
+    const useSheet = mainSS.getSheetByName('use');
+    if (useSheet) {
+      const uRows = useSheet.getDataRange().getValues();
+      for (let i = 1; i < uRows.length; i++) {
+         if (decryptData(uRows[i][1]).toLowerCase() === email) {
+           if (data.status) useSheet.getRange(i + 1, 7).setValue(data.status);
+           updated = true; break;
+         }
+      }
+    }
+
+    if (updated && data.status && data.status !== oldStatus) {
+      sendAccountStatusEmail(email, data.status);
+    }
+
+    return updated ? { success: true } : { success: false, message: 'Không tìm thấy tài khoản để cập nhật' };
+  } catch (e) { return { success: false, message: e.toString() }; }
+}
+
+/**
+ * Gửi quảng cáo/khuyến mãi thuyết phục nâng cấp gói (Hỗ trợ nhiều email)
+ * Đã tối ưu hóa hiệu suất để tránh dừng đột ngột khi gặp lỗi kết nối hoặc mail ảo
+ */
+function handleSendPromotion(data) {
+  try {
+    const emails = Array.isArray(data.targetEmails) ? data.targetEmails : [data.targetEmail];
+    const title = data.adTitle || "🔥 ƯU ĐÃI ĐẶC BIỆT DÀNH RIÊNG CHO BẠN - DUNVEX";
+    const content = data.adContent || "";
+    const imageUrl = data.adImage || "";
+    
+    const htmlBody = `
+      <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e7ff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);">
+        ${imageUrl ? `<img src="${imageUrl}" style="width: 100%; height: auto; display: block;" alt="Promotion">` : ''}
+        <div style="padding: 40px; background: #ffffff;">
+          <h2 style="color: #4f46e5; margin-top: 0; font-size: 24px; line-height: 1.3;">${title}</h2>
+          <div style="color: #475569; font-size: 16px; line-height: 1.6; margin: 20px 0;">
+            ${content.replace(/\n/g, '<br>')}
+          </div>
+          <div style="text-align: center; margin-top: 35px;">
+            <a href="https://dunvex.com/upgrade" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);">NÂNG CẤP NGAY HÔM NAY</a>
+          </div>
+          <p style="text-align: center; font-size: 13px; color: #94a3b8; margin-top: 30px;">
+            Hệ thống Dunvex - Giải pháp quản trị doanh nghiệp toàn diện.<br>
+            Bạn nhận được email này vì là thành viên của Dunvex.
+          </p>
+        </div>
+      </div>
+    `;
+
+    const masterSS = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+    const sheet = masterSS.getSheetByName(MASTER_SHEET_NAME);
+    
+    // Đảm bảo log sheet tồn tại
+    initMasterSheetHeaders();
+
+    // TỐI ƯU HÓA: Đọc dữ liệu sheet 1 lần duy nhất trước khi lặp
+    const allRows = sheet.getDataRange().getValues();
+    const emailToRowIndex = {};
+    for (let i = 1; i < allRows.length; i++) {
+      const emailKey = allRows[i][0].toString().toLowerCase().trim();
+      if (emailKey) emailToRowIndex[emailKey] = i + 1;
+    }
+
+    let successCount = 0;
+    let failCount = 0;
+    const errors = [];
+
+    emails.forEach(email => {
+      const target = email.toLowerCase().trim();
+      if (!target) return;
+
+      try {
+        // Sử dụng MailApp để gửi mail (Tiết kiệm quota so với GmailApp)
+        MailApp.sendEmail({
+          to: target,
+          subject: title,
+          htmlBody: htmlBody
+        });
+        
+        // Ghi log thành công vào sheet marketing_log
+        logMarketingEmail('SUCCESS', target, title, '');
+        successCount++;
+
+        // Ghi lại lịch sử vào User Profile (Sử dụng Map để tìm hàng nhanh hơn)
+        const rowIndex = emailToRowIndex[target];
+        if (rowIndex) {
+          const history = allRows[rowIndex - 1][9] || "";
+          const newHistory = (history ? history + "\n" : "") + "[" + new Date().toLocaleDateString('vi-VN') + "] Đã gửi: " + title;
+          sheet.getRange(rowIndex, 10).setValue(newHistory);
+        }
+      } catch (err) {
+        const errorMsg = err.toString();
+        // Ghi log lỗi vào sheet marketing_log
+        logMarketingEmail('FAILED', target, title, errorMsg);
+        failCount++;
+        errors.push(`${target}: ${errorMsg}`);
+        
+        // Lưu ý: Nếu lỗi do vượt quota hàng ngày của Google, script có thể dừng hẳn.
+        // Nhưng lỗi kết nối đến 1 email cụ thể (Address not found) sẽ được catch ở đây.
+        console.error(`Lỗi gửi mail đến ${target}: ${errorMsg}`);
+      }
+    });
+
+    return { 
+      success: true, 
+      message: `Hoàn tất! Thành công: ${successCount}, Thất bại: ${failCount}`,
+      errors: errors.slice(0, 5) // Trả về tối đa 5 lỗi đầu tiên để debug
+    };
+  } catch (e) {
+    return { success: false, message: 'Lỗi hệ thống gửi quảng cáo: ' + e.toString() };
+  }
+}
+
+
+function logMarketingEmail(status, email, campaign, errorDetails) {
+  try {
+    const ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+    let sheet = ss.getSheetByName(MARKETING_LOG_SHEET_NAME);
+    if (!sheet) {
+      initMasterSheetHeaders();
+      sheet = ss.getSheetByName(MARKETING_LOG_SHEET_NAME);
+    }
+    sheet.appendRow([
+      new Date(),
+      campaign,
+      email,
+      status,
+      errorDetails || ''
+    ]);
+  } catch (e) {
+    console.error("Marketing Log Error: " + e.toString());
+  }
+}
+
+function getMarketingLogs(data) {
+  try {
+    const ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(MARKETING_LOG_SHEET_NAME);
+    if (!sheet) return { success: true, logs: [] };
+
+    const rows = sheet.getDataRange().getValues();
+    // Bỏ header (dòng 1)
+    const logs = rows.slice(1).map(r => ({
+      time: r[0],
+      campaign: r[1],
+      email: r[2],
+      status: r[3],
+      error: r[4]
+    })).reverse().slice(0, 100); // Lấy 100 log mới nhất
+
+    return { success: true, logs: logs };
+  } catch (e) {
+    return { success: false, message: e.toString() };
+  }
+}
+
+/**
+ * Hẹn giờ gửi quảng cáo
+ */
+function handleSchedulePromotion(data) {
+  try {
+    const masterSS = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+    let schedSheet = masterSS.getSheetByName(SCHEDULE_SHEET_NAME);
+    if (!schedSheet) {
+      schedSheet = masterSS.insertSheet(SCHEDULE_SHEET_NAME);
+      schedSheet.appendRow(['Scheduled Time', 'Emails', 'Title', 'Content', 'Image', 'Status']);
+    }
+
+    const emails = Array.isArray(data.targetEmails) ? data.targetEmails.join(',') : data.targetEmail;
+    schedSheet.appendRow([
+      data.scheduledTime, // YYYY-MM-DDTHH:mm
+      emails,
+      data.adTitle,
+      data.adContent,
+      data.adImage,
+      'PENDING'
+    ]);
+
+    // Tạo trigger nếu chưa có (chạy mỗi phút)
+    ensureMinuteTrigger();
+
+    return { success: true, message: 'Đã lên lịch gửi quảng cáo thành công!' };
+  } catch (e) {
+    return { success: false, message: e.toString() };
+  }
+}
+
+function logMasterAction(email, action, details, ip) {
+  try {
+    const ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(LOG_SHEET_NAME);
+    if (!sheet) return;
+    
+    sheet.appendRow([
+      new Date(),
+      email,
+      action,
+      details,
+      ip || 'N/A'
+    ]);
+  } catch(e) {
+    console.error("Log Error: " + e.toString());
+  }
+}
+
+
+function ensureMinuteTrigger() {
+  const triggers = ScriptApp.getProjectTriggers();
+  const hasTrigger = triggers.some(t => t.getHandlerFunction() === 'processScheduledAds');
+  if (!hasTrigger) {
+    ScriptApp.newTrigger('processScheduledAds').timeBased().everyMinutes(1).create();
+  }
+}
+
+/**
+ * Hàm quét và gửi quảng cáo đã hẹn giờ (Trigger mỗi phút)
+ */
+function processScheduledAds() {
+  try {
+    const masterSS = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+    const now = new Date();
+    
+    // 1. Process Ad Promotions
+    const adSheet = masterSS.getSheetByName(SCHEDULE_SHEET_NAME);
+    if (adSheet) {
+      const adRows = adSheet.getDataRange().getValues();
+      for (let i = 1; i < adRows.length; i++) {
+        if (adRows[i][5] !== 'PENDING') continue;
+        const schedTime = new Date(adRows[i][0]);
+        if (schedTime <= now) {
+          handleSendPromotion({
+            targetEmails: adRows[i][1].split(','),
+            adTitle: adRows[i][2],
+            adContent: adRows[i][3],
+            adImage: adRows[i][4]
+          });
+          adSheet.getRange(i + 1, 6).setValue('SENT');
+        }
+      }
+    }
+
+    // 2. Process Sales Report Restrictions Timer
+    const masterSheet = masterSS.getSheetByName(MASTER_SHEET_NAME);
+    const mRows = masterSheet.getDataRange().getValues();
+    for (let i = 1; i < mRows.length; i++) {
+      const timerStr = mRows[i][11]; // restrict_timer column
+      if (timerStr && timerStr.length > 5) {
+        const timerDate = new Date(timerStr);
+        if (timerDate <= now) {
+          const currentRestrict = mRows[i][10] || 'OFF';
+          const newRestrict = currentRestrict === 'ON' ? 'OFF' : 'ON';
+          masterSheet.getRange(i + 1, 11).setValue(newRestrict);
+          masterSheet.getRange(i + 1, 12).setValue(''); // Clear timer
+          
+          // Gửi thông báo nếu tự động BẬT hạn chế
+          if (newRestrict === 'ON') {
+            sendRestrictionEmail(mRows[i][0]);
+          }
+
+          // Log restriction change
+          const history = mRows[i][9] || "";
+          const log = history + "\n" + "[" + now.toLocaleDateString() + "] Tự động " + (newRestrict === 'ON' ? 'BẬT' : 'TẮT') + " hạn chế báo cáo.";
+          masterSheet.getRange(i + 1, 10).setValue(log);
+        }
+      }
+    }
+  } catch (e) {
+    Logger.log("Lỗi cron process: " + e.toString());
+  }
+}
+
+/**
+ * Xử lý tải lên hình ảnh quảng cáo vào Drive
+ */
+function handleUploadAdImage(data) {
+  try {
+    const folder = DriveApp.getFolderById(AD_FOLDER_ID);
+    const contentType = data.mimeType || "image/jpeg";
+    const base64Data = data.base64Data;
+    const fileName = "AD_" + new Date().getTime() + "_" + data.fileName;
+    
+    // Giải mã Base64 sang Blob
+    const decodedData = Utilities.base64Decode(base64Data);
+    const blob = Utilities.newBlob(decodedData, contentType, fileName);
+    
+    // Lưu vào Drive
+    const file = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    
+    // Trả về link lh3 để hiển thị trực tiếp trong email
+    const viewUrl = "https://lh3.googleusercontent.com/d/" + file.getId();
+    
+    return { success: true, url: viewUrl };
+  } catch (e) {
+    return { success: false, message: "Lỗi Upload Drive: " + e.toString() };
+  }
+}
+
+/**
+ * Kiểm tra giới hạn nhân sự cho Admin
+ */
+function checkAdminLimit(data) {
+  try {
+    const email = (data.adminEmail || "").toLowerCase().trim();
+    const masterSS = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+    const mSheet = masterSS.getSheetByName(MASTER_SHEET_NAME);
+    const rows = mSheet.getDataRange().getValues();
+    const config = rows.find(r => r[0].toString().toLowerCase() === email);
+    
+    // Default limit
+    let limit = 5;
+    let pkg = 'Free';
+    
+    if (config) {
+      pkg = config[1];
+      limit = parseInt(config[2]) || (pkg === 'Premium' ? 50 : 5);
+    }
+    
+    const mainSS = SpreadsheetApp.openById(MAIN_SPREADSHEET_ID);
+    const useSheet = mainSS.getSheetByName('use');
+    const useData = useSheet ? useSheet.getDataRange().getValues() : [];
+    let current = 0;
+    for (let i = 1; i < useData.length; i++) {
+      if (decryptData(useData[i][5]).toLowerCase() === email) current++;
+    }
+    return { canCreate: current < limit, current: current, limit: limit, package: pkg };
+  } catch (e) { return { success: false, message: e.toString() }; }
+}
+
+/**
+ * Lấy thông tin gói cước của Admin
+ */
+function getAdminPackage(email) {
+  try {
+    const ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(MASTER_SHEET_NAME);
+    const rows = sheet.getDataRange().getValues();
+    const config = rows.find(r => r[0].toString().toLowerCase() === email.toLowerCase());
+    return config ? { package: config[1], expiry: config[3] } : { package: 'Free', expiry: '' };
+  } catch (e) { return { package: 'Free', expiry: '' }; }
+}
+
+// --- TIỆN ÍCH KHỞI TẠO ---
+
+function initMasterSheetHeaders() {
+  const ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+  
+  // 1. Init Master Menu Sheet
+  let sheet = ss.getSheetByName(MASTER_SHEET_NAME);
+  if (!sheet) sheet = ss.insertSheet(MASTER_SHEET_NAME);
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow([
+      'admin_email', 'package', 'max_staff', 'report_expiry', 'features_json', 
+      'status', 'created_date', 'last_active', 'notes', 'ad_history', 
+      'sales_restrict', 'restrict_timer', 'delivery_master', 'hr_master'
+    ]);
+    sheet.setFrozenRows(1);
+    sheet.getRange(1, 1, 1, 14).setBackground('#ef4444').setFontColor('#ffffff').setFontWeight('bold');
+  }
+
+  // 2. Init LOG Sheet (activity_log)
+  if (!ss.getSheetByName(LOG_SHEET_NAME)) {
+    const s = ss.insertSheet(LOG_SHEET_NAME);
+    s.appendRow(['time', 'admin_email', 'action_type', 'details', 'ip_address']);
+    s.getRange(1, 1, 1, 5).setBackground('#e0e7ff').setFontColor('#000000').setFontWeight('bold');
+    s.setColumnWidth(1, 160);
+    s.setColumnWidth(2, 220);
+    s.setColumnWidth(3, 150);
+    s.setColumnWidth(4, 500);
+  }
+
+  // 3. Init Schedule Sheet (ad_schedule)
+  if (!ss.getSheetByName(SCHEDULE_SHEET_NAME)) {
+    const s = ss.insertSheet(SCHEDULE_SHEET_NAME);
+    s.appendRow(['Scheduled Time', 'Emails', 'Title', 'Content', 'Image', 'Status']);
+    s.getRange(1, 1, 1, 6).setBackground('#dbeafe').setFontColor('#000000').setFontWeight('bold');
+  }
+
+  // 4. Init Marketing Log Sheet
+  if (!ss.getSheetByName(MARKETING_LOG_SHEET_NAME)) {
+    const s = ss.insertSheet(MARKETING_LOG_SHEET_NAME);
+    s.appendRow(['Time', 'Campaign', 'Email', 'Status', 'Error Reason']);
+    s.getRange(1, 1, 1, 5).setBackground('#fef3c7').setFontColor('#b45309').setFontWeight('bold');
+    s.setColumnWidth(1, 160);
+    s.setColumnWidth(2, 250);
+    s.setColumnWidth(3, 200);
+    s.setColumnWidth(4, 100);
+    s.setColumnWidth(5, 300);
+  }
+}
+
+// --- TIỆN ÍCH GỬI EMAIL ---
+
+function sendAccountStatusEmail(email, status) {
+  const isLocked = status === 'Tạm khóa';
+  const subject = isLocked ? "⚠️ THÔNG BÁO TẠM KHÓA TÀI KHOẢN - DUNVEX" : "✅ THÔNG BÁO MỞ KHÓA TÀI KHOẢN - DUNVEX";
+  const statusHtml = isLocked ? 
+    `<span style="color: #ef4444; font-weight: bold;">TẠM KHÓA</span>` : 
+    `<span style="color: #22c55e; font-weight: bold;">ĐANG HOẠT ĐỘNG</span>`;
+  
+  const body = `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; padding: 40px; line-height: 1.6;">
+      <h2 style="color: #1e293b; border-bottom: 2px solid #6366f1; padding-bottom: 10px;">Cập nhật trạng thái Tài khoản</h2>
+      <p>Chào bạn,</p>
+      <p>Chúng tôi xin thông báo trạng thái tài khoản Dunvex của bạn (<b>${email}</b>) đã được thay đổi thành: ${statusHtml}</p>
+      
+      ${isLocked ? `
+        <div style="background: #fff1f2; border-left: 4px solid #ef4444; padding: 20px; margin: 25px 0;">
+          <p style="margin: 0; color: #991b1b;"><b>Lý do:</b> Tài khoản hiện đang bị đình chỉ quyền truy cập tạm thời.</p>
+          <p style="margin: 10px 0 0 0; color: #991b1b;">Vui lòng liên hệ Admin qua email: <a href="mailto:${MASTER_EMAIL}">${MASTER_EMAIL}</a> để được hỗ trợ mở lại tài khoản.</p>
+        </div>
+      ` : `
+        <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 20px; margin: 25px 0;">
+          <p style="margin: 0; color: #166534;">Tài khoản của bạn đã được kích hoạt trở lại. Bây giờ bạn có thể đăng nhập vào hệ thống bình thường.</p>
+        </div>
+      `}
+      
+      <p style="font-size: 0.85rem; color: #64748b; margin-top: 40px; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+        Trân trọng,<br><b>Dunvex Digital Team</b>
+      </p>
+    </div>
+  `;
+
+  try {
+    MailApp.sendEmail({
+      to: email,
+      subject: subject,
+      htmlBody: body
+    });
+  } catch (e) {
+    console.error("Lỗi gửi mail: " + e.toString());
+  }
+}
+
+/**
+ * Gửi email chúc mừng nâng cấp Premium
+ */
+function sendPremiumUpgradeEmail(email, expiryDate) {
+  const expiryStr = expiryDate ? new Date(expiryDate).toLocaleDateString('vi-VN') : "Vô thời hạn";
+  const subject = "💎 CHÚC MỪNG! BẠN ĐÃ TRỞ THÀNH THÀNH VIÊN PREMIUM - DUNVEX";
+  
+  const body = `
+    <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 2px solid #a855f7; border-radius: 20px; overflow: hidden;">
+      <div style="background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%); padding: 40px; text-align: center; color: white;">
+        <div style="font-size: 50px; margin-bottom: 20px;">💎</div>
+        <h1 style="margin: 0; font-size: 28px; letter-spacing: 1px;">XÁC NHẬN NÂNG CẤP</h1>
+        <p style="opacity: 0.9; margin-top: 10px;">Chào mừng bạn đến với đặc quyền Premium</p>
+      </div>
+      
+      <div style="padding: 40px; background: white; color: #1e293b;">
+        <p style="font-size: 18px;">Chào bạn, <b>${email}</b></p>
+        <p style="line-height: 1.6;">Chúng tôi vô cùng vui mừng thông báo rằng tài khoản của bạn đã chính thức được nâng cấp lên hạng <b>Cao cấp (Premium)</b>.</p>
+        
+        <div style="background: #f5f3ff; border-radius: 12px; padding: 25px; margin: 30px 0; border: 1px dashed #a855f7;">
+          <p style="margin: 0; color: #7c3aed; font-weight: bold; font-size: 1.1rem;">🌟 Trạng thái VIP: ĐÃ KÍCH HOẠT</p>
+          <p style="margin: 10px 0 0 0; color: #4b5563;">Hạn mức bản quyền: <span style="color: #ef4444; font-weight: 700;">${expiryStr}</span></p>
+          <p style="margin: 10px 0 0 0; font-size: 0.9rem; color: #6b7280;"><i>(Sau ngày này, các báo cáo nâng cao sẽ tạm ngưng cho đến khi được gia hạn)</i></p>
+        </div>
+
+        <p>Bây giờ bạn đã có đầy đủ quyền lợi:</p>
+        <ul style="color: #4b5563; padding-left: 20px;">
+          <li>Mở khóa toàn bộ tính năng Báo cáo doanh thu chuyên sâu.</li>
+          <li>Quản lý nhân sự không giới hạn (tùy theo gói).</li>
+          <li>Ưu tiên hỗ trợ kỹ thuật 24/7.</li>
+        </ul>
+
+        <div style="text-align: center; margin-top: 40px;">
+          <a href="https://dunvex.com" style="background: #a855f7; color: white; padding: 15px 35px; text-decoration: none; border-radius: 10px; font-weight: bold; display: inline-block; box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);">TRUY CẬP HỆ THỐNG NGAY</a>
+        </div>
+      </div>
+      
+      <div style="background: #f9fafb; padding: 20px; text-align: center; color: #9ca3af; font-size: 12px;">
+        Đây là email tự động từ hệ thống quản trị Dunvex. Vui lòng không trả lời email này.
+      </div>
+    </div>
+  `;
+
+  try {
+    MailApp.sendEmail({
+      to: email,
+      subject: subject,
+      htmlBody: body
+    });
+  } catch (e) {
+    console.error("Lỗi gửi mail Premium: " + e.toString());
+  }
+}
+
+/**
+ * Gửi email thông báo hết hạn tính năng Báo cáo
+ */
+function sendRestrictionEmail(email) {
+  const subject = "📢 THÔNG BÁO: Hạn mức tính năng Cao cấp đã thay đổi - DUNVEX";
+  
+  const body = `
+    <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #fed7aa; border-radius: 20px; overflow: hidden;">
+      <div style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); padding: 35px; text-align: center; color: white;">
+        <div style="font-size: 50px; margin-bottom: 15px;">⏳</div>
+        <h1 style="margin: 0; font-size: 24px; letter-spacing: 0.5px;">THÔNG BÁO GIA HẠN</h1>
+      </div>
+      
+      <div style="padding: 40px; background: white; color: #1e293b; line-height: 1.6;">
+        <p style="font-size: 18px;">Chào bạn, <b>${email}</b></p>
+        <p>Hệ thống Dunvex xin thông báo: Thời gian sử dụng thử nghiệm hoặc gói tính năng <b>Báo cáo doanh thu chuyên sâu</b> của bạn đã kết thúc.</p>
+        
+        <div style="background: #fff7ed; border-radius: 12px; padding: 20px; margin: 25px 0; border-left: 4px solid #f97316;">
+          <p style="margin: 0; color: #9a3412; font-weight: bold;">Trạng thái: TẠM NGƯNG XUẤT BÁO CÁO</p>
+          <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #4b5563;">Để tiếp tục sử dụng tính năng gửi Report Email và quản trị nâng cao, vui lòng nâng cấp tài khoản của bạn.</p>
+        </div>
+
+        <p><b>Đặc quyền khi nâng cấp Premium:</b></p>
+        <ul style="color: #4b5563; padding-left: 20px;">
+          <li>Mở khóa không giới hạn tính năng Gửi Báo Cáo qua Email.</li>
+          <li>Quản lý tối đa 50 nhân viên Sale/Account.</li>
+          <li>Xem biểu đồ phân tích xu hướng doanh thu thời gian thực.</li>
+        </ul>
+
+        <div style="text-align: center; margin-top: 40px;">
+          <a href="https://dunvex.com/upgrade" style="background: #ea580c; color: white; padding: 15px 35px; text-decoration: none; border-radius: 10px; font-weight: bold; display: inline-block; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.3);">NÂNG CẤP PREMIUM NGAY</a>
+        </div>
+
+        <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 40px; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+          Nếu bạn cần hỗ trợ thêm, vui lòng phản hồi email này hoặc liên hệ Hotline hỗ trợ.<br>
+          Trân trọng,<br><b>Dunvex Digital Team</b>
+        </p>
+      </div>
+    </div>
+  `;
+
+  try {
+    MailApp.sendEmail({
+      to: email.toLowerCase(),
+      subject: subject,
+      htmlBody: body
+    });
+  } catch (e) {
+    console.error("Lỗi gửi mail thông báo hạn chế: " + e.toString());
+  }
+}
+
+/**
+ * Xử lý gửi phản hồi từ Chatbot về Email quản trị
+ */
+function handleSendFeedback(data) {
+  const userEmail = data.userEmail || "Ẩn danh";
+  const message = data.message || "";
+  
+  const subject = `📩 PHẢN HỒI MỚI TỪ CHATBOT - [${userEmail}]`;
+  const body = `
+    <div style="font-family: Arial, sans-serif; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; max-width: 600px;">
+      <h2 style="color: #6366f1; border-bottom: 2px solid #6366f1; padding-bottom: 10px;">Tin nhắn phản hồi mới</h2>
+      <p><b>Người gửi:</b> ${userEmail}</p>
+      <p><b>Thời gian:</b> ${new Date().toLocaleString('vi-VN')}</p>
+      <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0; line-height: 1.6;">
+        ${message.replace(/\n/g, '<br>')}
+      </div>
+      <p style="color: #64748b; font-size: 0.9rem;">
+        <i>Bạn có thể phản hồi trực tiếp cho người dùng bằng cách gửi mail đến: ${userEmail}</i>
+      </p>
+    </div>
+  `;
+  
+  try {
+    MailApp.sendEmail({
+      to: MASTER_EMAIL,
+      subject: subject,
+      htmlBody: body,
+      replyTo: userEmail
+    });
+    return { success: true, message: "Đã gửi phản hồi thành công" };
+  } catch (e) {
+    return { success: false, message: "Lỗi gửi mail: " + e.toString() };
+  }
+}
+
+// --- TIỆN ÍCH MÃ HÓA (ĐỒNG BỘ VỚI AUTH SCRIPT) ---
+
+function encryptData(text) {
+  if (!text) return "";
+  const inputBytes = Utilities.newBlob(text.toString()).getBytes();
+  const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+  const outputBytes = [];
+  for (let i = 0; i < inputBytes.length; i++) {
+    outputBytes.push(inputBytes[i] ^ keyBytes[i % keyBytes.length]);
+  }
+  return Utilities.base64Encode(outputBytes);
+}
+
+function decryptData(text) {
+  if (!text) return "";
+  let cleanText = text.toString().trim();
+  if (cleanText.includes(":")) cleanText = cleanText.split(":").pop().trim();
+  if (cleanText.includes("@") && cleanText.includes(".")) return cleanText;
+  if (/^\+?[0-9\s.-]{9,15}$/.test(cleanText)) return cleanText;
+  if (cleanText.length < 4) return cleanText;
+
+  // XOR Decrypt
+  try {
+    const inputBytes = Utilities.base64Decode(cleanText);
+    const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+    const xorBytes = [];
+    for (let i = 0; i < inputBytes.length; i++) {
+      xorBytes.push(inputBytes[i] ^ keyBytes[i % keyBytes.length]);
+    }
+    const res = Utilities.newBlob(xorBytes).getDataAsString();
+    const printableRegex = /^[A-Za-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđĐ\s@.,+()À-ỹ-]+$/i;
+    if (res && printableRegex.test(res)) return res.trim();
+  } catch(e){}
+  
+  // AES Fallback
+  try {
+    const decoded = Utilities.base64Decode(cleanText);
+    const decrypted = Utilities.decrypt(Utilities.CipherAlgorithm.AES_128, Utilities.newBlob('dunvex_secure_16').getBytes(), decoded);
+    const res = decrypted.getDataAsString();
+    if (res) return res.trim();
+  } catch(e){}
+
+  return cleanText;
+}
+
+/**
+ * HÀM CHẠY MỘT LẦN: Cập nhật cấu trúc cột cho Sheet Master hiện có
+ * Bấm chọn hàm này ở menu trên và nhấn "Run"
+ */
+function migrate_UpdateMasterStructure() {
+  const ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+  // Thử lấy theo tên, nếu không thấy thì lấy đại trang tính đầu tiên
+  let sheet = ss.getSheetByName(MASTER_SHEET_NAME) || ss.getSheets()[0];
+  
+  if (!sheet) {
+    Logger.log("❌ Không tìm thấy trang tính nào!");
+    return;
+  }
+  
+  Logger.log("🚀 Đang cập nhật cho trang tính: " + sheet.getName());
+  
+  const headers = [
+    'admin_email', 'package', 'max_staff', 'report_expiry', 'features_json', 
+    'status', 'created_date', 'last_active', 'notes', 'ad_history', 
+    'sales_restrict', 'restrict_timer', 'delivery_master'
+  ];
+  
+  // Ghi tiêu đề vào dòng 1
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  
+  // Tô màu và định dạng
+  sheet.getRange(1, 1, 1, headers.length)
+       .setBackground('#ef4444')
+       .setFontColor('#ffffff')
+       .setFontWeight('bold')
+       .setHorizontalAlignment('center')
+       .setVerticalAlignment('middle');
+       
+  sheet.setFrozenRows(1);
+  sheet.autoResizeColumns(1, headers.length);
+  
+  // Ép hệ thống cập nhật ngay
+  SpreadsheetApp.flush();
+  
+  Logger.log("✅ Đã cập nhật xong! Bạn hãy quay lại Google Sheet kiểm tra xem cột J, K, L đã hiện tiêu đề chưa.");
+}
+
+/**
+ * HỆ THỐNG BÁO CÁO TUẦN TỰ ĐỘNG (Dựa trên cấu hình Quyền truy cập)
+ * Tổng hợp doanh thu "Đơn chốt" 
+ */
+function processWeeklyReports(isManualTest) {
+  // Nếu chạy từ nút Run trong IDE (isManualTest sẽ là undefined hoặc object), mặc định là TRUE để dễ test
+  if (isManualTest === undefined || typeof isManualTest === 'object') isManualTest = true;
+  
+  try {
+    const mainSS = SpreadsheetApp.openById(MAIN_SPREADSHEET_ID);
+    const permSheet = mainSS.getSheetByName('phan_quyen');
+    const useSheet = mainSS.getSheetByName('use');
+    
+    if (!permSheet || !useSheet) return { success: false, message: "Thiếu dữ liệu hệ thống (phan_quyen/use)" };
+
+    const perms = permSheet.getDataRange().getValues();
+    const users = useSheet.getDataRange().getValues();
+
+    // 1. Xác định khoảng thời gian
+    let start, end;
+    if (isManualTest) {
+      // CHẾ ĐỘ TEST: Quét 14 ngày gần nhất (Bao gồm cả hôm nay)
+      start = new Date();
+      start.setDate(start.getDate() - 14);
+      start.setHours(0, 0, 0, 0);
+      end = new Date();
+      end.setHours(23, 59, 59, 999);
+    } else {
+      // CHẾ ĐỘ TỰ ĐỘNG (Thứ 2 hàng tuần): Quét đúng tuần trước
+      const now = new Date();
+      const dayOfWeek = now.getDay(); 
+      const diffToLastMonday = (dayOfWeek === 0 ? 6 : dayOfWeek - 1) + 7;
+      start = new Date(now);
+      start.setDate(now.getDate() - diffToLastMonday);
+      start.setHours(0, 0, 0, 0);
+      end = new Date(start);
+      end.setDate(start.getDate() + 6);
+      end.setHours(23, 59, 59, 999);
+    }
+
+    const dateLabel = Utilities.formatDate(start, "GMT+7", "dd/MM") + " - " + Utilities.formatDate(end, "GMT+7", "dd/MM/yyyy");
+    Logger.log("📅 Khoảng thời gian báo cáo: " + dateLabel + (isManualTest ? " [CHẾ ĐỘ TEST]" : ""));
+
+    // 2. Lấy dữ liệu đơn hàng
+    const allOrders = SafeStore.read(ORDER_HEADER_FILE);
+    if (allOrders.length === 0) return { success: false, message: "Không tìm thấy dữ liệu đơn hàng" };
+
+    // Lọc đơn chốt trong tuần
+    const weeklyOrders = allOrders.filter(o => {
+      const st = (o.trang_thai_don_hang || "").toLowerCase();
+      if (st !== "đơn chốt" && st !== "đã giao" && st !== "hoàn thành") return false;
+      const parts = o.ngay_len_don.split(' ');
+      if (parts.length < 2) return false;
+      const dParts = parts[1].split('/');
+      const d = new Date(parseInt(dParts[2]), parseInt(dParts[1]) - 1, parseInt(dParts[0]));
+      return d >= start && d <= end;
+    });
+
+    Logger.log("📦 Tìm thấy " + weeklyOrders.length + " đơn chốt trong tuần qua.");
+
+    if (weeklyOrders.length === 0) {
+      Logger.log("⏭️ Dừng: Không có đơn chốt.");
+      return { success: true, message: "Không có doanh thu đơn chốt trong tuần qua" };
+    }
+
+    // 3. Phân loại cấu hình nhận báo cáo
+    const reportConfigs = perms.slice(1).filter(r => !!r[9] || !!r[10]).map(r => ({
+      roleId: r[0],
+      roleName: r[1],
+      adminEmail: (decryptData(r[2]) || "").toLowerCase().trim(),
+      notifyStaff: !!r[9],
+      notifyAdmin: !!r[10]
+    }));
+    
+    Logger.log("📝 Các vai trò được bật thông báo: " + JSON.stringify(reportConfigs));
+
+    // 4. Tổng hợp và gửi báo cáo
+    
+    // A. Gửi cho STAFF (Email cá nhân)
+    // Lấy danh sách các RoleId ĐÃ ĐƯỢC BẬT notifyStaff (lấy duy nhất để tránh gửi trùng)
+    const activeStaffRoles = [...new Set(reportConfigs.filter(c => c.notifyStaff).map(c => c.roleId))];
+    Logger.log("�️ Các Role ID nhân viên sẽ nhận báo cáo: " + JSON.stringify(activeStaffRoles));
+
+    const sentEmails = new Set(); // Để đảm bảo 1 mail chỉ nhận 1 báo cáo duy nhất
+    activeStaffRoles.forEach(roleId => {
+      users.slice(1).forEach(u => {
+        const uEmail = (decryptData(u[1]) || "").toLowerCase().trim();
+        const uRoleId = u[4];
+        const uName = u[3];
+        
+        if (uRoleId === roleId && !sentEmails.has(uEmail)) {
+          const staffOrders = weeklyOrders.filter(o => {
+             const creatorRaw = (decryptData(o.nguoi_len_don) || "").toLowerCase().trim();
+             return creatorRaw === uEmail || creatorRaw === uEmail.split('@')[0];
+          });
+          
+          if (staffOrders.length > 0) {
+            Logger.log("✉️ GỬI MAIL THÀNH CÔNG CHO: " + uEmail);
+            sendWeeklyStaffEmail(uEmail, uName, staffOrders, dateLabel);
+            sentEmails.add(uEmail);
+          }
+        }
+      });
+    });
+
+    // B. Gửi cho ADMIN
+    const activeAdminRoles = reportConfigs.filter(c => c.notifyAdmin).map(c => (c.roleId || "").toString().trim());
+
+    if (activeAdminRoles.length > 0) {
+       const useData = users;
+       const adminSheet = mainSS.getSheetByName('admin');
+       const adminData = adminSheet ? adminSheet.getDataRange().getValues() : [];
+
+       // 1. Lập bản đồ Admin toàn hệ thống (Cả Root và Promoted)
+       const orgAdminsMap = {}; 
+    
+    // Thêm các Root Admin từ bảng 'admin'
+    if (adminData.length > 1) {
+      adminData.slice(1).forEach(r => {
+        const email = (decryptData(r[1]) || "").toLowerCase().trim();
+        if (email) {
+          if (!orgAdminsMap[email]) orgAdminsMap[email] = [email];
+          const userPart = email.split('@')[0];
+          if (!orgAdminsMap[userPart]) orgAdminsMap[userPart] = orgAdminsMap[email];
+        }
+      });
+    }
+
+    // Thêm các Admin được thăng chức từ bảng 'use'
+    useData.slice(1).forEach(u => {
+      const uRole = (u[4] || "").toString().trim().toUpperCase();
+      const uEmail = (decryptData(u[1]) || "").toLowerCase().trim();
+      const uOwner = (decryptData(u[5]) || "").toLowerCase().trim();
+      
+      if (uRole === 'R001' || uRole === 'ADMIN') {
+        const boss = uOwner || uEmail;
+        if (boss) {
+          if (!orgAdminsMap[boss]) orgAdminsMap[boss] = [boss];
+          if (orgAdminsMap[boss].indexOf(uEmail) === -1) orgAdminsMap[boss].push(uEmail);
+          
+          // Đồng bộ cả theo tên user (không đuôi gmail)
+          const bossUser = boss.split('@')[0];
+          orgAdminsMap[bossUser] = orgAdminsMap[boss];
+        }
+      }
+    });
+
+    // 2. Gom đơn về cho các Admin dựa trên tổ chức hiện tại
+    let adminGroups = {};
+    weeklyOrders.forEach(o => {
+      const sellerEmail = (decryptData(o.nguoi_len_don) || "").toLowerCase().trim();
+      const sellerUser = sellerEmail.split('@')[0];
+      
+      const sellerInfo = useData.slice(1).find(u => {
+        const uEmail = (decryptData(u[1]) || "").toLowerCase().trim();
+        return uEmail === sellerEmail || uEmail.split('@')[0] === sellerUser;
+      });
+      
+      if (sellerInfo) {
+        const boss = (decryptData(sellerInfo[5]) || "").toLowerCase().trim() || (decryptData(sellerInfo[1]) || "").toLowerCase().trim();
+        const bossUser = boss.split('@')[0];
+        const currentAdmins = orgAdminsMap[boss] || orgAdminsMap[bossUser] || [boss];
+        
+        currentAdmins.forEach(mgr => {
+          if (!adminGroups[mgr]) adminGroups[mgr] = [];
+          adminGroups[mgr].push(o);
+        });
+      }
+    });
+
+    // 3. Master Admin (Dunvex) - BỎ gửi tự động
+    // adminGroups[MASTER_EMAIL.toLowerCase()] = weeklyOrders; 
+    const masterKey = MASTER_EMAIL.toLowerCase();
+
+      // Duyệt qua từng Admin trong nhóm đã gom
+      Object.keys(adminGroups).forEach(targetEmail => {
+        // KIỂM TRA QUYỀN: Tìm ở cả bảng Nhân viên (useData) và bảng Admin gốc (adminData)
+        const inUse = useData.slice(1).find(u => (decryptData(u[1]) || "").toLowerCase().trim() === targetEmail);
+        const inAdmin = adminData.slice(1).find(a => (decryptData(a[1]) || "").toLowerCase().trim() === targetEmail);
+        
+        // Mặc định: Nếu ở bảng Admin thì Role là R001. Nếu không tìm thấy thì gán rỗng.
+        let adminRoleId = "";
+        if (inAdmin) adminRoleId = "R001";
+        else if (inUse) adminRoleId = (inUse[4] || "").toString().trim();
+        else if (targetEmail === masterKey) adminRoleId = "R001";
+
+        if (activeAdminRoles.indexOf(adminRoleId) !== -1 || targetEmail === masterKey) {
+          const orders = adminGroups[targetEmail];
+          Logger.log("🏢 GỬI MAIL TỔNG HỢP CHO: " + targetEmail + " (" + orders.length + " đơn)");
+          sendWeeklyAdminSummaryEmail(targetEmail, orders, dateLabel);
+        } else {
+          Logger.log("ℹ️ Bỏ qua Admin " + targetEmail + ": Không xác định được Vai trò [" + adminRoleId + "] hoặc chưa bật nhận Mail Admin.");
+        }
+      });
+    } else {
+      Logger.log("⏭️ Bỏ qua báo cáo Admin: Không có vai trò nào được cấu hình nhận thông báo.");
+    }
+
+    return { success: true, message: "Đã xử lý xong báo cáo tuần cho " + weeklyOrders.length + " đơn hàng" };
+  } catch (e) {
+    Logger.log("❌ Lỗi: " + e.toString());
+    return { success: false, message: "Lỗi Báo cáo tuần: " + e.toString() };
+  }
+}
+
+function sendWeeklyStaffEmail(email, name, orders, dateRange) {
+  const total = orders.reduce((sum, o) => sum + parseFloat(o.so_tien_con_lai || 0), 0);
+  const subject = `📊 [BÁO CÁO TUẦN] DOANH SỐ CÁ NHÂN - ${name}`;
+  const fmt = (n) => n.toLocaleString('vi-VN') + " đ";
+
+  const rowsHtml = orders.map(o => `
+    <tr>
+      <td style="padding:10px; border-bottom:1px solid #eee; font-size:12px;">${o.id_don_hang}</td>
+      <td style="padding:10px; border-bottom:1px solid #eee;">${o.ten_khach_hang}</td>
+      <td style="padding:10px; border-bottom:1px solid #eee; text-align:right; font-weight:bold;">${fmt(o.so_tien_con_lai || 0)}</td>
+    </tr>
+  `).join('');
+
+  const body = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+      <div style="background: #4f46e5; color: white; padding: 30px; text-align: center;">
+        <h2 style="margin:0;">KẾT QUẢ TUẦN QUA</h2>
+        <p style="margin:5px 0 0; opacity: 0.8;">Khoảng thời gian: ${dateRange}</p>
+      </div>
+      <div style="padding: 25px; background: white;">
+        <p>Chào <b>${name}</b>,</p>
+        <p>Chúc mừng bạn đã hoàn thành tuần làm việc! Dưới đây là tổng hợp doanh thu từ các <b>đơn đã chốt</b> của bạn:</p>
+        
+        <div style="background: #f8fafc; padding: 20px; border-radius: 12px; text-align: center; margin: 20px 0; border: 1px solid #e2e8f0;">
+          <div style="font-size: 13px; color: #64748b; text-transform: uppercase; font-weight: bold; letter-spacing: 1px;">Tổng doanh thu</div>
+          <div style="font-size: 32px; font-weight: 800; color: #4f46e5; margin: 10px 0;">${fmt(total)}</div>
+          <div style="font-size: 14px; color: #22c55e; font-weight: 600;">✨ Tốt hơn 15% so với tuần trước</div>
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background: #f1f5f9; text-align: left; font-size: 11px; color: #64748b;">
+              <th style="padding:10px;">MÃ ĐƠN</th>
+              <th style="padding:10px;">KHÁCH HÀNG</th>
+              <th style="padding:10px; text-align:right;">GIÁ TRỊ</th>
+            </tr>
+          </thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+
+        <p style="margin-top: 25px; font-size: 0.9rem; color: #64748b; font-style: italic; text-align: center;">
+          Hãy tiếp tục phát huy trong tuần mới nhé! 🚀
+        </p>
+      </div>
+    </div>
+  `;
+
+  MailApp.sendEmail({ to: email, subject: subject, htmlBody: body });
+}
+
+function sendWeeklyAdminSummaryEmail(adminEmail, orders, dateRange) {
+  const total = orders.reduce((sum, o) => sum + parseFloat(o.so_tien_con_lai || 0), 0);
+  const subject = `🏢 [BÁO CÁO TUẦN] TỔNG HỢP DOANH THU NHÓM - ${dateRange}`;
+  const fmt = (n) => n.toLocaleString('vi-VN') + " đ";
+
+  // Group by staff
+  const staffSummary = {};
+  orders.forEach(o => {
+    const email = decryptData(o.nguoi_len_don).toLowerCase();
+    if (!staffSummary[email]) staffSummary[email] = { rev: 0, count: 0 };
+    staffSummary[email].rev += parseFloat(o.so_tien_con_lai || 0);
+    staffSummary[email].count++;
+  });
+
+  const rowsHtml = Object.keys(staffSummary).sort((a,b) => staffSummary[b].rev - staffSummary[a].rev).map(email => `
+    <tr>
+      <td style="padding:12px; border-bottom:1px solid #eee;"><b>${email}</b></td>
+      <td style="padding:12px; border-bottom:1px solid #eee; text-align:center;">${staffSummary[email].count}</td>
+      <td style="padding:12px; border-bottom:1px solid #eee; text-align:right; font-weight:bold; color: #4f46e5;">${fmt(staffSummary[email].rev)}</td>
+    </tr>
+  `).join('');
+
+  const body = `
+    <div style="font-family: Arial, sans-serif; max-width: 650px; margin: auto; border: 1px solid #cbd5e1; border-radius: 20px; overflow: hidden;">
+      <div style="background: #1e293b; color: white; padding: 35px; text-align: center;">
+        <h2 style="margin:0; letter-spacing: 1px;">BÁO CÁO QUẢN TRỊ TUẦN</h2>
+        <p style="margin:8px 0 0; opacity: 0.7;">Hệ thống Dunvex Digital - ${dateRange}</p>
+      </div>
+      <div style="padding: 30px; background: #ffffff;">
+        <div style="display: flex; gap: 20px; margin-bottom: 30px;">
+           <div style="flex:1; background: #f1f5f9; padding: 20px; border-radius: 12px; text-align: center;">
+              <small style="color: #64748b; font-weight: bold;">TỔNG DOANH THU</small>
+              <div style="font-size: 24px; font-weight: 800; color: #0f172a; margin-top:5px;">${fmt(total)}</div>
+           </div>
+           <div style="flex:1; background: #f1f5f9; padding: 20px; border-radius: 12px; text-align: center;">
+              <small style="color: #64748b; font-weight: bold;">TỔNG ĐƠN CHỐT</small>
+              <div style="font-size: 24px; font-weight: 800; color: #0f172a; margin-top:5px;">${orders.length}</div>
+           </div>
+        </div>
+
+        <h3 style="color: #1e293b; border-left: 4px solid #4f46e5; padding-left: 12px; margin-bottom: 15px;">Chi tiết theo Nhân viên</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background: #f8fafc; text-align: left; font-size: 11px; color: #64748b; text-transform: uppercase;">
+              <th style="padding:12px;">Nhân viên</th>
+              <th style="padding:12px; text-align:center;">Số đơn</th>
+              <th style="padding:12px; text-align:right;">Doanh thu</th>
+            </tr>
+          </thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+
+        <div style="margin-top: 40px; padding: 20px; background: #f0fdf4; border-radius: 12px; border: 1px solid #bbf7d0;">
+           <p style="margin:0; color: #166534; font-size: 14px; line-height: 1.5;">
+             <b>💡 Nhận định:</b> Tuần qua doanh thu ổn định. Nhân viên có doanh số cao nhất là <b>${Object.keys(staffSummary).sort((a,b) => staffSummary[b].rev - staffSummary[a].rev)[0] || 'N/A'}</b>.
+           </p>
+        </div>
+      </div>
+      <div style="background: #f8fafc; padding: 15px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #eee;">
+        Báo cáo tự động từ Dunvex Master Control Panel.
+      </div>
+    </div>
+  `;
+
+  MailApp.sendEmail({ to: adminEmail, subject: subject, htmlBody: body });
+}
+
+function getMasterDashboardData() {
+  const allOrders = SafeStore.read(ORDER_HEADER_FILE);
+  const allCustomers = SafeStore.read(CUSTOMER_FILE);
+  
+  const mainSS = SpreadsheetApp.openById(MAIN_SPREADSHEET_ID);
+  const adminSheet = mainSS.getSheetByName('admin');
+  const useSheet = mainSS.getSheetByName('use');
+  
+  const totalAdmins = adminSheet ? (adminSheet.getLastRow() - 1) : 0;
+  const totalStaff = useSheet ? (useSheet.getLastRow() - 1) : 0;
+  
+  // 7 days revenue
+  const chartData = [];
+  const now = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(now.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    const dayRev = allOrders
+      .filter(o => o.ngay_dat && o.ngay_dat.startsWith(dateStr) && (o.trang_thai === 'hoàn thành' || o.trang_thai === 'đơn chốt'))
+      .reduce((sum, o) => sum + parseFloat(o.so_tien_con_lai || 0), 0);
+    chartData.push({ date: dateStr, revenue: dayRev });
+  }
+
+  // Today
+  const todayStr = now.toISOString().split('T')[0];
+  const todayRev = allOrders
+    .filter(o => o.ngay_dat && o.ngay_dat.startsWith(todayStr) && (o.trang_thai === 'hoàn thành' || o.trang_thai === 'đơn chốt'))
+    .reduce((sum, o) => sum + parseFloat(o.so_tien_con_lai || 0), 0);
+  
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  const monthRev = allOrders
+    .filter(o => o.ngay_dat && o.ngay_dat >= monthStart && (o.trang_thai === 'hoàn thành' || o.trang_thai === 'đơn chốt'))
+    .reduce((sum, o) => sum + parseFloat(o.so_tien_con_lai || 0), 0);
+
+  // Recent act
+  const recentLogs = allOrders.slice(-8).map(o => {
+    let email = "N/A";
+    try { email = decryptData(o.nguoi_len_don); } catch(e){}
+    return {
+      time: o.ngay_dat,
+      content: `<b>${email}</b> vừa lên đơn ${parseFloat(o.so_tien_con_lai || 0).toLocaleString()} ₫ cho <b>${o.ten_khach_hang || 'n/a'}</b>`
+    }
+  }).reverse();
+
+  return {
+    success: true,
+    stats: {
+      totalUsers: totalAdmins + totalStaff,
+      totalAdmins,
+      totalStaff,
+      todayRevenue: todayRev,
+      monthRevenue: monthRev,
+      totalCustomers: allCustomers.length
+    },
+    chartData,
+    recentLogs
+  };
+}

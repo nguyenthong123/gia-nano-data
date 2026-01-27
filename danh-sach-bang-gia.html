@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-QFQ2HMYTDH"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag('js', new Date());
+
+		gtag('config', 'G-QFQ2HMYTDH');
+	</script>
+
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Danh Sách Bảng Giá | Dunvex Digital</title>
+	<link rel="icon" type="image/svg+xml"
+		href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23FACC15'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' fill='white' font-size='60' font-family='sans-serif' font-weight='800'>DV</text></svg>">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;800&display=swap"
+		rel="stylesheet">
+	<script src="security-utils.js"></script>
+	<script src="assets/theme-toggle.js"></script>
+	<script>
+		const session = SecurityProvider.validateAccess();
+		const currentUser = session ? session.user : null;
+		const perms = session ? session.permissions : null;
+	</script>
+	<link rel="stylesheet" href="assets/theme.css">
+	<style>
+		/* Variables handled in theme.css */
+
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+			text-rendering: optimizeLegibility;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+			font-weight: 500;
+		}
+
+		body {
+			min-height: 100vh;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+			text-rendering: optimizeLegibility;
+			padding: 40px 20px;
+			-webkit-text-size-adjust: 100%;
+			background-color: var(--bg-body);
+			background-image: var(--bg-gradient-1), var(--bg-gradient-2);
+			background-attachment: fixed;
+		}
+
+		.container {
+			max-width: 1000px;
+			margin: 0 auto;
+		}
+
+		.header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 40px;
+		}
+
+		.header h1 {
+			font-size: 2.22rem;
+			font-weight: 800;
+			color: #0f172a;
+			letter-spacing: -0.5px;
+		}
+
+		.btn {
+			padding: 12px 24px;
+			border-radius: 12px;
+			font-weight: 700;
+			cursor: pointer;
+			text-decoration: none;
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			transition: 0.3s;
+		}
+
+		.btn-primary {
+			background: var(--primary);
+			color: #0f172a;
+			border: none;
+			box-shadow: 0 4px 15px rgba(250, 204, 21, 0.3);
+		}
+
+		.btn-primary:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 10px 25px rgba(250, 204, 21, 0.5);
+		}
+
+		.btn-glass {
+			background: white;
+			color: #0f172a;
+			border: 2px solid var(--primary);
+		}
+
+		.btn-glass:hover {
+			background: #fefce8;
+			transform: translateY(-2px);
+		}
+
+		/* Grid List */
+		.grid-list {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+			gap: 24px;
+		}
+
+		.pl-card {
+			background: white;
+			border: 1.5px solid #e2e8f0;
+			border-radius: 20px;
+			padding: 24px;
+			transition: 0.3s;
+			position: relative;
+			overflow: hidden;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+		}
+
+		.pl-card:hover {
+			transform: translateY(-8px);
+			border-color: var(--primary);
+			box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+		}
+
+		.logo-strip {
+			width: 100%;
+			height: 60px;
+			object-fit: contain;
+			margin-bottom: 20px;
+			filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.2));
+		}
+
+		.pl-title {
+			font-size: 1.2rem;
+			font-weight: 800;
+			margin-bottom: 8px;
+			color: #0f172a;
+		}
+
+		.pl-customer {
+			font-size: 0.85rem;
+			color: var(--accent-purple);
+			margin-bottom: 15px;
+			display: flex;
+			align-items: center;
+			gap: 6px;
+		}
+
+		.pl-meta {
+			font-size: 0.75rem;
+			color: var(--text-muted);
+			margin-top: 15px;
+			padding-top: 15px;
+			border-top: 1px solid var(--glass-border);
+			display: flex;
+			justify-content: space-between;
+		}
+
+		.actions {
+			display: flex;
+			gap: 10px;
+			margin-top: 20px;
+		}
+
+		.btn-action {
+			flex: 1;
+			padding: 10px;
+			border-radius: 8px;
+			font-size: 0.85rem;
+			font-weight: 700;
+			text-align: center;
+			cursor: pointer;
+			transition: 0.2s;
+			border: 1.5px solid #cbd5e1;
+			background: white;
+			color: #334155;
+			text-decoration: none;
+		}
+
+		.btn-action:hover {
+			background: var(--primary);
+			border-color: var(--primary);
+			color: #0f172a;
+		}
+
+		.btn-delete:hover {
+			background: #ef4444;
+			border-color: #ef4444;
+		}
+
+		/* Loading */
+		#loader {
+			display: none;
+			position: fixed;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+		}
+
+		.spinner {
+			width: 40px;
+			height: 40px;
+			border: 4px solid rgba(255, 255, 255, 0.1);
+			border-top-color: var(--primary);
+			border-radius: 50%;
+			animation: spin 1s infinite linear;
+		}
+
+		@keyframes spin {
+			to {
+				transform: rotate(360deg);
+			}
+		}
+
+		/* Floating Menu Style */
+		.floating-actions {
+			position: fixed;
+			bottom: 30px;
+			right: 30px;
+			display: flex;
+			flex-direction: column;
+			gap: 12px;
+			z-index: 1000;
+		}
+
+		.float-btn {
+			width: 56px;
+			height: 56px;
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			transition: 0.3s;
+			box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+			border: 1px solid var(--glass-border);
+			text-decoration: none;
+		}
+
+		.float-btn-main {
+			background: var(--primary);
+			color: white;
+		}
+
+		.float-btn:hover {
+			transform: scale(1.1);
+		}
+
+		.menu-overlay {
+			position: fixed;
+			bottom: 100px;
+			right: 30px;
+			background: var(--card-bg);
+			backdrop-filter: blur(20px);
+			border: 1px solid var(--glass-border);
+			border-radius: 20px;
+			width: 280px;
+			padding: 12px;
+			display: none;
+			box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+			z-index: 1001;
+		}
+
+		.menu-overlay.active {
+			display: block;
+			animation: fadeInUp 0.3s ease;
+		}
+
+		@keyframes fadeInUp {
+			from {
+				opacity: 0;
+				transform: translateY(20px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		.menu-link {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			padding: 14px 16px;
+			color: var(--text-main);
+			text-decoration: none;
+			border-radius: 12px;
+			transition: 0.2s;
+			font-weight: 600;
+		}
+
+		.menu-link:hover {
+			background: rgba(255, 255, 255, 0.05);
+			color: var(--accent-purple);
+		}
+
+		.menu-header {
+			padding: 10px 16px;
+			font-size: 0.75rem;
+			text-transform: uppercase;
+			letter-spacing: 1px;
+			color: #64748b;
+			font-weight: 800;
+		}
+
+		.hidden {
+			display: none !important;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="loader">
+		<div class="spinner"></div>
+	</div>
+
+	<div class="container">
+		<div class="header">
+			<h1>Danh Sách Bảng Giá</h1>
+			<div style="display: flex; gap: 12px;">
+				<a href="index.html" class="btn btn-glass">
+					<i class="fa-solid fa-house"></i> Trang chủ
+				</a>
+				<a href="tao-bang-gia.html" class="btn btn-primary">
+					<i class="fa-solid fa-plus"></i> Tạo Mới
+				</a>
+			</div>
+		</div>
+
+		<div class="filters"
+			style="display: flex; gap: 15px; margin-bottom: 30px; align-items: center; flex-wrap: wrap;">
+			<div style="flex: 1; min-width: 250px; position: relative;">
+				<input type="text" id="searchInput" placeholder="Tìm tên bảng giá hoặc khách hàng..."
+					oninput="filterLists()"
+					style="padding-left: 45px; background: white !important; border: 1.5px solid #cbd5e1 !important; color: #0f172a !important; font-weight: 600;">
+				<i class="fa-solid fa-magnifying-glass"
+					style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); opacity: 0.8; color: #64748b;"></i>
+			</div>
+			<div id="adminViewMode" style="display: none; align-items: center; gap: 10px;">
+				<span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Xem:</span>
+				<select id="viewModeSelect" onchange="filterLists()"
+					style="width: 150px; padding: 10px; background: white !important; border: 1.5px solid #cbd5e1 !important; border-radius: 10px; color: #0f172a !important; font-weight: 600;">
+					<option value="team">Cả nhóm</option>
+					<option value="mine">Cá nhân</option>
+				</select>
+			</div>
+		</div>
+
+		<div id="plList" class="grid-list">
+			<!-- Price lists will appear here -->
+		</div>
+	</div>
+
+	<!-- Floating Actions -->
+	<div class="floating-actions" id="mainFloatingActions">
+		<div class="menu-overlay" id="menuOverlay">
+			<div id="staffMenu">
+				<div class="menu-header">Kinh Doanh & Kho</div>
+				<a href="crm-sales.html" id="menu_checkin" class="menu-link hidden"
+					style="color: var(--accent-purple); font-weight: 800;">📍 Check-in Sales</a>
+				<a href="quan-ly-san-pham.html" id="menu_products" class="menu-link hidden"
+					style="color: var(--primary); font-weight: 800;">📦 Quản lý Sản phẩm</a>
+				<a href="len-don-hang.html" id="menu_create" class="menu-link hidden">📝 Lên đơn mới</a>
+				<a href="danh-sach-don-hang.html" id="menu_list" class="menu-link hidden">📋 Danh sách đơn hàng</a>
+				<a href="tao-bang-gia.html" id="menu_create_pl" class="menu-link hidden" style="color: #fbbf24;">📝 Tạo
+					bảng giá mới</a>
+				<a href="danh-sach-bang-gia.html" id="menu_list_pl" class="menu-link hidden" style="color: #fbbf24;">🏷️
+					Danh sách bảng giá</a>
+				<a href="quan-ly-kho.html" id="menu_inventory" class="menu-link hidden" style="color: #22c55e;">📊 Quản
+					lý kho vận</a>
+			</div>
+
+			<div id="adminMenu" class="hidden">
+				<div class="menu-header">Quản Trị Hệ Thống</div>
+				<a href="admin-users.html" id="menu_admin" class="menu-link hidden"
+					style="color: var(--accent-purple);">🔐 Cấp quyền nhân viên</a>
+			</div>
+
+			<div class="menu-link" onclick="logout()"
+				style="color: #ef4444; border-top: 1px solid var(--glass-border); margin-top: 8px; cursor: pointer;">🚪
+				Đăng xuất</div>
+		</div>
+
+		<div class="float-btn float-btn-main" onclick="toggleMenu()" id="menuTriggerBtn">
+			<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<line x1="3" y1="12" x2="21" y2="12"></line>
+				<line x1="3" y1="6" x2="21" y2="6"></line>
+				<line x1="3" y1="18" x2="21" y2="18"></line>
+			</svg>
+		</div>
+	</div>
+
+	<script>
+		const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxJAbSw_qt8cYDU6DD0eOUL0cL_UHsSEWFNE59WO32JTvySnOHztKnAULpXTi8gkiEl/exec';
+
+		if (!currentUser) window.location.href = 'auth.html';
+
+		let allLists = [];
+
+		async function loadList() {
+			const loader = document.getElementById('loader');
+			loader.style.display = 'block';
+
+			if (currentUser.roleId === 'R001') {
+				document.getElementById('adminViewMode').style.display = 'flex';
+			}
+
+			try {
+				const res = await fetch(SCRIPT_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('get_price_lists', {
+						userEmail: currentUser.email,
+						isAdmin: currentUser.roleId === 'R001',
+						adminEmail: currentUser.adminEmail || currentUser.email,
+						forceAll: true
+					})
+				});
+				const data = await res.json();
+				if (data.success) {
+					allLists = data.lists || [];
+					renderList(allLists);
+				}
+			} catch (e) {
+				console.error(e);
+			} finally {
+				loader.style.display = 'none';
+			}
+		}
+
+		function filterLists() {
+			const q = document.getElementById('searchInput').value.toLowerCase();
+			const viewMode = document.getElementById('viewModeSelect')?.value || 'team';
+
+			const filtered = allLists.filter(pl => {
+				const matchSearch = pl.title.toLowerCase().includes(q) || pl.customer.toLowerCase().includes(q);
+				let matchView = true;
+				if (viewMode === 'mine') {
+					matchView = (pl.createdBy.toLowerCase().trim() === currentUser.email.toLowerCase().trim());
+				}
+				return matchSearch && matchView;
+			});
+			renderList(filtered);
+		}
+
+		function renderList(lists) {
+			const container = document.getElementById('plList');
+			if (!lists || lists.length === 0) {
+				container.innerHTML = '<p style="text-align: center; grid-column: 1/-1; color: var(--text-muted); padding: 50px;">Chưa có bảng giá nào được tạo.</p>';
+				return;
+			}
+
+			container.innerHTML = lists.map(pl => `
+				<div class="pl-card">
+					${pl.logo ? `<img src="${pl.logo}" class="logo-strip">` : '<div class="logo-strip" style="background: var(--glass-border); border-radius: 10px;"></div>'}
+					<div class="pl-title">${pl.title}</div>
+					<div class="pl-customer">🏢 ${pl.customer}</div>
+					
+					<div class="actions">
+						<a href="view-bang-gia.html?id=${pl.id}" class="btn-action" onclick="localStorage.setItem('last_view_pl_id', '${pl.id}')">👁️ Xem chi tiết</a>
+						<a href="tao-bang-gia.html?id=${pl.id}" class="btn-action" style="background: rgba(99, 102, 241, 0.1); color: var(--primary);" onclick="localStorage.setItem('last_edit_pl_id', '${pl.id}')">✏️ Sửa</a>
+						<button class="btn-action btn-delete" onclick="deletePL('${pl.id}')">🗑️ Xóa</button>
+					</div>
+
+					<div class="pl-meta">
+						<span>👤 ${pl.createdBy.split('@')[0]}</span>
+						<span>📅 ${new Date(pl.createdAt).toLocaleDateString('vi-VN')}</span>
+					</div>
+				</div>
+			`).join('');
+		}
+
+		async function deletePL(id) {
+			if (!confirm("Bạn có chắc chắn muốn xóa bảng giá này không?")) return;
+
+			const loader = document.getElementById('loader');
+			loader.style.display = 'block';
+
+			try {
+				const res = await fetch(SCRIPT_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('delete_price_list', { fileId: id })
+				});
+				const data = await res.json();
+				if (data.success) {
+					loadList();
+				}
+			} catch (e) {
+				console.error(e);
+			} finally {
+				loader.style.display = 'none';
+			}
+		}
+
+		// Floating Menu Logic
+		function toggleMenu() {
+			document.getElementById('menuOverlay').classList.toggle('active');
+		}
+
+		function logout() {
+			SecurityProvider.logout();
+		}
+
+		function updateMenuPermissions() {
+			if (!currentUser || !perms) return;
+
+			// Show role-specific menus
+			if (currentUser.roleId === 'R001') document.getElementById('adminMenu').classList.remove('hidden');
+
+			// Check specific permissions
+			if (perms.checkinSales) document.getElementById('menu_checkin').classList.remove('hidden');
+			if (perms.quanLySanPham) document.getElementById('menu_products').classList.remove('hidden');
+			if (perms.lenDonMoi) document.getElementById('menu_create').classList.remove('hidden');
+			if (perms.danhSachDonHang) document.getElementById('menu_list').classList.remove('hidden');
+			if (perms.quanLyNhanVien) document.getElementById('menu_admin').classList.remove('hidden');
+			if (perms.taoBangGia) document.getElementById('menu_create_pl').classList.remove('hidden');
+			if (perms.xemBangGia) document.getElementById('menu_list_pl').classList.remove('hidden');
+
+			// Quản lý kho (Dành cho admin hoặc người có quyền quản lý sản phẩm)
+			if (currentUser.roleId === 'R001' || perms.quanLySanPham) {
+				document.getElementById('menu_inventory').classList.remove('hidden');
+			}
+		}
+
+		// Close menu on outside click
+		window.onclick = function (event) {
+			const overlay = document.getElementById('menuOverlay');
+			const trigger = document.getElementById('menuTriggerBtn');
+			if (overlay && overlay.classList.contains('active') && !overlay.contains(event.target) && !trigger.contains(event.target)) {
+				overlay.classList.remove('active');
+			}
+		}
+
+		if (currentUser) {
+			loadList();
+			updateMenuPermissions();
+		} else {
+			window.location.href = 'auth.html';
+		}
+	</script>
+	<script src="floating-menu.js"></script>
+</body>
+
+</html>

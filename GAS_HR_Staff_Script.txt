@@ -1,0 +1,295 @@
+/**
+ * DUNVEX HUMAN RESOURCES - STAFF OPERATIONS SCRIPT
+ * Handles Weekly Plans, Leave Requests, and Staff-side attendance.
+ * Data Storage: JSON files in Drive Folder: 1_LT4rzVui2E3BgfcwUSfMsUGQMN9NRTs
+ */
+
+const HR_FOLDER_ID = '1_LT4rzVui2E3BgfcwUSfMsUGQMN9NRTs';
+const XOR_SECRET = 'dunvex_secure_key_2025_custom';
+const API_SECRET = 'dv_api_secret_2025_prod_v2';
+
+// --- AUTH TRIGGER ---
+function forceAuthorization() {
+  const quota = MailApp.getRemainingDailyQuota();
+  Logger.log("Quyền gửi mail đã được kích hoạt. Quota còn lại: " + quota);
+}
+
+function doPost(e) {
+  let result;
+  try {
+    const data = JSON.parse(e.postData.contents);
+
+    // --- API SECURITY CHECK ---
+    if (data.apiKey !== API_SECRET) {
+      return ContentService.createTextOutput(JSON.stringify({ 
+        success: false, 
+        message: 'Unauthorized Staff Access' 
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const action = data.action;
+
+    switch (action) {
+      // WEEKLY PLAN
+      case 'getStaffPlans': result = getStaffPlans(data); break;
+      case 'saveStaffPlan': result = saveStaffPlan(data); break;
+      
+      // LEAVE REQUESTS
+      case 'getStaffLeaves': result = getStaffLeaves(data); break;
+      case 'submitLeaveRequest': result = submitLeaveRequest(data); break;
+      
+      // CHECK-IN WITH OTP
+      case 'sendCheckinOTP': result = sendCheckinOTP(data); break;
+      case 'verifyAndCheckin': result = verifyAndCheckin(data); break;
+      case 'getTodayLog': result = getTodayLog(data); break;
+      
+      // UTILITIES
+      case 'getEventsForStaff': result = getEventsForStaff(data); break;
+
+      default: result = { success: false, message: 'Hành động không hợp lệ cho Staff: ' + action };
+    }
+  } catch (error) {
+    result = { success: false, message: 'Lỗi Staff Backend: ' + error.toString() };
+  }
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+}
+
+// --- STORAGE HELPERS ---
+function getFileData(filename, defaultValue) {
+  try {
+    const folder = DriveApp.getFolderById(HR_FOLDER_ID);
+    const files = folder.getFilesByName(filename);
+    if (files.hasNext()) {
+      const file = files.next();
+      return { success: true, data: JSON.parse(file.getBlob().getDataAsString()) };
+    }
+    return { success: true, data: defaultValue };
+  } catch (e) { return { success: false, message: "Lỗi đọc file: " + e.toString() }; }
+}
+
+function saveFileData(filename, data) {
+  try {
+    const folder = DriveApp.getFolderById(HR_FOLDER_ID);
+    const files = folder.getFilesByName(filename);
+    while (files.hasNext()) {
+      DriveApp.getFileById(files.next().getId()).setTrashed(true);
+    }
+    folder.createFile(filename, JSON.stringify(data));
+    return { success: true };
+  } catch (e) { return { success: false, message: "Lỗi ghi file: " + e.toString() }; }
+}
+
+// --- WEEKLY PLANS ---
+function getStaffPlans(data) {
+  const userEmail = (data.userEmail || "").toLowerCase().trim();
+  const res = getFileData('hr_weekly_plans.json', []);
+  if (!res.success) return res;
+  
+  // Robust filter: Check plain performer or decrypt userEmail
+  const userPlans = res.data.filter(p => {
+    const pUser = (p.performer || decryptHR(p.userEmailEnc || p.userEmail || "")).toLowerCase().trim();
+    return pUser === userEmail;
+  });
+  return { success: true, data: userPlans };
+}
+
+function saveStaffPlan(data) {
+  const plan = data.plan; 
+  const userEmail = (data.userEmail || "").toLowerCase().trim();
+  const adminEmail = (data.adminEmail || "").toLowerCase().trim();
+  
+  const res = getFileData('hr_weekly_plans.json', []);
+  if (!res.success) return res;
+  
+  const allPlans = res.data;
+  if (!plan.id) {
+    plan.id = "PL-" + new Date().getTime();
+    plan.createdAt = new Date().toISOString();
+  }
+  
+  plan.userEmail = encryptHR(userEmail); // For compatibility
+  plan.adminEmail = encryptHR(adminEmail); // Encrypted as requested
+  plan.userEmailEnc = encryptHR(userEmail);
+  plan.adminEmailEnc = encryptHR(adminEmail);
+  
+  // Metadata for easy management
+  plan.performer = userEmail; 
+  plan.admin = adminEmail;
+  plan.fullName = data.fullName || plan.fullName || userEmail.split('@')[0];
+  plan.updatedAt = new Date().toISOString();
+  plan.status = plan.status || "Chờ duyệt";
+
+  const idx = allPlans.findIndex(p => p.id === plan.id);
+  if (idx > -1) allPlans[idx] = plan;
+  else allPlans.push(plan);
+
+  return saveFileData('hr_weekly_plans.json', allPlans);
+}
+
+// --- LEAVE REQUESTS ---
+function getStaffLeaves(data) {
+  const userEmail = (data.userEmail || "").toLowerCase().trim();
+  const res = getFileData('hr_leave_requests.json', []);
+  if (!res.success) return res;
+  
+  const userLeaves = res.data.filter(l => {
+    const lUser = (l.performer || decryptHR(l.userEmailEnc || l.userEmail || "")).toLowerCase().trim();
+    return lUser === userEmail;
+  });
+  return { success: true, data: userLeaves };
+}
+
+function submitLeaveRequest(data) {
+  const req = data.request; 
+  const userEmail = (data.userEmail || "").toLowerCase().trim();
+  const adminEmail = (data.adminEmail || "").toLowerCase().trim();
+  
+  const res = getFileData('hr_leave_requests.json', []);
+  if (!res.success) return res;
+  
+  const allRequests = res.data;
+  req.id = "LR-" + new Date().getTime();
+  
+  // Security
+  req.userEmailEnc = encryptHR(userEmail);
+  req.adminEmailEnc = encryptHR(adminEmail);
+  req.userEmail = encryptHR(userEmail); // Compatibility
+  req.adminEmail = encryptHR(adminEmail); // Compatibility
+
+  // Core metadata for robust filtering
+  req.performer = userEmail;
+  req.admin = adminEmail;
+  req.fullName = data.fullName || userEmail.split('@')[0];
+  req.status = "Chờ duyệt";
+  req.createdAt = new Date().toISOString();
+  req.updatedAt = new Date().toISOString();
+
+  allRequests.push(req);
+  return saveFileData('hr_leave_requests.json', allRequests);
+}
+
+// --- ATTENDANCE WITH OTP ---
+function sendCheckinOTP(data) {
+  const userEmail = (data.userEmail || "").toLowerCase().trim();
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  
+  // Save OTP temporarily (valid for 5 mins)
+  const res = getFileData('hr_temp_otp.json', {});
+  const otps = res.data;
+  otps[userEmail] = {
+    code: otp,
+    expiry: new Date().getTime() + (5 * 60 * 1000)
+  };
+  saveFileData('hr_temp_otp.json', otps);
+
+  // Send Email
+  try {
+    MailApp.sendEmail(userEmail, 
+      "[DUNVEX HR] Mã xác thực Chấm công", 
+      `Chào bạn,\n\nMã xác thực (OTP) của bạn là: ${otp}\n\nMã có hiệu lực trong 5 phút. Vui lòng không cung cấp mã này cho người khác.`
+    );
+    return { success: true, message: "Mã xác thực đã được gửi tới email của bạn." };
+  } catch(e) {
+    return { success: false, message: "Lỗi gửi email: " + e.toString() };
+  }
+}
+
+function verifyAndCheckin(data) {
+  const userEmail = (data.userEmail || "").toLowerCase().trim();
+  const adminEmail = (data.adminEmail || "").toLowerCase().trim();
+  const otpRes = getFileData('hr_temp_otp.json', {});
+  const otps = otpRes.data;
+
+  const validOtp = otps[userEmail];
+  if (!validOtp || validOtp.code !== data.otp || new Date().getTime() > validOtp.expiry) {
+    return { success: false, message: "Mã OTP không chính xác hoặc đã hết hạn." };
+  }
+
+  // Clear OTP
+  delete otps[userEmail];
+  saveFileData('hr_temp_otp.json', otps);
+
+  // Record Attendance
+  const dateStr = Utilities.formatDate(new Date(), "GMT+7", "yyyy-MM");
+  const filename = `attendance_${dateStr}.json`;
+  const attRes = getFileData(filename, []);
+  const logs = attRes.data;
+
+  // Determine Type
+  const today = Utilities.formatDate(new Date(), "GMT+7", "yyyy-MM-dd");
+  const userTodayLogs = logs.filter(l => decryptHR(l.emailEnc || l.userEmailEnc) === userEmail && l.time.startsWith(today));
+  const type = userTodayLogs.length === 0 ? "IN" : (userTodayLogs.length === 1 ? "OUT" : "EXTRA");
+
+  const entry = {
+    id: "AT-" + new Date().getTime(),
+    emailEnc: encryptHR(userEmail), // Standard
+    userEmailEnc: encryptHR(userEmail), // For compatibility with older staff logic
+    adminEmailEnc: encryptHR(adminEmail),
+    performerEmailEnc: encryptHR(userEmail),
+    name: data.fullName, // Use 'name' to match report expectations
+    fullName: data.fullName, // Keep for backward compatibility
+    time: new Date().toISOString(),
+    type: type,
+    location: data.location,
+    officeName: data.officeName,
+    ip: data.ip || "N/A",
+    note: data.note || ""
+  };
+
+  logs.push(entry);
+  saveFileData(filename, logs);
+  
+  return { success: true, message: `Bạn đã ${type} thành công!` };
+}
+
+function getTodayLog(data) {
+  const userEmail = (data.userEmail || "").toLowerCase().trim();
+  const today = Utilities.formatDate(new Date(), "GMT+7", "yyyy-MM-dd");
+  const dateStr = Utilities.formatDate(new Date(), "GMT+7", "yyyy-MM");
+  const filename = `attendance_${dateStr}.json`;
+  const res = getFileData(filename, []);
+  if (!res.success) return res;
+
+  const todayLogs = res.data.filter(l => decryptHR(l.emailEnc || l.userEmailEnc) === userEmail && l.time.startsWith(today));
+  return { success: true, data: todayLogs };
+}
+
+// --- SHARED EVENTS ---
+function getEventsForStaff(data) {
+  const userEmail = (data.userEmail || "").toLowerCase().trim();
+  const adminEmail = (data.adminEmail || "").toLowerCase().trim();
+  
+  const res = getFileData('hr_events.json', []);
+  if (!res.success) return res;
+  
+  // Staff sees events belonging to their admin OR events they are specifically invited to
+  const filtered = res.data.filter(ev => {
+    return ev.adminEmail === adminEmail || (ev.attendees && ev.attendees.toLowerCase().includes(userEmail));
+  });
+  
+  return { success: true, data: filtered };
+}
+
+// --- SECURITY UTILS ---
+function encryptHR(text) {
+  if (!text) return "";
+  const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+  const out = [];
+  for (let i = 0; i < text.length; i++) {
+    out.push(text.charCodeAt(i) ^ keyBytes[i % keyBytes.length]);
+  }
+  return Utilities.base64Encode(out);
+}
+
+function decryptHR(text) {
+  if (!text) return "";
+  try {
+    const bytes = Utilities.base64Decode(text);
+    const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+    let res = "";
+    for (let i = 0; i < bytes.length; i++) {
+      res += String.fromCharCode(bytes[i] ^ keyBytes[i % keyBytes.length]);
+    }
+    return res;
+  } catch (e) { return text; }
+}

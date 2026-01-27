@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-QFQ2HMYTDH"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag('js', new Date());
+
+		gtag('config', 'G-QFQ2HMYTDH');
+	</script>
+
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Tạo Bảng Giá Tùy Chỉnh | Dunvex Digital</title>
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;800&display=swap"
+		rel="stylesheet">
+	<link rel="icon" type="image/svg+xml"
+		href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23FACC15'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' fill='white' font-size='60' font-family='sans-serif' font-weight='800'>DV</text></svg>">
+	<script src="security-utils.js"></script>
+	<script>
+		const session = SecurityProvider.validateAccess();
+		const currentUser = session ? session.user : null;
+		const perms = session ? session.permissions : null;
+	</script>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+			text-rendering: optimizeLegibility;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+			font-weight: 500;
+		}
+
+		body {
+			background-color: var(--bg-body);
+			color: var(--text-main);
+			min-height: 100vh;
+			background-image: var(--bg-gradient-1), var(--bg-gradient-2);
+			background-attachment: fixed;
+			padding: 40px 20px;
+			-webkit-text-size-adjust: 100%;
+		}
+
+		.container {
+			max-width: 1100px;
+			margin: 0 auto;
+		}
+
+		.header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 40px;
+		}
+
+		.header h1 {
+			font-size: 2.2rem;
+			font-weight: 800;
+			color: #0f172a;
+			letter-spacing: -0.5px;
+			font-family: 'Outfit', sans-serif;
+		}
+
+		.back-btn {
+			text-decoration: none;
+			color: var(--text-muted);
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			font-weight: 600;
+			transition: 0.3s;
+		}
+
+		.back-btn:hover {
+			color: white;
+		}
+
+
+
+		/* Form Sections */
+		.card {
+			background: white;
+			border: 1px solid var(--glass-border);
+			border-radius: 24px;
+			padding: 32px;
+			margin-bottom: 30px;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+		}
+
+		.grid-info {
+			display: grid;
+			grid-template-columns: 1fr 2fr;
+			gap: 30px;
+		}
+
+		@media (max-width: 768px) {
+			.grid-info {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		.form-group {
+			margin-bottom: 20px;
+		}
+
+		label {
+			display: block;
+			font-size: 0.9rem;
+			color: #1e293b;
+			margin-bottom: 10px;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+			font-weight: 800;
+		}
+
+		input,
+		textarea {
+			width: 100%;
+			padding: 15px 18px;
+			background: white !important;
+			border: 1.5px solid #cbd5e1 !important;
+			border-radius: 12px;
+			color: #0f172a !important;
+			outline: none;
+			transition: 0.3s;
+			font-weight: 600;
+		}
+
+		input:focus,
+		textarea:focus {
+			border-color: var(--primary) !important;
+			box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.15) !important;
+		}
+
+		/* Logo Upload */
+		.logo-uploader {
+			width: 100%;
+			height: 200px;
+			border: 2px dashed #cbd5e1;
+			border-radius: 20px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			transition: 0.3s;
+			position: relative;
+			overflow: hidden;
+			background: #f8fafc;
+		}
+
+		.logo-uploader:hover {
+			border-color: var(--primary);
+			background: #fefce8;
+		}
+
+		.logo-preview {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			object-fit: contain;
+			background: rgba(0, 0, 0, 0.3);
+			display: none;
+		}
+
+		/* Dynamic Table */
+		.table-wrapper {
+			overflow-x: auto;
+			margin-top: 20px;
+			border-radius: 16px;
+			border: 1.5px solid #e2e8f0;
+			background: white;
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+			min-width: 800px;
+		}
+
+		th,
+		td {
+			padding: 12px 15px;
+			border: 1.5px solid #f1f5f9;
+			text-align: left;
+		}
+
+		th {
+			background: #f8fafc;
+			color: #334155;
+			font-size: 0.85rem;
+			font-weight: 800;
+			text-transform: uppercase;
+			border-bottom: 2px solid #f1f5f9;
+		}
+
+		td {
+			padding: 15px;
+			border: 1px solid #f1f5f9;
+			text-align: left;
+			font-weight: 600;
+			color: #0f172a;
+		}
+
+		td input {
+			background: white !important;
+			border: 1.5px solid #cbd5e1 !important;
+			padding: 10px 14px !important;
+			font-weight: 600 !important;
+			border-radius: 8px !important;
+			transition: all 0.2s ease !important;
+			width: 100%;
+			color: #1e293b !important;
+		}
+
+		td input:focus {
+			background: white !important;
+			border-color: var(--primary) !important;
+			box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.1) !important;
+		}
+
+		.col-header-wrap {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+		.col-header-wrap input {
+			background: white !important;
+			border: 1.5px solid #cbd5e1 !important;
+			padding: 8px 12px !important;
+			font-weight: 800 !important;
+			color: #0f172a !important;
+			border-radius: 10px !important;
+			font-size: 0.9rem !important;
+			width: 100% !important;
+		}
+
+		.col-header-wrap input:focus {
+			border-color: var(--primary) !important;
+			box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.1) !important;
+		}
+
+		.btn-mini {
+			padding: 4px 8px;
+			font-size: 0.7rem;
+			border-radius: 6px;
+			border: 1px solid var(--glass-border);
+			background: rgba(255, 255, 255, 0.05);
+			color: var(--text-muted);
+			cursor: pointer;
+			transition: 0.3s;
+		}
+
+		.btn-mini:hover {
+			background: #ef4444;
+			color: white;
+			border-color: #ef4444;
+		}
+
+		/* Control Buttons */
+		.controls {
+			display: flex;
+			gap: 12px;
+			margin-top: 20px;
+		}
+
+		.btn {
+			padding: 14px 28px;
+			border-radius: 14px;
+			font-weight: 700;
+			cursor: pointer;
+			transition: 0.3s;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			border: none;
+		}
+
+		.btn-primary {
+			background: var(--primary);
+			color: #0f172a;
+			box-shadow: 0 4px 12px rgba(250, 204, 21, 0.3);
+		}
+
+		.btn-primary:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 10px 25px rgba(250, 204, 21, 0.5);
+		}
+
+		.btn-glass {
+			background: white;
+			border: 1.5px solid #cbd5e1;
+			color: #334155;
+			padding: 10px 20px;
+			font-weight: 800;
+			border-radius: 12px;
+		}
+
+		.btn-glass:hover,
+		.btn-outline:hover {
+			background: #e2e8f0;
+			border-color: #64748b;
+			transform: translateY(-1px);
+			color: #0f172a;
+		}
+
+		.btn-glass:active,
+		.btn-outline:active {
+			transform: scale(0.98);
+		}
+
+		.btn-outline {
+			background: #f1f5f9;
+			border: 1.5px solid #94a3b8;
+			color: #1e293b;
+			padding: 10px 20px;
+			font-weight: 800;
+			border-radius: 12px;
+			box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+		}
+
+		.btn-outline:hover {
+			background: white;
+			border-color: var(--primary);
+			color: #0f172a;
+			box-shadow: 0 5px 15px rgba(250, 204, 21, 0.3);
+		}
+
+		/* Loading */
+		.loading-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(15, 23, 42, 0.8);
+			display: none;
+			justify-content: center;
+			align-items: center;
+			z-index: 1000;
+			backdrop-filter: blur(5px);
+		}
+
+		.spinner {
+			width: 50px;
+			height: 50px;
+			border: 5px solid rgba(255, 255, 255, 0.1);
+			border-top-color: var(--primary);
+			border-radius: 50%;
+			animation: spin 1s infinite linear;
+		}
+
+		@keyframes spin {
+			to {
+				transform: rotate(360deg);
+			}
+		}
+
+		#toast {
+			position: fixed;
+			bottom: 30px;
+			right: 30px;
+			padding: 16px 32px;
+			border-radius: 12px;
+			background: #22c55e;
+			color: white;
+			font-weight: 800;
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+			transform: translateY(200px);
+			transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+			z-index: 2000;
+		}
+
+		#toast.show {
+			transform: translateY(0);
+		}
+	</style>
+</head>
+
+<body>
+	<div class="loading-overlay" id="loader">
+		<div class="spinner"></div>
+	</div>
+
+	<div id="toast">Thông báo</div>
+
+	<div class="container">
+		<div class="header">
+			<div>
+				<h1 id="pageTitle" style="font-size: 1.5rem; opacity: 0.9;">Tạo Bảng Giá Tùy Chỉnh</h1>
+			</div>
+			<div class="controls">
+				<button class="btn btn-glass" onclick="window.location.href='danh-sach-bang-gia.html'">📋 Danh
+					sách</button>
+				<button class="btn btn-primary" onclick="saveData()">💾 <span id="saveBtnText">Lưu Bảng
+						Giá</span></button>
+			</div>
+		</div>
+
+		<div class="grid-info">
+			<!-- Logo Card -->
+			<div class="card">
+				<label>Logo Đại Lý / Khách Hàng</label>
+				<div class="logo-uploader" onclick="document.getElementById('logoFile').click()">
+					<div id="uploadPrompt">
+						<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+							stroke-width="2" style="margin-bottom: 15px; color: var(--primary);">
+							<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+							<polyline points="17 8 12 3 7 8"></polyline>
+							<line x1="12" y1="3" x2="12" y2="15"></line>
+						</svg>
+						<p style="font-size: 0.9rem; color: var(--text-muted);">Nhấn để tải lên Logo</p>
+					</div>
+					<img id="logoPreview" class="logo-preview">
+				</div>
+				<input type="file" id="logoFile" hidden accept="image/*" onchange="previewLogo(this)">
+			</div>
+
+			<!-- Info Card -->
+			<div class="card">
+				<div class="form-group">
+					<label>Tiêu đề bảng giá</label>
+					<input type="text" id="pl_title" placeholder="Ví dụ: Bảng Giá Vật Tư Công Trình ABC - Tháng 1/2026">
+				</div>
+				<div class="form-group">
+					<label>Tên khách hàng / Đối tác</label>
+					<input type="text" id="pl_customer" placeholder="Công ty TNHH Xây Dựng Dunvex">
+				</div>
+				<div class="form-group">
+					<label>Ghi chú chân trang</label>
+					<textarea id="pl_notes" rows="2"
+						placeholder="Ví dụ: Giá trên đã bao gồm VAT. Giao hàng tại kho..."></textarea>
+				</div>
+			</div>
+		</div>
+
+		<!-- Table Card -->
+		<div class="card" style="padding-top: 20px;">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+				<h2 style="font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
+					<span style="color: var(--primary);">📊</span> Chi Tiết Bảng Giá
+				</h2>
+				<div class="controls">
+					<button class="btn btn-mini"
+						style="background: rgba(99, 102, 241, 0.1); color: var(--primary); font-weight: 800;"
+						onclick="addColumn()">➕ Thêm Cột</button>
+					<button class="btn btn-mini"
+						style="background: rgba(192, 132, 252, 0.1); color: var(--accent-purple); font-weight: 800;"
+						onclick="addRow()">➕ Thêm Hàng</button>
+				</div>
+			</div>
+
+			<div class="table-wrapper">
+				<table id="priceTable">
+					<thead>
+						<tr id="headerRow">
+							<th style="width: 60px;">STT</th>
+							<th>
+								<div class="col-header-wrap">
+									<input type="text" value="Tên Sản Phẩm" onchange="updateColName(0, this.value)">
+								</div>
+							</th>
+							<th>
+								<div class="col-header-wrap">
+									<input type="text" value="Đơn Vị" onchange="updateColName(1, this.value)">
+								</div>
+							</th>
+							<th>
+								<div class="col-header-wrap">
+									<input type="text" value="Đơn Giá" onchange="updateColName(2, this.value)">
+								</div>
+							</th>
+							<th style="width: 50px;">-</th>
+						</tr>
+					</thead>
+					<tbody id="tableBody">
+						<!-- Rows here -->
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxJAbSw_qt8cYDU6DD0eOUL0cL_UHsSEWFNE59WO32JTvySnOHztKnAULpXTi8gkiEl/exec';
+
+		let currentId = null;
+		let currentLogoUrl = null;
+
+		let columns = ["Tên Sản Phẩm", "Đơn Vị", "Đơn Giá"];
+		let rows = [
+			{ "Tên Sản Phẩm": "", "Đơn Vị": "", "Đơn Giá": "" }
+		];
+
+		if (!currentUser) window.location.href = 'auth.html';
+
+		async function init() {
+			const urlParams = new URLSearchParams(window.location.search);
+			currentId = urlParams.get('id');
+
+			// Smart Bridge ID: Lấy từ localStorage nếu URL bị thiếu (phòng trường hợp mất parameter)
+			if (!currentId) {
+				currentId = localStorage.getItem('last_edit_pl_id');
+			}
+
+			if (currentId) {
+				document.getElementById('pageTitle').innerText = "Chỉnh Sửa Bảng Giá";
+				document.getElementById('saveBtnText').innerText = "Cập Nhật Bảng Giá";
+				await loadExistingData(currentId);
+				// Xóa ID dự phòng sau khi đã load thành công để tránh nhầm lẫn lần sau
+				localStorage.removeItem('last_edit_pl_id');
+			} else {
+				renderTable();
+			}
+		}
+
+		async function loadExistingData(id) {
+			const loader = document.getElementById('loader');
+			loader.style.display = 'flex';
+			try {
+				const res = await fetch(SCRIPT_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('get_price_list_detail', { fileId: id })
+				});
+				const data = await res.json();
+				if (data.success) {
+					const pl = data.data;
+					document.getElementById('pl_title').value = pl.title;
+					document.getElementById('pl_customer').value = pl.customerName;
+					document.getElementById('pl_notes').value = pl.notes || '';
+					columns = pl.columns;
+					rows = pl.rows;
+					currentLogoUrl = pl.logoUrl;
+
+					if (currentLogoUrl) {
+						const prev = document.getElementById('logoPreview');
+						prev.src = currentLogoUrl;
+						prev.style.display = 'block';
+						document.getElementById('uploadPrompt').style.display = 'none';
+					}
+					renderTable();
+				} else {
+					showToast("Không tìm thấy dữ liệu để sửa", true);
+				}
+			} catch (e) {
+				showToast("Lỗi tải dữ liệu", true);
+			} finally {
+				loader.style.display = 'none';
+			}
+		}
+
+		function showToast(msg, isError = false) {
+			const t = document.getElementById('toast');
+			t.innerText = msg;
+			t.style.background = isError ? '#ef4444' : '#22c55e';
+			t.classList.add('show');
+			setTimeout(() => t.classList.remove('show'), 3000);
+		}
+
+		function previewLogo(input) {
+			if (input.files && input.files[0]) {
+				const reader = new FileReader();
+				reader.onload = function (e) {
+					const prev = document.getElementById('logoPreview');
+					prev.src = e.target.result;
+					prev.style.display = 'block';
+					document.getElementById('uploadPrompt').style.display = 'none';
+				}
+				reader.readAsDataURL(input.files[0]);
+			}
+		}
+
+		function renderTable() {
+			const headerRow = document.getElementById('headerRow');
+			const tbody = document.getElementById('tableBody');
+
+			// Header
+			headerRow.innerHTML = `<th style="width: 60px;">STT</th>`;
+			columns.forEach((col, idx) => {
+				headerRow.innerHTML += `
+					<th>
+						<div class="col-header-wrap">
+							<input type="text" value="${col}" onchange="updateColName(${idx}, this.value)">
+							<button class="btn-mini" onclick="removeColumn(${idx})">×</button>
+						</div>
+					</th>
+				`;
+			});
+			headerRow.innerHTML += `<th style="width: 50px;">-</th>`;
+
+			// Body
+			tbody.innerHTML = '';
+			rows.forEach((row, rowIdx) => {
+				let rowHtml = `<td>${rowIdx + 1}</td>`;
+				columns.forEach((col, colIdx) => {
+					rowHtml += `<td><input type="text" value="${row[col] || ''}" oninput="updateCellValue(${rowIdx}, ${colIdx}, this.value)"></td>`;
+				});
+				rowHtml += `<td><button class="btn-mini" onclick="removeRow(${rowIdx})">×</button></td>`;
+				const tr = document.createElement('tr');
+				tr.innerHTML = rowHtml;
+				tbody.appendChild(tr);
+			});
+		}
+
+		function addColumn() {
+			if (columns.length >= 7) {
+				showToast("Tối đa 7 cột để đảm bảo hiển thị đẹp trên A4!", true);
+				return;
+			}
+			const newColName = "Cột mới " + (columns.length + 1);
+			columns.push(newColName);
+			rows.forEach(r => r[newColName] = "");
+			renderTable();
+		}
+
+		function removeColumn(idx) {
+			if (columns.length <= 1) return;
+			const colName = columns[idx];
+			columns.splice(idx, 1);
+			rows.forEach(r => delete r[colName]);
+			renderTable();
+		}
+
+		function updateColName(idx, val) {
+			const oldName = columns[idx];
+			columns[idx] = val;
+			rows.forEach(r => {
+				r[val] = r[oldName];
+				delete r[oldName];
+			});
+		}
+
+		function addRow() {
+			if (rows.length >= 50) {
+				showToast("Tối đa 50 hàng để tối ưu hiệu suất!", true);
+				return;
+			}
+			const newRow = {};
+			columns.forEach(col => newRow[col] = "");
+			rows.push(newRow);
+			renderTable();
+		}
+
+		function removeRow(idx) {
+			if (rows.length <= 1) return;
+			rows.splice(idx, 1);
+			renderTable();
+		}
+
+		function updateCellValue(rowIdx, colIdx, val) {
+			const colName = columns[colIdx];
+			rows[rowIdx][colName] = val;
+		}
+
+		async function saveData() {
+			const title = document.getElementById('pl_title').value;
+			const customer = document.getElementById('pl_customer').value;
+			if (!title || !customer) {
+				showToast("Vui lòng điền tiêu đề và tên khách hàng!", true);
+				return;
+			}
+
+			const loader = document.getElementById('loader');
+			loader.style.display = 'flex';
+
+			const logoFile = document.getElementById('logoFile').files[0];
+			let logo_base64 = null;
+			let logo_mimetype = null;
+
+			if (logoFile) {
+				logo_base64 = await fileToBase64(logoFile);
+				logo_mimetype = logoFile.type;
+			}
+
+			const payload = {
+				action: 'save_price_list',
+				id: currentId,
+				userEmail: currentUser.email,
+				adminEmail: currentUser.adminEmail || currentUser.email,
+				title: title,
+				customerName: customer,
+				notes: document.getElementById('pl_notes').value,
+				columns: columns,
+				rows: rows,
+				logo_base64: logo_base64,
+				logo_mimetype: logo_mimetype,
+				logoUrl: currentLogoUrl
+			};
+
+			try {
+				const response = await fetch(SCRIPT_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('save_price_list', payload)
+				});
+				const data = await response.json();
+				if (data.success) {
+					showToast(currentId ? "Đã cập nhật bảng giá!" : "Đã lưu bảng giá thành công!");
+					setTimeout(() => window.location.href = 'danh-sach-bang-gia.html', 1500);
+				} else {
+					showToast("Lỗi: " + data.message, true);
+				}
+			} catch (e) {
+				showToast("Lỗi kết nối máy chủ!", true);
+			} finally {
+				loader.style.display = 'none';
+			}
+		}
+
+		function fileToBase64(file) {
+			return new Promise((resolve, reject) => {
+				const reader = new FileReader();
+				reader.readAsDataURL(file);
+				reader.onload = () => resolve(reader.result.split(',')[1]);
+				reader.onerror = error => reject(error);
+			});
+		}
+
+		init();
+	</script>
+	<script src="floating-menu.js"></script>
+	<script src="chatbot.js"></script>
+</body>
+
+</html>

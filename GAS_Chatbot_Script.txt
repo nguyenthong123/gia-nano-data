@@ -1,0 +1,212 @@
+/**
+ * DUNVEX CHATBOT & MESSAGING SYSTEM (PREMIUM)
+ * Enhanced for real-time messaging, image uploads, and admin controls.
+ */
+
+const DATA_FOLDER_ID = '1_LT4rzVui2E3BgfcwUSfMsUGQMN9NRTs'; 
+const IMAGE_FOLDER_ID = '1dGFgw96a6gWVdHMq6rkk4fFRpDJqi5cG'; // User specified folder
+const HISTORY_FILE = 'chat_messages.json';
+const XOR_SECRET = 'dunvex_secure_key_2025_custom';
+const API_SECRET = 'dv_api_secret_2025_prod_v2';
+
+// Encryption Utils (Consistent with Auth)
+function encryptData(text) {
+  if (!text) return "";
+  const inputBytes = Utilities.newBlob(text.toString()).getBytes();
+  const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+  const outputBytes = [];
+  for (let i = 0; i < inputBytes.length; i++) {
+    outputBytes.push(inputBytes[i] ^ keyBytes[i % keyBytes.length]);
+  }
+  return Utilities.base64Encode(outputBytes);
+}
+
+function decryptData(text) {
+  if (!text || text === 'n/a') return "";
+  try {
+    const raw = text.toString().trim();
+    const bytes = Utilities.base64Decode(raw);
+    const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+    let result = "";
+    for (let i = 0; i < bytes.length; i++) {
+        result += String.fromCharCode(bytes[i] ^ keyBytes[i % keyBytes.length]);
+    }
+    return result.trim().toLowerCase();
+  } catch (e) { return text.toString().trim().toLowerCase(); }
+}
+
+const SafeStore = {
+  read: function(filename) {
+    try {
+      const folder = DriveApp.getFolderById(DATA_FOLDER_ID);
+      const files = folder.getFilesByName(filename);
+      if (!files.hasNext()) return [];
+      const content = files.next().getBlob().getDataAsString().trim();
+      if (!content) return [];
+      
+      return content.split('\n').filter(l => l.trim()).map(l => JSON.parse(l));
+    } catch (e) { return []; }
+  },
+  write: function(filename, newData, action = 'APPEND') {
+    const lock = LockService.getScriptLock();
+    try {
+      lock.waitLock(30000);
+      const folder = DriveApp.getFolderById(DATA_FOLDER_ID);
+      let file, files = folder.getFilesByName(filename);
+      if (files.hasNext()) file = files.next();
+      else file = folder.createFile(filename, '', MimeType.PLAIN_TEXT);
+
+      let data = action === 'REPLACE_ALL' ? newData : this.read(filename);
+      if (action === 'APPEND') data.push(newData);
+      
+      file.setContent(data.map(item => JSON.stringify(item)).join('\n'));
+      return { success: true };
+    } catch (e) { 
+      return { success: false, message: e.toString() }; 
+    } finally {
+      lock.releaseLock();
+    }
+  }
+};
+
+function doPost(e) {
+  try {
+    const contents = e.postData ? e.postData.contents : "";
+    if (!contents) return ContentService.createTextOutput(JSON.stringify({ success: false, message: 'Data empty' })).setMimeType(ContentService.MimeType.JSON);
+    const data = JSON.parse(contents);
+
+    // --- API SECURITY CHECK ---
+    if (data.apiKey !== API_SECRET) {
+      return ContentService.createTextOutput(JSON.stringify({ 
+        success: false, 
+        message: 'Unauthorized Chatbot Access' 
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const intent = data.action;
+
+    // --- SERVER-SIDE RATE LIMITING ---
+    const identifier = data.email || 'anonymous';
+    const limitResult = checkRateLimit(intent, identifier);
+    if (!limitResult.success) {
+      return ContentService.createTextOutput(JSON.stringify(limitResult)).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    let result;
+
+    switch(intent) {
+      case 'send_msg': result = handleSendMessage(data); break;
+      case 'get_history': result = getHistory(data.email); break;
+      case 'master_get_all': result = masterGetAllChats(); break;
+      case 'master_reply': result = masterReply(data); break;
+      case 'edit_msg': result = editMessage(data); break;
+      case 'delete_msg': result = deleteMessage(data); break;
+      default: result = { success: false, message: 'Hành động không xác định' };
+    }
+    return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ success: false, message: error.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// --- SECURITY UTILS ---
+function checkRateLimit(action, identifier) {
+  const cache = CacheService.getScriptCache();
+  const safeId = identifier.toString().replace(/[^a-zA-Z0-9]/g, '');
+  const key = 'rl_chat_' + action + '_' + safeId;
+  
+  // Basic Rule: Max 1 message/poll every 2 seconds
+  const lastRequest = cache.get(key);
+  if (lastRequest) {
+    return { success: false, message: 'Thao tác quá nhanh. Thử lại sau 2s.' };
+  }
+  cache.put(key, '1', 2);
+  
+  // Burst protection for messages: Max 20 messages per 10 minutes
+  if (action === 'send_msg') {
+    const burstKey = 'burst_chat_' + safeId;
+    let count = parseInt(cache.get(burstKey) || '0');
+    if (count >= 20) {
+      return { success: false, message: 'Bạn đã gửi quá nhiều tin nhắn. Thử lại sau 10 phút.' };
+    }
+    cache.put(burstKey, (count + 1).toString(), 600);
+  }
+
+  return { success: true };
+}
+
+function handleSendMessage(d) {
+  let fileUrl = "";
+  if (d.image) {
+    try {
+      const folder = DriveApp.getFolderById(IMAGE_FOLDER_ID);
+      const blob = Utilities.newBlob(Utilities.base64Decode(d.image.split(',')[1]), d.imageType || "image/png", "chat_img_" + new Date().getTime());
+      const file = folder.createFile(blob);
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      fileUrl = file.getUrl().replace("view?usp=drivesdk", "uc?export=view&id=") + file.getId();
+    } catch (e) { return { success: false, message: "Lỗi tải ảnh: " + e.toString() }; }
+  }
+
+  const entry = {
+    id: "MSG_" + new Date().getTime() + "_" + Math.floor(Math.random() * 1000),
+    email: encryptData(d.email.toString().trim().toLowerCase()),
+    senderName: d.fullName || "Khách",
+    text: d.text || "",
+    image: fileUrl,
+    type: "user",
+    timestamp: new Date().toISOString()
+  };
+
+  return SafeStore.write(HISTORY_FILE, entry, 'APPEND');
+}
+
+function getHistory(email) {
+  const cleanEmail = email.toString().trim().toLowerCase();
+  const all = SafeStore.read(HISTORY_FILE);
+  // Sử dụng decryptData để so sánh giúp đảm bảo 100% khớp dữ liệu
+  const filtered = all.filter(m => decryptData(m.email) === cleanEmail);
+  return { success: true, history: filtered };
+}
+
+function masterGetAllChats() {
+  const all = SafeStore.read(HISTORY_FILE);
+  // Group by decrypted email
+  const convos = {};
+  all.forEach(m => {
+    const rawEmail = decryptData(m.email);
+    if (!convos[rawEmail]) convos[rawEmail] = { email: rawEmail, lastMsg: "", lastTime: "", unread: 0, messages: [] };
+    convos[rawEmail].messages.push(m);
+    convos[rawEmail].lastMsg = m.text || "📷 Hình ảnh";
+    convos[rawEmail].lastTime = m.timestamp;
+  });
+  return { success: true, conversations: Object.values(convos) };
+}
+
+function masterReply(d) {
+  const entry = {
+    id: "MSG_" + new Date().getTime() + "_" + Math.floor(Math.random() * 1000),
+    email: encryptData(d.userEmail.toString().trim().toLowerCase()),
+    senderName: "Super Admin",
+    text: d.text || "",
+    image: d.image || "",
+    type: "admin",
+    timestamp: new Date().toISOString()
+  };
+  return SafeStore.write(HISTORY_FILE, entry, 'APPEND');
+}
+
+function editMessage(d) {
+  const all = SafeStore.read(HISTORY_FILE);
+  const idx = all.findIndex(m => m.id === d.msgId);
+  if (idx === -1) return { success: false, message: "Không tìm thấy tin nhắn" };
+  
+  all[idx].text = d.newText;
+  all[idx].isEdited = true;
+  return SafeStore.write(HISTORY_FILE, all, 'REPLACE_ALL');
+}
+
+function deleteMessage(d) {
+  const all = SafeStore.read(HISTORY_FILE);
+  const filtered = all.filter(m => m.id !== d.msgId);
+  return SafeStore.write(HISTORY_FILE, filtered, 'REPLACE_ALL');
+}

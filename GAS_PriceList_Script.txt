@@ -1,180 +1,212 @@
-/**
- * GAS SCRIPT CHO QUẢN LÝ BẢNG GIÁ (DURAFLEX, WEBER, PIMA)
- * Hỗ trợ: Read, Create, Update, Delete (Xóa hẳn dòng), Upload Image
- */
+const API_SECRET = 'dv_api_secret_2025_prod_v2';
+const DB_FILE_ID = '1vk_zb_HemLtOyZdU_d_AYByPCcYYEwLm'; 
+const JSON_FOLDER_ID = '1_LT4rzVui2E3BgfcwUSfMsUGQMN9NRTs';
+const IMG_FOLDER_ID = '1dGFgw96a6gWVdHMq6rkk4fFRpDJqi5cG';
 
-function doGet(e) {
-  const params = e.parameter;
-  const action = params.action;
-  
-  if (action === 'read') {
-    return readData(params.sheetId, params.sheetName);
+// --- SECURITY CONFIG (XOR ENCRYPTION) ---
+const XOR_SECRET = 'dunvex_secure_key_2025_custom';
+
+const SafeStore = {
+  read: function(filename) {
+    try {
+      const folder = DriveApp.getFolderById(JSON_FOLDER_ID);
+      const files = folder.getFilesByName(filename);
+      if (!files.hasNext()) return [];
+      const content = files.next().getBlob().getDataAsString().trim();
+      if (!content || content.length === 0) return [];
+      if (content.trim().startsWith('[')) return JSON.parse(content);
+      return content.split('\n').filter(l => l.trim()).map(l => {
+          try { return JSON.parse(l); } catch(e) { return null; }
+      }).filter(x => x !== null);
+    } catch (e) { return []; }
+  },
+  write: function(filename, newData, action = 'APPEND') {
+    const lock = LockService.getScriptLock();
+    try {
+      lock.waitLock(30000);
+      const folder = DriveApp.getFolderById(JSON_FOLDER_ID);
+      let file, files = folder.getFilesByName(filename);
+      if (files.hasNext()) file = files.next();
+      else file = folder.createFile(filename, '', MimeType.PLAIN_TEXT);
+
+      let data = this.read(filename);
+      if (action === 'APPEND') data.push(newData);
+      else if (action === 'UPDATE') {
+        const id = newData.id;
+        const idx = data.findIndex(item => item.id === id);
+        if (idx !== -1) data[idx] = Object.assign({}, data[idx], newData);
+        else data.push(newData);
+      } else if (action === 'DELETE') {
+        const id = typeof newData === 'string' ? newData : newData.id;
+        data = data.filter(item => item.id !== id);
+      } else if (action === 'REPLACE_ALL') data = newData;
+
+      file.setContent(data.map(item => JSON.stringify(item)).join('\n'));
+      return { success: true };
+    } catch (e) { return { success: false, message: e.toString() }; }
+    finally { lock.releaseLock(); }
   }
-  
-  return jsonResponse({success: false, message: 'Invalid GET action'});
+};
+
+function encryptXOR(text) {
+  if (!text) return "";
+  try {
+    const inputBytes = Utilities.newBlob(text.toString()).getBytes();
+    const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+    const outputBytes = [];
+    for (let i = 0; i < inputBytes.length; i++) {
+        outputBytes.push(inputBytes[i] ^ keyBytes[i % keyBytes.length]);
+    }
+    return Utilities.base64Encode(outputBytes);
+  } catch (e) { return "ENC_ERR: " + e.toString(); }
+}
+
+function decryptXOR(base64Text) {
+  if (!base64Text || base64Text.length < 5 || base64Text.startsWith("ENC_ERR")) return base64Text;
+  try {
+    const inputBytes = Utilities.base64Decode(base64Text);
+    const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+    const outputBytes = [];
+    for (let i = 0; i < inputBytes.length; i++) {
+        outputBytes.push(inputBytes[i] ^ keyBytes[i % keyBytes.length]);
+    }
+    return Utilities.newBlob(outputBytes).getDataAsString();
+  } catch (e) { return base64Text; }
 }
 
 function doPost(e) {
-  let data;
+  let result;
   try {
-    data = JSON.parse(e.postData.contents);
-  } catch (err) {
-    return jsonResponse({success: false, message: 'Invalid JSON'});
-  }
-  
-  const action = data.action;
-  
-  if (action === 'upload') {
-    return uploadFile(data);
-  } else if (action === 'create') {
-    return createData(data);
-  } else if (action === 'update') {
-    return updateData(data);
-  } else if (action === 'delete') {
-    return deleteData(data);
-  }
-  
-  return jsonResponse({success: false, message: 'Invalid POST action'});
-}
+    const contents = e.postData ? e.postData.contents : "";
+    if (!contents) return ContentService.createTextOutput(JSON.stringify({ success: false, message: 'Data empty' })).setMimeType(ContentService.MimeType.JSON);
+    const data = JSON.parse(contents);
 
-function readData(sheetId, sheetName) {
-  try {
-    const ss = SpreadsheetApp.openById(sheetId);
-    const sheet = ss.getSheetByName(sheetName);
-    if (!sheet) return jsonResponse({success: false, message: 'Sheet not found'});
-    
-    const values = sheet.getDataRange().getValues();
-    if (values.length < 1) return jsonResponse({success: true, data: []});
-    
-    const headers = values[0];
-    const data = [];
-    
-    for (let i = 1; i < values.length; i++) {
-        // Bỏ qua dòng trống
-        if (!values[i].join('').trim()) continue;
-        
-        let obj = {};
-        headers.forEach((header, index) => {
-            if (header) { // Chỉ lấy các cột có tiêu đề
-                obj[header] = values[i][index];
-            }
-        });
-        data.push(obj);
+    // --- API SECURITY CHECK ---
+    if (data.apiKey !== API_SECRET) {
+      return ContentService.createTextOutput(JSON.stringify({ 
+        success: false, 
+        message: 'Unauthorized PriceList Access' 
+      })).setMimeType(ContentService.MimeType.JSON);
     }
-    
-    return jsonResponse({success: true, data: data});
-  } catch (err) {
-    return jsonResponse({success: false, message: err.toString()});
-  }
+
+    const action = (data.action || "").toString().trim();
+    switch (action) {
+      case 'save_price_list': result = savePriceList(data); break;
+      case 'get_price_lists': result = getPriceLists(data.userEmail, data.isAdmin, data.adminEmail, data.forceAll); break;
+      case 'get_price_list_detail': result = getPriceListDetail(data.fileId || data.id); break;
+      case 'delete_price_list': result = deletePriceList(data.fileId); break;
+      case 'migrate_price_lists': result = migratePriceListEncryption(); break;
+      default: result = { success: false, message: 'Invalid action' };
+    }
+  } catch (error) { result = { success: false, message: error.toString() }; }
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
 }
 
-function createData(payload) {
+function savePriceList(data) {
   try {
-    const ss = SpreadsheetApp.openById(payload.sheetId);
-    const sheet = ss.getSheetByName(payload.sheetName);
-    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-    const newRow = headers.map(h => payload.data[h] !== undefined ? payload.data[h] : '');
-    
-    sheet.appendRow(newRow);
-    return jsonResponse({success: true});
-  } catch (err) {
-    return jsonResponse({success: false, message: err.toString()});
-  }
-}
+    let payload;
+    const adminEmail = (data.adminEmail || data.userEmail || "").toLowerCase().trim();
 
-function updateData(payload) {
-  try {
-    const ss = SpreadsheetApp.openById(payload.sheetId);
-    const sheet = ss.getSheetByName(payload.sheetName);
-    const idField = payload.idField;
-    const idValue = payload.idValue;
-    
-    const values = sheet.getDataRange().getValues();
-    const headers = values[0];
-    const idColIndex = headers.indexOf(idField);
-    
-    if (idColIndex === -1) return jsonResponse({success: false, message: 'ID Field not found: ' + idField});
-    
-    for (let i = 1; i < values.length; i++) {
-      if (String(values[i][idColIndex]).trim() === String(idValue).trim()) {
-        const rowNum = i + 1;
-        headers.forEach((header, index) => {
-          if (header && payload.data[header] !== undefined) {
-             sheet.getRange(rowNum, index + 1).setValue(payload.data[header]);
-          }
-        });
-        return jsonResponse({success: true});
+    if (data.id) {
+      const allLists = SafeStore.read('bang_gia.json');
+      payload = allLists.find(l => l.id === data.id);
+      if (!payload) return { success: false, message: "Not found" };
+      payload.title = data.title;
+      payload.customerName = data.customerName;
+      payload.columns = data.columns;
+      payload.rows = data.rows;
+      payload.notes = data.notes;
+      payload.manager_email = encryptXOR(adminEmail); 
+      payload.updatedAt = new Date().toISOString();
+      if (data.logo_base64) {
+        const file = DriveApp.getFolderById(IMG_FOLDER_ID).createFile(Utilities.newBlob(Utilities.base64Decode(data.logo_base64), data.logo_mimetype || 'image/png', `Logo_${data.customerName}.png`));
+        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        payload.logoUrl = "https://lh3.googleusercontent.com/d/" + file.getId();
       }
+      SafeStore.write('bang_gia.json', payload, 'UPDATE');
+    } else {
+      payload = {
+        id: "PL-" + new Date().getTime(),
+        title: data.title,
+        customerName: data.customerName,
+        columns: data.columns,
+        rows: data.rows,
+        createdAt: new Date().toISOString(),
+        createdBy: encryptXOR(data.userEmail),
+        manager_email: encryptXOR(adminEmail),
+        notes: data.notes
+      };
+      if (data.logo_base64) {
+        const file = DriveApp.getFolderById(IMG_FOLDER_ID).createFile(Utilities.newBlob(Utilities.base64Decode(data.logo_base64), data.logo_mimetype || 'image/png', `Logo_${data.customerName}.png`));
+        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        payload.logoUrl = "https://lh3.googleusercontent.com/d/" + file.getId();
+      }
+      SafeStore.write('bang_gia.json', payload, 'APPEND');
     }
-    
-    return jsonResponse({success: false, message: 'Item not found for update'});
-  } catch (err) {
-    return jsonResponse({success: false, message: err.toString()});
-  }
+    return { success: true, fileId: payload.id, logoUrl: payload.logoUrl };
+  } catch (e) { return { success: false, message: e.toString() }; }
 }
 
-function deleteData(payload) {
+function getPriceLists(userEmail, isAdmin, adminEmail, forceAll) {
   try {
-    const ss = SpreadsheetApp.openById(payload.sheetId);
-    const sheet = ss.getSheetByName(payload.sheetName);
-    
-    if (!payload.data) {
-      return jsonResponse({success: false, message: 'No data provided for delete operation'});
+    const list = SafeStore.read('bang_gia.json');
+    const userEmailNorm = (userEmail || "").toString().toLowerCase().trim();
+    const adminEmailNorm = (adminEmail || "").toString().toLowerCase().trim();
+
+    let filtered = list;
+    if (isAdmin && forceAll) {
+       // Super Admin override or migration check: return everything
+       filtered = list;
+    } else if (isAdmin) {
+       // Admin: filter by manager_email or creator
+       filtered = list.filter(l => {
+          const mgrDec = decryptXOR(l.manager_email || "");
+          const creatorDec = decryptXOR(l.createdBy || "");
+          
+          const mgr = (mgrDec || "").toLowerCase().trim();
+          const creator = (creatorDec || "").toLowerCase().trim();
+          
+          return mgr === adminEmailNorm || creator === adminEmailNorm || mgr === userEmailNorm || creator === userEmailNorm;
+       });
+    } else {
+       // Staff: only see their own
+       filtered = list.filter(l => {
+         const creatorDec = decryptXOR(l.createdBy || "");
+         return (creatorDec || "").toLowerCase().trim() === userEmailNorm;
+       });
     }
-    
-    // Đọc headers để map dữ liệu
-    const range = sheet.getDataRange();
-    const values = range.getValues();
-    const headers = values[0];
-    
-    // Tìm hoặc tạo cột "trạng thái xóa"
-    let deleteColIndex = headers.findIndex(h => String(h).trim().toLowerCase() === 'trạng thái xóa');
-    
-    if (deleteColIndex === -1) {
-        deleteColIndex = headers.length;
-        sheet.getRange(1, deleteColIndex + 1).setValue('trạng thái xóa');
-    }
-    
-    // Tạo dòng mới với toàn bộ data + trạng thái DELETED
-    const newRow = [];
-    headers.forEach((h, index) => {
-        if (index === deleteColIndex) {
-            newRow.push('DELETED');
-        } else if (payload.data[h] !== undefined) {
-            newRow.push(payload.data[h]);
-        } else {
-            newRow.push('');
-        }
+
+    const results = filtered.map(l => ({
+      id: l.id, title: l.title || 'No Title', customer: l.customerName || 'No Guest',
+      createdBy: decryptXOR(l.createdBy), createdAt: l.createdAt, logo: l.logoUrl
+    })).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    return { success: true, lists: results };
+  } catch (e) { return { success: false, message: e.toString() }; }
+}
+
+function getPriceListDetail(id) {
+  try {
+    const list = SafeStore.read('bang_gia.json');
+    const found = list.find(l => l.id === id);
+    return found ? { success: true, data: found } : { success: false, message: "Not found" };
+  } catch (e) { return { success: false, message: e.toString() }; }
+}
+
+function deletePriceList(id) {
+  try { return SafeStore.write('bang_gia.json', id, 'DELETE'); }
+  catch (e) { return { success: false, message: e.toString() }; }
+}
+
+function migratePriceListEncryption() {
+  try {
+    let list = SafeStore.read('bang_gia.json');
+    let count = 0;
+    list = list.map(l => {
+      const creator = (l.createdBy || "").toString();
+      if (creator && creator.includes('@')) { l.createdBy = encryptXOR(creator.toLowerCase()); count++; }
+      return l;
     });
-    
-    // Nếu cột trạng thái xóa mới được thêm (nằm ngoài headers cũ)
-    if (deleteColIndex >= headers.length) {
-        newRow[deleteColIndex] = 'DELETED';
-    }
-    
-    // Thêm dòng mới vào cuối sheet
-    sheet.appendRow(newRow);
-    
-    return jsonResponse({success: true, message: 'Created DELETED record in sheet'});
-  } catch (err) {
-    return jsonResponse({success: false, message: err.toString()});
-  }
-}
-
-function uploadFile(payload) {
-  try {
-    const folder = DriveApp.getFolderById(payload.folderId);
-    const blob = Utilities.newBlob(Utilities.base64Decode(payload.file), payload.mimeType, payload.filename);
-    const file = folder.createFile(blob);
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    const url = 'https://lh3.googleusercontent.com/d/' + file.getId();
-    return jsonResponse({success: true, url: url});
-  } catch (err) {
-    return jsonResponse({success: false, message: err.toString()});
-  }
-}
-
-function jsonResponse(obj) {
-  return ContentService.createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
+    if (count > 0) SafeStore.write('bang_gia.json', list, 'REPLACE_ALL');
+    return { success: true, message: `Migrated ${count}.` };
+  } catch (e) { return { success: false, message: e.toString() }; }
 }

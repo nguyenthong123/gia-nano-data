@@ -1,0 +1,3636 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-QFQ2HMYTDH"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag('js', new Date());
+
+		gtag('config', 'G-QFQ2HMYTDH');
+	</script>
+
+	<script src="security-utils.js"></script>
+	<script src="assets/theme-toggle.js"></script>
+	<script>
+		const session = SecurityProvider.validateAccess();
+		const currentUser = session ? session.user : null;
+		const perms = session ? session.permissions : null;
+	</script>
+
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>CRM Sales | Dunvex Digital</title>
+	<link rel="icon" type="image/svg+xml"
+		href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23FACC15'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' fill='white' font-size='60' font-family='sans-serif' font-weight='800'>DV</text></svg>">
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;800&display=swap"
+		rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+	<!-- Leaflet Map CSS -->
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+	<!-- Font Awesome -->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+	<link rel="stylesheet" href="assets/theme.css">
+	<style>
+		/* Variables handled in theme.css */
+
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+			text-rendering: optimizeLegibility;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+			font-weight: 500;
+			/* Increased from default 400 */
+		}
+
+		.form-group label {
+			display: block;
+			font-weight: 700;
+			margin-bottom: 8px;
+			color: #1e293b;
+			font-size: 0.9rem;
+		}
+
+		body {
+			/* Min-height and general styles from theme.css */
+			min-height: 100vh;
+			min-height: 100dvh;
+			padding: 20px;
+			overscroll-behavior-y: auto;
+			-webkit-overflow-scrolling: touch;
+			-webkit-text-size-adjust: 100%;
+			overflow-x: hidden;
+			/* Fix dark edge */
+		}
+
+		.container {
+			max-width: 800px;
+			margin: 40px auto;
+		}
+
+		/* --- NEW / FIXED STYLES --- */
+		/* Filter Tabs */
+		.filter-group {
+			display: flex;
+			gap: 10px;
+			overflow-x: auto;
+			padding-bottom: 10px;
+			margin-bottom: 20px;
+			scrollbar-width: none;
+		}
+
+		.filter-group::-webkit-scrollbar {
+			display: none;
+		}
+
+		.purpose-btn {
+			padding: 8px 16px;
+			border-radius: 20px;
+			border: 1px solid var(--glass-border);
+			background: #ffffff;
+			color: var(--text-muted);
+			font-size: 0.85rem;
+			font-weight: 600;
+			cursor: pointer;
+			white-space: nowrap;
+			transition: 0.2s;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.purpose-btn:hover {
+			border-color: var(--primary);
+			color: var(--primary);
+			background: #fefce8;
+		}
+
+		.purpose-btn.active {
+			background: var(--primary);
+			color: #0f172a;
+			border-color: var(--primary);
+			box-shadow: 0 4px 12px rgba(250, 204, 21, 0.4);
+		}
+
+		/* History List Items */
+		.history-item {
+			display: flex;
+			gap: 15px;
+			padding: 15px;
+			background: #ffffff;
+			border-radius: 16px;
+			margin-bottom: 12px;
+			border: 1px solid var(--glass-border);
+			box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+			transition: 0.2s;
+			position: relative;
+			align-items: flex-start;
+		}
+
+		.history-item:active {
+			transform: scale(0.98);
+			background: #f8fafc;
+		}
+
+		.history-img {
+			width: 100px;
+			height: 100px;
+			object-fit: cover;
+			border-radius: 12px;
+			border: 2px solid #fff;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+			flex-shrink: 0;
+			cursor: zoom-in;
+			transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		}
+
+		.history-img:hover {
+			transform: scale(1.05);
+			box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+		}
+
+		.history-info {
+			flex: 1;
+			overflow: hidden;
+			display: flex;
+			flex-direction: column;
+			gap: 4px;
+		}
+
+		.history-name {
+			font-weight: 700;
+			font-size: 0.95rem;
+			color: var(--text-main);
+			margin-bottom: 4px;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			padding-right: 40px;
+			/* Space for Edit button */
+		}
+
+		.history-meta {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			font-size: 0.85rem;
+			color: #334155;
+			/* Much darker */
+			flex-wrap: wrap;
+			font-weight: 600;
+			/* Stronger meta text */
+		}
+
+		/* Fix Form Inputs - Force White & Clean Look */
+		input,
+		select,
+		textarea {
+			background: #ffffff !important;
+			border: 1px solid #94a3b8 !important;
+			/* Darker border for better definition */
+			color: #0f172a !important;
+			border-radius: 12px !important;
+			padding: 12px 16px !important;
+			font-size: 1rem !important;
+			/* Slightly larger */
+			font-weight: 500 !important;
+			box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+			width: 100%;
+			/* Ensure full width */
+		}
+
+		input:focus,
+		select:focus,
+		textarea:focus {
+			border-color: var(--primary) !important;
+			box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.2) !important;
+			outline: none;
+		}
+
+		input::placeholder,
+		textarea::placeholder {
+			color: #64748b;
+			/* Darker placeholder */
+		}
+
+		/* Toast Notification */
+		#toast {
+			position: fixed;
+			bottom: 30px;
+			left: 50%;
+			transform: translateX(-50%) translateY(100px);
+			background: #333;
+			color: white;
+			padding: 12px 24px;
+			border-radius: 50px;
+			z-index: 9999;
+			transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+			opacity: 0;
+			font-weight: 600;
+			box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+			white-space: nowrap;
+			pointer-events: none;
+		}
+
+		#toast.active {
+			transform: translateX(-50%) translateY(0);
+			opacity: 1;
+		}
+
+		/* Zoom Modal */
+		.zoom-modal {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.9);
+			z-index: 10000;
+			display: none;
+			align-items: center;
+			justify-content: center;
+			padding: 20px;
+			cursor: zoom-out;
+			backdrop-filter: blur(5px);
+		}
+
+		.zoom-modal.active {
+			display: flex;
+		}
+
+		.zoom-img {
+			max-width: 95%;
+			max-height: 95%;
+			border-radius: 12px;
+			box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+			transition: 0.3s;
+			object-fit: contain;
+		}
+
+		.zoom-close {
+			position: absolute;
+			top: 20px;
+			right: 30px;
+			color: white;
+			font-size: 40px;
+			font-weight: bold;
+			cursor: pointer;
+		}
+
+		/* Modal Tweaks */
+		.detail-overlay {
+			background: #f8fafc;
+			/* Light Grey background for contrast */
+		}
+
+		.detail-section {
+			background: #ffffff;
+			border: 1px solid #e2e8f0;
+			box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+			border-radius: 16px;
+			padding: 20px;
+			margin-bottom: 20px;
+		}
+
+		/* Fix Mobile Search Bar specifically */
+		@media (max-width: 600px) {
+			#custSearch {
+				background: #ffffff !important;
+				border: 1px solid #e2e8f0 !important;
+			}
+		}
+
+
+		/* --- NEW / FIXED STYLES --- */
+		/* Filter Tabs */
+		.filter-group {
+			display: flex;
+			gap: 10px;
+			overflow-x: auto;
+			padding-bottom: 10px;
+			margin-bottom: 20px;
+			scrollbar-width: none;
+		}
+
+		.filter-group::-webkit-scrollbar {
+			display: none;
+		}
+
+		.purpose-btn {
+			padding: 8px 16px;
+			border-radius: 20px;
+			border: 1px solid #94a3b8;
+			background: #ffffff;
+			color: #334155;
+			font-size: 0.85rem;
+			font-weight: 700;
+			/* Extra bold */
+			cursor: pointer;
+			white-space: nowrap;
+			transition: 0.2s;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.purpose-btn:hover {
+			border-color: var(--primary);
+			color: var(--primary);
+			background: #fefce8;
+		}
+
+		.purpose-btn.active {
+			background: var(--primary);
+			color: #0f172a;
+			border-color: var(--primary);
+			box-shadow: 0 4px 12px rgba(250, 204, 21, 0.4);
+		}
+
+		/* Styles cleaned and moved above */
+
+		/* Modal Tweaks */
+		.detail-overlay {
+			background: #f8fafc;
+			/* Light Grey background for contrast */
+		}
+
+		.detail-section {
+			background: #ffffff;
+			border: 1px solid #e2e8f0;
+			box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+			border-radius: 16px;
+			padding: 20px;
+			margin-bottom: 20px;
+		}
+
+		/* Fix Mobile Search Bar specifically */
+		@media (max-width: 600px) {
+			#custSearch {
+				background: #ffffff !important;
+				border: 1px solid #e2e8f0 !important;
+			}
+		}
+
+
+
+		/* --- MOBILE LAYOUT OPTIMIZATIONS --- */
+		@media (max-width: 600px) {
+
+			/* 1. Global Layout Fixes */
+			body {
+				padding: 10px !important;
+			}
+
+			.container {
+				margin: 10px auto !important;
+				width: 100% !important;
+				padding-bottom: 80px;
+				/* Space for floating buttons */
+			}
+
+			/* 2. Customer Creation Modal Optimization */
+			.detail-overlay {
+				width: 100% !important;
+				max-width: 100% !important;
+				padding: 20px 15px !important;
+				/* Maximized space */
+				border-radius: 0 !important;
+				right: -100%;
+				/* Ensure slide transition still works */
+			}
+
+			/* Stack inputs vertically in the form */
+			#customerForm .form-group {
+				margin-bottom: 12px;
+			}
+
+			/* Flatten grid layouts to single column */
+			#customerForm>div[style*="grid-template-columns"],
+			.form-card div[style*="grid-template-columns"] {
+				grid-template-columns: 1fr !important;
+				gap: 10px !important;
+			}
+
+			/* 3. Action Buttons Stacking */
+			#customerForm button[type="submit"],
+			#customerForm button[type="button"] {
+				width: 100%;
+				margin-bottom: 10px;
+			}
+
+			#customerForm div[style*="display: flex"] {
+				flex-wrap: wrap;
+			}
+		}
+
+		.top-bar {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 30px;
+		}
+
+		.top-bar h1 {
+			font-size: 2rem;
+			font-weight: 800;
+			color: #0f172a;
+			margin: 0;
+			letter-spacing: -0.5px;
+		}
+
+		/* Tabs */
+		.tabs {
+			display: flex;
+			gap: 10px;
+			margin-bottom: 24px;
+			background: var(--card-bg);
+			padding: 5px;
+			border-radius: 12px;
+			border: 1px solid var(--glass-border);
+		}
+
+		.tab-btn {
+			flex: 1;
+			padding: 12px;
+			border: none;
+			background: none;
+			color: #475569;
+			font-weight: 800;
+			/* Much bolder */
+			cursor: pointer;
+			border-radius: 8px;
+			transition: 0.3s;
+		}
+
+		.tab-btn:hover {
+			background: rgba(var(--primary), 0.1);
+			color: var(--primary);
+		}
+
+		.form-card {
+			background: var(--card-bg);
+			border-radius: 20px;
+			padding: 30px;
+			border: 1px solid var(--glass-border);
+			margin-bottom: 24px;
+			display: none;
+			/* Hidden by default */
+			animation: slideUp 0.4s ease-out;
+		}
+
+		.form-card.active {
+			display: block;
+			/* Shown when active */
+		}
+
+		@keyframes slideUp {
+			from {
+				opacity: 0;
+				transform: translateY(10px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		.tab-btn.active {
+			background: var(--primary);
+			color: #0f172a !important;
+			/* Ensure dark text on yellow */
+			box-shadow: 0 4px 12px rgba(250, 204, 21, 0.4);
+		}
+
+		/* Customer Detail Overlay */
+		.detail-overlay {
+			position: fixed;
+			top: 0;
+			right: -100%;
+			width: 100%;
+			max-width: 500px;
+			height: 100%;
+			background: var(--card-bg);
+			/* Use card-bg instead of bg-dark */
+			z-index: 4000;
+			box-shadow: -10px 0 50px rgba(0, 0, 0, 0.5);
+			transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+			padding: 40px 30px;
+			overflow-y: auto;
+			border-left: 1px solid var(--glass-border);
+		}
+
+		.detail-overlay.active {
+			right: 0;
+		}
+
+		.detail-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: flex-start;
+			margin-bottom: 30px;
+		}
+
+		.detail-close {
+			background: rgba(var(--primary), 0.1);
+			border: 1px solid var(--glass-border);
+			color: var(--text-main);
+			width: 40px;
+			height: 40px;
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			transition: 0.3s;
+		}
+
+		.detail-close:hover {
+			background: var(--primary);
+			color: white;
+		}
+
+		.detail-section {
+			margin-bottom: 25px;
+			background: rgba(var(--primary), 0.05);
+			border-radius: 16px;
+			padding: 20px;
+			border: 1px solid var(--glass-border);
+		}
+
+		.detail-label {
+			font-size: 0.8rem;
+			color: #1e293b;
+			text-transform: uppercase;
+			letter-spacing: 1px;
+			margin-bottom: 8px;
+			font-weight: 800;
+			/* Extra bold for section labels */
+		}
+
+		.detail-value {
+			font-size: 1.1rem;
+			font-weight: 600;
+			color: var(--text-main);
+		}
+
+		.clickable-row {
+			cursor: pointer;
+			transition: 0.2s;
+		}
+
+		@media (hover: hover) {
+			.clickable-row:hover {
+				background: rgba(255, 255, 255, 0.05) !important;
+			}
+		}
+
+		.clickable-row:active {
+			background: rgba(255, 255, 255, 0.1) !important;
+			transition: 0.1s;
+		}
+
+		/* Map Styles */
+		#map-container {
+			height: 500px;
+			border-radius: 16px;
+			border: 1px solid var(--glass-border);
+			z-index: 10;
+		}
+
+		.map-wrapper {
+			position: relative;
+			width: 100%;
+			margin-top: 15px;
+			transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+		}
+
+		.map-wrapper.fullscreen {
+			position: fixed;
+			top: 10px;
+			left: 10px;
+			right: 10px;
+			bottom: 10px;
+			z-index: 6000;
+			margin: 0;
+			height: calc(100vh - 20px);
+		}
+
+		.map-wrapper.fullscreen #map-container {
+			height: 100%;
+			border-radius: 20px;
+		}
+
+		.map-controls-overlay {
+			position: absolute;
+			top: 15px;
+			left: 55px;
+			/* Avoiding Leaflet controls */
+			right: 15px;
+			z-index: 2000;
+			display: flex;
+			gap: 10px;
+			pointer-events: none;
+		}
+
+		.map-search-box {
+			flex: 1;
+			max-width: 300px;
+			pointer-events: auto;
+			position: relative;
+		}
+
+		.map-search-box input {
+			height: 40px;
+			padding: 0 15px 0 35px;
+			background: var(--card-bg);
+			backdrop-filter: blur(10px);
+			border: 1px solid var(--glass-border);
+			border-radius: 10px;
+			font-size: 0.85rem;
+			color: var(--text-main);
+		}
+
+		.map-search-box::before {
+			content: '🔍';
+			position: absolute;
+			left: 10px;
+			top: 50%;
+			transform: translateY(-50%);
+			font-size: 0.8rem;
+			opacity: 0.6;
+		}
+
+		.map-btn-group {
+			display: flex;
+			gap: 8px;
+			pointer-events: auto;
+		}
+
+		.btn-map-control {
+			width: 40px;
+			height: 40px;
+			background: var(--card-bg);
+			backdrop-filter: blur(10px);
+			border: 1px solid var(--glass-border);
+			border-radius: 10px;
+			color: var(--text-main);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			transition: 0.3s;
+		}
+
+		.btn-map-control:hover {
+			background: var(--primary);
+			transform: scale(1.05);
+			color: white;
+		}
+
+		.map-legend-wrapper {
+			position: absolute;
+			bottom: 25px;
+			left: 15px;
+			z-index: 2000;
+			background: var(--card-bg);
+			backdrop-filter: blur(10px);
+			border: 1px solid var(--glass-border);
+			border-radius: 12px;
+			overflow: hidden;
+			transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+			width: 180px;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+			display: flex;
+			flex-direction: column;
+		}
+
+		.map-legend-wrapper.collapsed {
+			width: auto;
+			min-width: 120px;
+		}
+
+		.legend-header {
+			padding: 8px 12px;
+			font-size: 0.75rem;
+			font-weight: 600;
+			color: var(--text-main);
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			background: rgba(255, 255, 255, 0.05);
+			/* Keep slightly distinct header */
+			border-bottom: 1px solid var(--glass-border);
+			user-select: none;
+		}
+
+		.map-legend-wrapper.collapsed .legend-header {
+			border-bottom: none;
+		}
+
+		.map-legend-content {
+			padding: 8px;
+			display: flex;
+			flex-direction: column;
+			gap: 6px;
+			max-height: 200px;
+			overflow-y: auto;
+			transition: 0.3s;
+		}
+
+		.map-legend-wrapper.collapsed .map-legend-content {
+			display: none;
+		}
+
+		.legend-item {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			font-size: 0.75rem;
+			cursor: pointer;
+			transition: 0.2s;
+			padding: 4px 6px;
+			border-radius: 6px;
+		}
+
+		.legend-item:hover {
+			background: rgba(255, 255, 255, 0.05);
+		}
+
+		.legend-item.hidden {
+			opacity: 0.4;
+			text-decoration: line-through;
+		}
+
+		.legend-color {
+			width: 10px;
+			height: 10px;
+			border-radius: 50%;
+			flex-shrink: 0;
+		}
+
+		.map-date-filters {
+			display: grid;
+			grid-template-columns: 1fr 1fr 1fr;
+			gap: 15px;
+			margin-bottom: 20px;
+		}
+
+		.user-pulse-marker {
+			animation: mapPulse 2s infinite;
+		}
+
+		@keyframes mapPulse {
+			0% {
+				filter: drop-shadow(0 0 0 rgba(59, 130, 246, 0.7));
+			}
+
+			70% {
+				filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0));
+			}
+
+			100% {
+				filter: drop-shadow(0 0 0 rgba(59, 130, 246, 0));
+			}
+		}
+
+		.map-popup-card {
+			color: #1e293b;
+			padding: 5px;
+		}
+
+		.map-popup-card h3 {
+			margin: 0 0 5px 0;
+			color: var(--primary);
+			font-size: 1rem;
+		}
+
+		.map-popup-card p {
+			margin: 2px 0;
+			font-size: 0.8rem;
+		}
+
+		.map-popup-card .btn-popup:hover {
+			filter: brightness(1.2);
+		}
+
+		.custom-marker {
+			background: none !important;
+			border: none !important;
+		}
+
+		.custom-marker div {
+			transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+		}
+
+		.custom-marker:hover div {
+			transform: rotate(-45deg) scale(1.2) !important;
+			z-index: 1000;
+		}
+
+		/* Responsive Optimizations */
+		@media (max-width: 600px) {
+			body {
+				padding: 10px 10px 100px 10px;
+				/* More bottom padding for floating menu */
+				touch-action: pan-y;
+			}
+
+			.container {
+				margin: 10px auto;
+			}
+
+			.top-bar {
+				flex-direction: column;
+				align-items: flex-start;
+				gap: 15px;
+			}
+
+			.top-bar .back-btn {
+				order: -1;
+				margin-bottom: 5px;
+			}
+
+			.tabs {
+				overflow-x: auto;
+				padding: 5px;
+				gap: 8px;
+				justify-content: flex-start;
+				mask-image: linear-gradient(to right, black 85%, transparent 100%);
+				-webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+			}
+
+			.tab-btn {
+				flex: 0 0 auto;
+				padding: 10px 15px;
+				font-size: 0.85rem;
+				white-space: nowrap;
+			}
+
+			.form-card {
+				padding: 20px 15px;
+				border-radius: 16px;
+			}
+
+			.map-date-filters {
+				grid-template-columns: 1fr;
+				gap: 10px;
+			}
+
+			.map-date-filters div {
+				width: 100%;
+			}
+
+			#map-container {
+				height: 350px;
+			}
+
+			.detail-overlay {
+				padding: 25px 15px;
+			}
+
+			h1 {
+				font-size: 1.4rem !important;
+			}
+
+			.form-group label {
+				font-size: 0.85rem;
+				font-weight: 700;
+				color: #1e293b;
+			}
+
+			#admin_toggle_container {
+				width: 100%;
+				justify-content: space-between !important;
+				margin-top: 10px;
+				padding: 12px 20px !important;
+				border-radius: 16px !important;
+				height: auto !important;
+			}
+
+			.form-card {
+				padding: 20px 12px !important;
+				border-radius: 12px !important;
+				backdrop-filter: blur(10px);
+				/* Reduce blur for mobile perf */
+				touch-action: pan-y;
+			}
+
+			.list-controls {
+				flex-direction: column !important;
+			}
+
+			.search-wrapper {
+				width: 100% !important;
+			}
+
+			/* Make table font smaller on mobile */
+			table {
+				font-size: 0.8rem !important;
+			}
+
+			th,
+			td {
+				padding: 8px 5px !important;
+			}
+
+			.sub-tabs {
+				overflow-x: auto;
+				justify-content: flex-start !important;
+				gap: 5px;
+			}
+
+			.sub-tab-btn {
+				flex: 0 0 auto !important;
+				padding: 10px 15px !important;
+				font-size: 0.8rem !important;
+				min-height: 44px;
+				display: flex;
+				align-items: center;
+			}
+
+			.tabs {
+				overflow-x: auto;
+				justify-content: flex-start !important;
+				gap: 8px;
+				padding: 8px 5px !important;
+				-webkit-overflow-scrolling: touch;
+			}
+
+			.tab-btn {
+				flex: 0 0 auto !important;
+				padding: 10px 15px !important;
+				font-size: 0.85rem !important;
+				min-height: 44px;
+			}
+
+			.top-bar {
+				margin-bottom: 20px;
+			}
+
+			.top-bar h1 {
+				font-size: 1.3rem !important;
+			}
+
+			#user_display {
+				font-size: 0.75rem !important;
+				word-break: break-all;
+			}
+
+			.top-bar div div {
+				flex-wrap: wrap !important;
+			}
+
+			.desktop-only {
+				display: none !important;
+			}
+
+			/* Modern Search Bar for Mobile */
+			#custSearch {
+				background: rgba(0, 0, 0, 0.3) !important;
+				border: 1px solid rgba(255, 255, 255, 0.2) !important;
+				border-radius: 16px !important;
+				height: 50px;
+				font-size: 0.95rem !important;
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+			}
+
+			/* Hide Table Header on Mobile */
+			thead {
+				display: none;
+			}
+
+			/* Transform Table to Cards on Mobile */
+			#customerTableBody tr {
+				display: flex;
+				flex-direction: column;
+				background: rgba(255, 255, 255, 0.03);
+				border: 1px solid var(--glass-border);
+				border-radius: 16px;
+				margin-bottom: 12px;
+				padding: 15px;
+				position: relative;
+				gap: 10px;
+			}
+
+			#customerTableBody td {
+				padding: 0 !important;
+				border-bottom: none !important;
+				width: 100% !important;
+			}
+
+			#customerTableBody td:last-child {
+				border-top: 1px solid rgba(255, 255, 255, 0.05);
+				padding-top: 12px !important;
+				margin-top: 5px;
+			}
+
+			.customer-name {
+				font-size: 1.1rem !important;
+				color: var(--primary) !important;
+				margin-bottom: 5px;
+			}
+
+			.customer-address {
+				font-size: 0.85rem !important;
+				line-height: 1.4;
+				color: var(--text-muted);
+			}
+
+			.admin-toggle {
+				background: rgba(99, 102, 241, 0.1) !important;
+				border-color: rgba(99, 102, 241, 0.3) !important;
+			}
+
+			.customer-meta {
+				display: none;
+				/* Default hidden, shown via JS if needed or just use JS to render */
+			}
+
+			/* Show meta info on mobile cards */
+			.mobile-meta {
+				display: flex !important;
+				gap: 8px;
+				flex-wrap: wrap;
+				margin-top: 8px;
+			}
+
+			.tag-pill {
+				font-size: 0.7rem !important;
+				padding: 2px 8px !important;
+				border-radius: 6px !important;
+				font-weight: 600;
+				border: 1px solid transparent;
+			}
+
+			.tag-primary {
+				background: rgba(99, 102, 241, 0.15);
+				color: var(--primary);
+				border-color: rgba(99, 102, 241, 0.2);
+			}
+
+			.tag-accent {
+				background: rgba(192, 132, 252, 0.15);
+				color: var(--accent-purple);
+				border-color: rgba(192, 132, 252, 0.2);
+			}
+
+			.tag-success {
+				background: rgba(34, 197, 94, 0.15);
+				color: #22c55e;
+				border-color: rgba(34, 197, 94, 0.2);
+			}
+
+			.mobile-actions {
+				display: grid !important;
+				grid-template-columns: 1fr 1fr;
+				gap: 10px;
+				width: 100%;
+			}
+
+			.mobile-actions button {
+				flex: 1;
+				justify-content: center;
+			}
+
+			.mobile-hidden {
+				display: none !important;
+			}
+		}
+
+		/* --- MOBILE LAYOUT OPTIMIZATIONS (FINAL) --- */
+		@media (max-width: 600px) {
+
+			/* 1. Global Layout Fixes */
+			body {
+				padding: 8px !important;
+				overflow-x: hidden !important;
+			}
+
+			.container {
+				margin: 10px auto !important;
+				width: 100% !important;
+				padding-bottom: 80px;
+				padding-left: 0;
+				padding-right: 0;
+			}
+
+			/* 2. Customer Creation Modal Optimization */
+			/* 2. Customer Creation Modal Optimization */
+			.detail-overlay {
+				width: 100% !important;
+				max-width: 100% !important;
+				padding: 15px !important;
+				border-radius: 0 !important;
+				top: 0 !important;
+				height: 100% !important;
+				/* Reset any transforms but allow transition */
+				transform: none !important;
+				box-shadow: none !important;
+				/* Ensure it respects the hidden state (right: -100%) */
+			}
+
+			/* Only force full width/position when active */
+			.detail-overlay.active {
+				right: 0 !important;
+				left: 0 !important;
+			}
+
+			/* Force vertical layout for ALL detail overlays on mobile */
+			.detail-overlay,
+			#customerCreateModal.detail-overlay,
+			#checkinModal.detail-overlay {
+				display: flex !important;
+				flex-direction: column !important;
+				background: var(--card-bg) !important;
+				padding: 0 !important;
+				/* Managed by children */
+				overflow-x: hidden !important;
+			}
+
+			/* Sticky Header Refined */
+			.detail-header {
+				position: sticky !important;
+				top: 0;
+				background: var(--card-bg);
+				z-index: 100;
+				padding: 20px 15px !important;
+				margin: 0 !important;
+				border-bottom: 2px solid var(--primary);
+				display: flex !important;
+				flex-direction: row !important;
+				/* Title and X button in row */
+				justify-content: space-between !important;
+				align-items: center !important;
+				width: 100% !important;
+				flex-shrink: 0;
+			}
+
+			#customerForm,
+			#checkinForm {
+				padding: 20px 15px !important;
+				display: flex !important;
+				flex-direction: column !important;
+				gap: 15px !important;
+				width: 100% !important;
+				flex: 1;
+			}
+
+			#formTitle {
+				font-size: 1.2rem !important;
+				font-weight: 800 !important;
+				line-height: 1.2;
+				max-width: 80%;
+			}
+
+			/* Stack inputs vertically in the form */
+			.grid-row-2 {
+				grid-template-columns: 1fr !important;
+				gap: 10px !important;
+			}
+
+			.btn-group-row {
+				flex-direction: column !important;
+				gap: 10px !important;
+			}
+
+			/* Optimize Search and Add Button on Mobile */
+			.list-controls {
+				display: flex !important;
+				flex-direction: row !important;
+				flex-wrap: nowrap !important;
+				gap: 10px !important;
+				margin-bottom: 20px !important;
+			}
+
+			.search-wrapper {
+				flex: 1 !important;
+				min-width: 0 !important;
+				width: auto !important;
+				/* Allow shrinking */
+			}
+
+			/* Make the add button square and properly sized */
+			.list-controls button.btn-submit {
+				width: 45px !important;
+				flex: 0 0 45px !important;
+				/* Fixed width, no grow/shrink */
+				margin: 0 !important;
+			}
+
+			.btn-group-row button {
+				width: 100% !important;
+				flex: none !important;
+				margin: 0 !important;
+			}
+
+			/* Fix Input Widths */
+			.form-group input,
+			.form-group select,
+			.form-group textarea {
+				font-size: 16px !important;
+				/* Prevent zoom on iOS */
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<div id="toast"></div>
+
+	<div id="zoomModal" class="zoom-modal" onclick="closeZoom()">
+		<span class="zoom-close">&times;</span>
+		<img id="zoomImg" class="zoom-img" src="">
+	</div>
+
+	<div id="detailOverlay" class="detail-overlay">
+		<div class="detail-header">
+			<div>
+				<h2 id="det_name" style="font-size: 1.6rem; font-weight: 800; color: var(--primary);">Tên Khách Hàng
+				</h2>
+				<p id="det_id" style="color: var(--text-muted); font-size: 0.8rem;">ID: KH00000</p>
+			</div>
+			<button class="detail-close" onclick="closeDetail()">✕</button>
+		</div>
+
+		<div class="detail-section">
+			<div class="detail-label">Liên Hệ</div>
+			<div id="det_contact" class="detail-value">Nguyễn Văn A</div>
+			<div id="det_phone" style="color: var(--accent-purple); font-weight: 600; margin-top: 5px;">0901234567</div>
+		</div>
+
+		<div class="detail-section">
+			<div class="detail-label">Địa Chỉ & Khu Vực</div>
+			<div id="det_address" class="detail-value" style="font-size: 0.95rem;">Số 123 Đường ABC...</div>
+			<div id="det_area" style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;">📍 Miền Nam</div>
+		</div>
+
+		<div class="detail-section">
+			<div class="detail-label">Phân Loại Đối Tượng</div>
+			<div id="det_type" class="detail-value" style="color: var(--accent-purple);">Nhà máy tôn</div>
+		</div>
+
+		<div class="detail-section">
+			<div class="detail-label">Vị Trí GPS</div>
+			<div id="det_location" class="detail-value" style="font-family: monospace; font-size: 0.9rem;">10.123,
+				106.456</div>
+			<button class="btn-glass" onclick="openInGoogleMaps()"
+				style="margin-top: 10px; width: 100%; padding: 10px;">Xem trên bản đồ</button>
+		</div>
+
+		<div class="detail-section">
+			<div class="detail-label">Trạng Thái</div>
+			<div id="det_status"
+				style="display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; background: rgba(34, 197, 94, 0.2); color: #22c55e;">
+				Đang hoạt động</div>
+		</div>
+
+		<div class="history-list" id="det_history">
+			<!-- Personal History Highlights -->
+		</div>
+
+		<button class="btn-submit" id="btnGoCI" style="margin-top: 20px;" onclick="startCheckinFromDetail()">📍 CHECK-IN
+			NGAY</button>
+	</div>
+
+	<!-- Document Detail Overlay -->
+	<div id="docDetailOverlay" class="detail-overlay">
+		<div class="detail-header">
+			<div>
+				<h2 id="doc_det_customer" style="font-size: 1.4rem; font-weight: 800; color: var(--primary);">Khách hàng
+					A</h2>
+				<p id="doc_det_name"
+					style="color: var(--text-main); font-size: 1.1rem; font-weight: 600; margin-top: 5px;">Tên tài liệu
+				</p>
+			</div>
+			<button class="detail-close" onclick="closeDocDetail()">✕</button>
+		</div>
+
+		<div class="detail-section">
+			<div class="detail-label">Thông tin tài liệu</div>
+			<div style="display: flex; justify-content: space-between; margin-top: 5px;">
+				<span id="doc_det_type" class="tag-pill tag-primary">Loại</span>
+				<span id="doc_det_time" style="font-size: 0.8rem; color: var(--text-muted);">Thời gian</span>
+			</div>
+		</div>
+
+		<div class="detail-section">
+			<div class="detail-label">Người nhập & Quản lý</div>
+			<div style="font-size: 0.9rem;">
+				<div id="doc_det_submitter">👤 Người nhập: -</div>
+				<div id="doc_det_admin" style="margin-top: 5px;">🛡️ Quản lý: -</div>
+			</div>
+		</div>
+
+		<div class="detail-section">
+			<div class="detail-label">Ghi chú</div>
+			<div id="doc_det_note" style="font-size: 0.95rem; white-space: pre-line; margin-top: 5px;">-</div>
+		</div>
+
+		<div class="detail-label">Tệp đính kèm</div>
+		<div id="doc_file_preview" style="margin-top: 10px;">
+			<!-- Preview based on file type -->
+		</div>
+		<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+			<a id="doc_det_download" href="#" target="_blank" class="btn-glass"
+				style="display: flex; align-items: center; justify-content: center; text-decoration: none; padding: 12px; height: 100%;">
+				📥 Tải xuống
+			</a>
+			<button class="btn-glass" onclick="editDocFromDetail()" style="padding: 12px; height: 100%;">✏️ Sửa</button>
+		</div>
+		<button class="btn-submit" onclick="deleteDocFromDetail()"
+			style="margin-top: 10px; background: #ef4444; width: 100%;">🗑️ Xóa tài liệu</button>
+	</div>
+	</div>
+
+	<!-- Checkin Detail Overlay -->
+	<div id="checkinDetailOverlay" class="detail-overlay">
+		<div class="detail-header">
+			<div>
+				<h2 id="ci_det_name" style="font-size: 1.4rem; font-weight: 800; color: var(--primary);">Khách hàng A
+				</h2>
+				<p id="ci_det_time" style="color: var(--text-muted); font-size: 0.9rem;">12:30 20/10/2023</p>
+			</div>
+			<button class="detail-close" onclick="closeCheckinDetail()">✕</button>
+		</div>
+
+		<div class="detail-section">
+			<div class="detail-label">Mục đích</div>
+			<div id="ci_det_purpose" class="detail-value" style="color: var(--accent-purple);">Thăm hỏi</div>
+		</div>
+
+		<div class="detail-section">
+			<div class="detail-label">Khoảng cách & Vị trí</div>
+			<div id="ci_det_dist" class="detail-value">50m</div>
+			<div id="ci_det_loc"
+				style="font-family: monospace; font-size: 0.85rem; color: var(--text-muted); margin-top: 5px;">10.123,
+				106.123</div>
+			<button class="btn-glass" onclick="openCheckinMap()"
+				style="margin-top: 10px; width: 100%; padding: 8px;">Xem vị trí Check-in</button>
+		</div>
+
+		<div class="detail-section">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+				<div class="detail-label" style="margin-bottom: 0;">Ghi chú kết quả</div>
+				<button class="btn-glass" id="btnEditCheckin" style="padding: 2px 10px; font-size: 0.75rem;">✏️
+					Sửa</button>
+			</div>
+			<div id="ci_det_note" class="detail-value" style="font-size: 0.95rem; white-space: pre-line;">...</div>
+			<div id="ci_det_admin"
+				style="font-size: 0.75rem; color: var(--text-muted); margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 5px;">
+			</div>
+		</div>
+
+		<div class="detail-section">
+			<div class="detail-label">Hình ảnh minh chứng</div>
+			<img id="ci_det_img" src="" style="width: 100%; border-radius: 8px; margin-top: 10px; cursor: pointer;"
+				onclick="zoomImage(this.src)">
+		</div>
+	</div>
+
+	<!-- CHATBOT WIDGET -->
+
+	<div class="container">
+		<div class="top-bar">
+			<div>
+				<h1>CRM & Sales Check-in</h1>
+				<div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+					<p id="user_display" style="font-size: 0.85rem; color: var(--text-muted);"></p>
+					<span id="role_badge"
+						style="font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; background: rgba(99, 102, 241, 0.2); color: var(--primary); font-weight: 800; border: 1px solid var(--primary);"></span>
+				</div>
+			</div>
+			<a href="index.html" class="btn btn-glass">
+				<i class="fa-solid fa-house"></i> Trang chủ
+			</a>
+		</div>
+
+		<div class="tabs">
+			<button class="tab-btn active" id="tab_list" onclick="switchTab('list')"><i class="fas fa-users"></i> Khách
+				hàng</button>
+			<button class="tab-btn" id="tab_checkin" onclick="switchTab('checkin')"><i
+					class="fas fa-map-marker-alt"></i> Check-in</button>
+			<button class="tab-btn" id="tab_map" onclick="switchTab('map')"><i class="fas fa-map"></i> Bản đồ</button>
+			<button class="tab-btn" id="tab_docs" onclick="switchTab('docs')"><i class="fas fa-file-alt"></i> Tài
+				liệu</button>
+		</div>
+
+		<!-- CUSTOMER CREATE MODAL (Redesigned) -->
+		<div id="customerCreateModal" class="detail-overlay">
+			<div class="detail-header">
+				<h2 id="formTitle" style="margin: 0; font-size: 1.4rem; color: var(--primary);">🆕 Tạo Khách Hàng</h2>
+				<button type="button" class="detail-close" onclick="closeCustomerModal()">✕</button>
+			</div>
+
+			<form id="customerForm" style="display: flex; flex-direction: column; gap: 15px;">
+				<input type="hidden" id="edit_cust_id" value="">
+
+				<div class="form-group">
+					<label>Tên Khách hàng *</label>
+					<input type="text" id="cust_name" placeholder="Ví dụ: Công ty TNHH ABC" required
+						style="padding: 14px; font-size: 1rem; border: 1px solid var(--glass-border); background: var(--card-bg); border-radius: 12px;">
+				</div>
+
+				<div class="grid-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+					<div class="form-group">
+						<label>Người liên hệ</label>
+						<input type="text" id="cust_contact" placeholder="Nguyễn Văn A">
+					</div>
+					<div class="form-group">
+						<label>Số điện thoại</label>
+						<input type="tel" id="cust_phone" placeholder="090...">
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label>Email</label>
+					<input type="email" id="cust_email" placeholder="email@gmail.com">
+				</div>
+
+				<div class="form-group">
+					<label>Địa chỉ Kho/Cửa hàng *</label>
+					<div style="position: relative;">
+						<input type="text" id="cust_address" placeholder="Số 1, Đường X, Quận Y..." required
+							oninput="handleAddressAutocomplete(this.value)" autocomplete="off"
+							style="padding-right: 40px;">
+						<i class="fas fa-map-marker-alt"
+							style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+					</div>
+					<div id="addressSuggestions" class="address-suggestions hidden"></div>
+				</div>
+
+				<div class="form-group">
+					<label>Vị trí GPS *</label>
+					<div style="display: flex; gap: 10px; align-items: center;">
+						<div style="flex: 1; position: relative;">
+							<input type="text" id="cust_location" placeholder="Tọa độ GPS"
+								oninput="handleDirectLocationInput(this.value, 'create')">
+						</div>
+						<button type="button" id="btnGetGPS" class="btn-glass" onclick="captureGPS()"
+							style="white-space: nowrap; height: 45px; display: flex; align-items: center; gap: 5px; background: rgba(34, 197, 94, 0.1); color: #22c55e; border: 1px solid #22c55e;">
+							📡 Lấy GPS
+						</button>
+					</div>
+					<div id="gpsStatusCreate" class="gps-status" style="margin-top: 5px;"></div>
+				</div>
+
+				<div class="grid-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+					<div class="form-group">
+						<label>Khu vực</label>
+						<input type="text" id="cust_area" list="area_list" placeholder="Chọn khu vực">
+						<datalist id="area_list"></datalist>
+					</div>
+					<div class="form-group">
+						<label>Phân loại</label>
+						<input type="text" id="cust_type" list="type_list" placeholder="Chọn loại khách">
+						<datalist id="type_list"></datalist>
+					</div>
+				</div>
+
+				<div class="btn-group-row" style="margin-top: 20px; display: flex; gap: 15px;">
+					<button type="submit" class="btn-submit" id="btnCust" style="flex: 2;">Lưu Khách Hàng</button>
+					<button type="button" class="btn-glass" onclick="resetCustomerForm()"
+						style="flex: 1; text-align: center;">Làm mới</button>
+				</div>
+			</form>
+		</div>
+
+		<div id="formList" class="form-card active">
+			<div class="list-controls" style="display: flex; gap: 15px; margin-bottom: 20px; align-items: center;">
+				<div class="search-wrapper" style="flex: 1; position: relative;">
+					<i class="fas fa-search"
+						style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+					<input type="text" id="custSearch" placeholder="Tìm tên khách hàng hoặc khu vực..."
+						oninput="filterLocalList()"
+						style="padding-left: 42px; height: 45px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--glass-border);">
+				</div>
+
+				<!-- ADD NEW BUTTON -->
+				<button class="btn-submit" onclick="openCreateCustomerModal()"
+					style="width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 0; font-size: 1.5rem; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); margin-top: 0;">
+					+
+				</button>
+
+				<div id="admin_toggle_container" class="admin-toggle"
+					style="display: none; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 12px; border: 1px solid var(--glass-border); height: 45px;">
+					<label
+						style="margin-bottom: 0; font-size: 0.75rem; white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+						<input type="checkbox" id="chk_view_all"
+							onchange="loadCustomers(); loadCheckinHistory(); loadDocs();"
+							style="width: 18px; height: 18px; cursor: pointer;">
+						Xem (Admin)
+					</label>
+				</div>
+			</div>
+
+			<div id="customerListContainer"
+				style="width: 100%; -webkit-overflow-scrolling: touch; overflow-x: auto; margin-top: 10px;">
+				<table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+					<thead>
+						<tr class="table-header">
+							<th style="padding: 15px; width: 35%;">KHÁCH HÀNG</th>
+							<th class="desktop-only" style="padding: 15px;">PHÂN LOẠI</th>
+							<th class="desktop-only" style="padding: 15px;">KHU VỰC</th>
+							<th class="desktop-only" style="padding: 15px;">SALES</th>
+							<th class="desktop-only" style="padding: 15px;">TRẠNG THÁI</th>
+							<th style="padding: 15px; text-align: right;">THAO TÁC</th>
+						</tr>
+					</thead>
+					<tbody id="customerTableBody">
+						<!-- Rendered dynamically -->
+					</tbody>
+				</table>
+			</div>
+		</div>
+
+		<script>
+			function openCreateCustomerModal(isEdit = false) {
+				if (!isEdit) resetCustomerForm();
+				document.getElementById('customerCreateModal').classList.add('active');
+			}
+
+			function closeCustomerModal() {
+				document.getElementById('customerCreateModal').classList.remove('active');
+			}
+		</script>
+
+		<!-- CHECK-IN MODAL -->
+		<div id="checkinModal" class="detail-overlay">
+			<div class="detail-header">
+				<h2 style="margin: 0; font-size: 1.4rem; color: var(--primary);">📍 Form Check-in</h2>
+				<button type="button" class="detail-close" onclick="closeCheckinModal()">✕</button>
+			</div>
+
+			<form id="checkinForm">
+				<div class="form-group">
+					<label>Thời gian Check-in</label>
+					<input type="text" id="ci_time" readonly
+						style="background: rgba(255,255,255,0.02); color: var(--text-muted);">
+				</div>
+				<div class="form-group">
+					<label>Chọn Khách hàng *</label>
+					<div class="searchable-select">
+						<div class="ss-input-wrap">
+							<i class="fas fa-search"></i>
+							<input type="text" id="ss_ci_search" placeholder="Nhập tên khách hàng để tìm..."
+								autocomplete="off" onfocus="this.select()" oninput="filterSS('ci')">
+						</div>
+						<div class="ss-dropdown" id="ss_ci_dropdown"></div>
+						<!-- Hidden select for compatibility -->
+						<select id="ci_customer" class="hidden" required onchange="updateDistance()"></select>
+					</div>
+				</div>
+				<div class="form-group">
+					<label>Mục đích Gặp mặt</label>
+					<select id="ci_purpose">
+						<option value="Thăm hỏi định kỳ">Thăm hỏi định kỳ</option>
+						<option value="Chào mới">Chào mới</option>
+						<option value="Xử lý khiếu nại">Xử lý khiếu nại</option>
+						<option value="Thu nợ">Thu nợ</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label>Ghi chú kết quả</label>
+					<textarea id="ci_note" rows="3" placeholder="Khách chưa lấy hàng vì..."></textarea>
+				</div>
+				<div class="form-group">
+					<label>Ảnh minh chứng (Chụp ảnh/Tải lên) *</label>
+					<input type="file" id="ci_file" accept="image/*">
+				</div>
+				<div class="form-group">
+					<label>Vị trí Check-in</label>
+					<div style="display: flex; gap: 10px;">
+						<input type="text" id="ci_location" placeholder="Tự động lấy vị trí hoặc dán thủ công..."
+							oninput="handleDirectLocationInput(this.value, 'checkin')">
+					</div>
+					<div id="gpsStatusCheckin" class="gps-status"></div>
+				</div>
+				<div class="form-group">
+					<label style="font-size: 0.95rem; font-weight: 700; color: #0f172a;">Khoảng cách ước tính</label>
+					<div id="ci_dist_display"
+						style="font-weight: 900; color: #059669; font-size: 1.5rem; letter-spacing: -0.5px;">
+						0 m</div>
+				</div>
+				<div style="margin-top: 20px; display: flex; gap: 15px;">
+					<button type="submit" class="btn-submit" id="btnCI" style="flex: 2;">Xác Nhận Check-in</button>
+					<button type="button" class="btn-glass" onclick="closeCheckinModal()" style="flex: 1;">Đóng</button>
+				</div>
+			</form>
+		</div>
+
+		<script>
+			function openCheckinModal() {
+				document.getElementById('checkinForm').reset();
+				document.getElementById('ci_dist_display').innerText = "0 m";
+				document.getElementById('ss_ci_search').value = "";
+				document.getElementById('checkinModal').classList.add('active');
+				initGPS(); // Ensure GPS is ready for checkin
+			}
+
+			function closeCheckinModal() {
+				document.getElementById('checkinModal').classList.remove('active');
+			}
+		</script>
+		<!-- FORM 2: CHECK-IN HISTORY -->
+		<div id="formCheckin" class="form-card">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+				<div style="display: flex; align-items: center; gap: 10px;">
+					<div
+						style="width: 40px; height: 40px; border-radius: 12px; background: rgba(250, 204, 21, 0.1); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.2rem;">
+						<i class="fas fa-history"></i>
+					</div>
+					<h2 style="font-size: 1.2rem; margin: 0; color: #0f172a;">Lịch sử Check-in</h2>
+				</div>
+				<button class="btn-primary" onclick="openCheckinModal()"
+					style="padding: 10px 20px; border-radius: 12px; display: flex; align-items: center; gap: 8px;">
+					<i class="fas fa-plus"></i> Check-in
+				</button>
+			</div>
+
+			<div id="checkinHistoryContainer">
+				<div class="history-list">
+					<div class="filter-group">
+						<div class="purpose-btn active" onclick="filterHistory('Tất cả', this)">Tất cả</div>
+						<div class="purpose-btn" onclick="filterHistory('Thăm hỏi định kỳ', this)">Thăm hỏi</div>
+						<div class="purpose-btn" onclick="filterHistory('Chào mới', this)">Chào mới</div>
+						<div class="purpose-btn" onclick="filterHistory('Xử lý khiếu nại', this)">Khiếu nại</div>
+						<div class="purpose-btn" onclick="filterHistory('Thu nợ', this)">Thu nợ</div>
+					</div>
+					<div id="checkinHistoryBody" style="min-height: 200px; padding-right: 5px;">
+						<p style="text-align: center; color: var(--text-muted); padding: 20px;">Đang tải lịch sử...</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script>
+			function toggleCheckinHistory() {
+				const container = document.getElementById('checkinHistoryContainer');
+				const btn = document.getElementById('btnToggleCheckin');
+				if (container.style.display === 'none') {
+					container.style.display = 'block';
+					btn.innerText = '🔼 Thu Gọn Lịch Sử';
+					if (checkinHistory.length === 0) loadCheckinHistory();
+				} else {
+					container.style.display = 'none';
+					btn.innerText = '🕒 Xem Lịch Sử Check-in';
+				}
+			}
+		</script>
+
+		<!-- FORM 2.5: MAP -->
+		<div id="formMap" class="form-card">
+			<div id="mapContentContainer">
+				<div class="sub-tabs">
+					<div class="sub-tab-btn active" onclick="switchMapSubTab('new_customers')">👤 Khách mới</div>
+					<div class="sub-tab-btn" onclick="switchMapSubTab('checkin')">🏃 Check-in</div>
+				</div>
+
+				<div class="map-date-filters" style="display: flex; flex-direction: column; gap: 10px;">
+					<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+						<div>
+							<label>Từ ngày</label>
+							<input type="date" id="map_date_start" onchange="refreshMapData()">
+						</div>
+						<div>
+							<label>Đến ngày</label>
+							<input type="date" id="map_date_end" onchange="refreshMapData()">
+						</div>
+					</div>
+					<button class="btn-glass" onclick="centerMapOnUser()"
+						style="width: 100%; height: 45px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+						🎯 Vị trí của tôi
+					</button>
+				</div>
+
+				<div class="map-wrapper" id="mapWrapper">
+					<div class="map-controls-overlay">
+						<div class="map-search-box">
+							<input type="text" id="mapSearchInput" placeholder="Tìm tên khách hàng..."
+								oninput="handleMapSearch(this.value)">
+						</div>
+						<div class="map-btn-group">
+							<button class="btn-map-control" onclick="toggleMapFullscreen()"
+								title="Phóng lớn">📐</button>
+							<button class="btn-map-control" onclick="centerMapOnUser()"
+								title="Vị trí hiện tại">🎯</button>
+						</div>
+					</div>
+					<div id="map-container"></div>
+					<div id="mapLegendWrapper" class="map-legend-wrapper">
+						<div class="legend-header" onclick="toggleMapLegend()">
+							<span>🎨 Phân loại</span>
+							<span id="legendIcon">▼</span>
+						</div>
+						<div id="mapLegend" class="map-legend-content"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- FORM 3: TÀI LIỆU -->
+		<div id="formDocs" class="form-card">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+				<h2 style="font-size: 1.2rem; color: var(--primary); margin: 0;">📁 Danh sách tài liệu (v2)</h2>
+				<button class="btn-glass" onclick="toggleDocForm()"
+					style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; background: var(--primary); color: white; border: none; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);">
+					<span id="docToggleIcon">+</span>
+				</button>
+			</div>
+
+			<div id="doc_tab_form" class="sub-tab-content"
+				style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 16px; border: 1px dashed var(--glass-border); margin-bottom: 20px; display: none;">
+				<h3 style="font-size: 1rem; margin-bottom: 15px; color: var(--text-main); font-weight: 700;">🆕 Thêm tài
+					liệu mới</h3>
+				<form id="docForm">
+					<input type="hidden" id="edit_doc_old_name" value="">
+					<div class="form-group">
+						<label>Chọn Khách hàng *</label>
+						<div class="searchable-select">
+							<div class="ss-input-wrap">
+								<i class="fas fa-search"></i>
+								<input type="text" id="ss_doc_search" placeholder="Nhập tên khách hàng để tìm..."
+									autocomplete="off" onfocus="this.select()" oninput="filterSS('doc')">
+							</div>
+							<div class="ss-dropdown" id="ss_doc_dropdown"></div>
+							<!-- Hidden select for compatibility -->
+							<select id="doc_customer" class="hidden" required></select>
+						</div>
+					</div>
+					<div
+						style="text-align: center; font-size: 0.7rem; color: var(--text-muted); margin-top: -10px; margin-bottom: 10px; opacity: 0.5;">
+						System Build: v3.1 (Checked at ${new Date().toLocaleTimeString()})
+					</div>
+					<div class="form-group">
+						<label>Tên tài liệu</label>
+						<input type="text" id="doc_name" placeholder="Ví dụ: Giấy phép kinh doanh, Hợp đồng thuê..."
+							required>
+					</div>
+					<div class="form-group">
+						<label>Loại tài liệu</label>
+						<select id="doc_type" onchange="updateAcceptAttr()">
+							<option value="Giấy phép KD">Giấy phép KD (PDF/Ảnh)</option>
+							<option value="Hợp đồng">Hợp đồng (PDF)</option>
+							<option value="Hình ảnh">Hình ảnh minh chứng</option>
+							<option value="Tài liệu pháp lý">Tài liệu pháp lý (PDF)</option>
+							<option value="Khác">Khác</option>
+						</select>
+					</div>
+					<div class="form-group">
+						<label id="doc_file_label">Tải tệp lên (PDF/Ảnh) *</label>
+						<input type="file" id="doc_file" required accept="image/*,application/pdf">
+						<div id="doc_file_info"
+							style="font-size: 0.75rem; color: var(--accent-purple); margin-top: 5px; display: none;">
+						</div>
+					</div>
+					<div class="form-group">
+						<label>Ghi chú thêm</label>
+						<textarea id="doc_note" rows="2" placeholder="Thông tin bổ sung về tài liệu..."></textarea>
+					</div>
+					<div style="display: flex; gap: 10px;">
+						<button type="submit" class="btn-submit" id="btnDoc" style="flex: 3;">Lưu Tài Liệu</button>
+						<button type="button" class="btn-glass" id="btnCancelDocEdit" onclick="cancelDocEdit()"
+							style="flex: 1; margin-top: 10px;">Hủy / Đóng</button>
+					</div>
+				</form>
+			</div>
+
+			<div id="docListContainer">
+				<div class="search-wrapper" style="position: relative; margin-bottom: 20px;">
+					<i class="fas fa-search"
+						style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+					<input type="text" id="docSearch" placeholder="Tìm tài liệu, khách hàng, loại..."
+						oninput="filterDocs()"
+						style="padding-left: 42px; background: rgba(0,0,0,0.2); border-radius: 12px; height: 48px;">
+				</div>
+				<div id="docListBody" style="min-height: 200px;">
+					<p style="text-align: center; color: var(--text-muted); padding: 20px;">Đang tải danh sách tài
+						liệu...</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		const CRM_URL = 'https://script.google.com/macros/s/AKfycbymqtjIrsThq1lxSbY5TwjxCBvAzNhEP9su2BfJIvE-DV55CnDXiSg7GwrBTaoae3Pg/exec';
+		let customerList = [];
+		let checkinHistory = [];
+		let currentPurposeFilter = 'Tất cả';
+		let currentCoords = ""; // Tọa độ dùng cho form (có thể là thủ công/địa chỉ)
+		let addressResults = [];
+		let addressTimeout = null;
+		let areaList = [];
+		let liveCoords = ""; // Vị trí GPS thời gian thực
+		let hiddenTypes = new Set(); // For map filtering
+
+		const CLASSIFICATION_COLORS = {
+			'Tấm nhựa': '#facc15', // Yellow
+			'Cửa hàng nhựa': '#facc15', // Yellow
+			'Tấm sàn': '#22c55e',  // Green
+			'Nhà máy tôn': '#22c55e', // Green
+			'Keo silicon': '#3b82f6', // Blue
+			'Cửa hàng nhôm': '#3b82f6', // Blue
+			'Khác': '#94a3b8'
+		};
+
+		const PURPOSE_COLORS = {
+			'Thăm hỏi định kỳ': '#3b82f6', // Blue
+			'Chào mới': '#10b981',        // Emerald Green
+			'Xử lý khiếu nại': '#ef4444',  // Red
+			'Thu nợ': '#f97316',          // Orange
+			'Khác': '#EAB308'             // Yellow-500
+		};
+
+		function getColorForType(type) {
+			if (!type || type === "Chưa phân loại") return '#ef4444'; // Red default
+			if (CLASSIFICATION_COLORS[type]) return CLASSIFICATION_COLORS[type];
+
+			// Simple hash for dynamic colors if type is new
+			let hash = 0;
+			for (let i = 0; i < type.length; i++) hash = type.charCodeAt(i) + ((hash << 5) - hash);
+			const h = Math.abs(hash % 360);
+			return `hsl(${h}, 70%, 60%)`;
+		}
+
+		function getColorForPurpose(purpose) {
+			if (!purpose) return PURPOSE_COLORS['Khác'];
+			// Match partial strings if needed
+			for (let key in PURPOSE_COLORS) {
+				if (purpose.toLowerCase().includes(key.toLowerCase())) return PURPOSE_COLORS[key];
+			}
+			return PURPOSE_COLORS['Khác'];
+		}
+
+		if (!currentUser) window.location.href = 'auth.html';
+
+		async function handleAddressAutocomplete(val) {
+			const container = document.getElementById('addressSuggestions');
+			if (!val || val.length < 3) {
+				container.innerHTML = "";
+				container.classList.add('hidden');
+				return;
+			}
+
+			if (addressTimeout) clearTimeout(addressTimeout);
+			addressTimeout = setTimeout(async () => {
+				try {
+					const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val)}&addressdetails=1&limit=5&countrycodes=vn`);
+					addressResults = await res.json();
+					if (addressResults.length > 0) {
+						container.innerHTML = addressResults.map((item, i) => `
+							<div class="suggestion-item" onclick="selectSuggestedAddress(${i})">${item.display_name}</div>
+						`).join('');
+						container.classList.remove('hidden');
+					} else {
+						container.classList.add('hidden');
+					}
+				} catch (e) { console.warn("Lỗi fetch địa chỉ", e); }
+			}, 600);
+		}
+
+		function selectSuggestedAddress(idx) {
+			const item = addressResults[idx];
+			if (!item) return;
+
+			document.getElementById('cust_address').value = item.display_name;
+
+			// User request: DO NOT auto-fill GPS from address. Only manual GPS or Paste.
+
+			// Trích xuất khu vực (Huyện/Thành phố/Tỉnh)
+			const addr = item.address;
+			let areaSuggestion = addr.suburb || addr.city_district || addr.district || addr.town || addr.city || addr.state || "";
+
+			// Làm gọn tên khu vực nếu có (Bỏ dấu phẩy thừa)
+			document.getElementById('cust_area').value = areaSuggestion;
+
+			document.getElementById('addressSuggestions').classList.add('hidden');
+			// Removed automatic GPS success status
+		}
+
+		async function captureGPS() {
+			if (!liveCoords) {
+				showToast("Chưa nhận được tín hiệu GPS. Vui lòng đợi hoặc kiểm tra quyền vị trí.", true);
+				return;
+			}
+			currentCoords = liveCoords;
+			document.getElementById('cust_location').value = currentCoords;
+			document.getElementById('gpsStatusCreate').innerHTML = "✅ Vị trí đã được ghi nhận!";
+
+			// Tự động lấy khu vực từ tọa độ
+			await detectArea(currentCoords);
+
+			showToast("Đã lấy vị trí GPS hiện tại!");
+		}
+
+		async function detectArea(coords) {
+			if (!coords || !coords.includes(',')) return;
+			const areaInput = document.getElementById('cust_area');
+			const originalPlaceholder = areaInput.placeholder;
+
+			try {
+				areaInput.placeholder = "⌛ Đang nhận diện khu vực...";
+				const res = await fetch(CRM_URL, {
+					method: 'POST',
+					body: JSON.stringify({
+						action: 'getAreaFromCoords',
+						location: coords,
+						apiKey: API_SECRET
+					})
+				});
+				const data = await res.json();
+				if (data.success && data.area) {
+					areaInput.value = data.area;
+					showToast(`📍 Nhận diện khu vực: ${data.area}`);
+				}
+			} catch (e) {
+				console.warn("Lỗi nhận diện khu vực", e);
+			} finally {
+				areaInput.placeholder = originalPlaceholder;
+			}
+		}
+
+		// Đóng suggestion khi click ra ngoài
+		document.addEventListener('click', (e) => {
+			if (!e.target.closest('.form-group')) {
+				document.getElementById('addressSuggestions').classList.add('hidden');
+			}
+		});
+
+		// Helper: Convert File to Base64
+		function fileToBase64(file) {
+			return new Promise((resolve, reject) => {
+				const reader = new FileReader();
+				reader.readAsDataURL(file);
+				reader.onload = () => resolve(reader.result.split(',')[1]);
+				reader.onerror = error => reject(error);
+			});
+		}
+
+		function compressImage(file, maxWidth = 1000, quality = 0.7) {
+			return new Promise((resolve) => {
+				const reader = new FileReader();
+				reader.readAsDataURL(file);
+				reader.onload = (event) => {
+					const img = new Image();
+					img.src = event.target.result;
+					img.onload = () => {
+						const canvas = document.createElement('canvas');
+						let width = img.width;
+						let height = img.height;
+						if (width > maxWidth) {
+							height = (maxWidth / width) * height;
+							width = maxWidth;
+						}
+						canvas.width = width;
+						canvas.height = height;
+						const ctx = canvas.getContext('2d');
+						ctx.drawImage(img, 0, 0, width, height);
+						// Trả về base64 thuần (không có prefix data:image/jpeg;base64,)
+						resolve(canvas.toDataURL('image/jpeg', quality).split(',')[1]);
+					};
+				};
+			});
+		}
+
+		async function uploadToDrive(file) {
+			if (!file) return null;
+			const base64 = await fileToBase64(file);
+			const isPdf = file.name.toLowerCase().endsWith('.pdf');
+			const res = await fetch(CRM_URL, {
+				method: 'POST',
+				body: JSON.stringify({
+					action: 'uploadFile',
+					filename: file.name,
+					mimetype: file.type,
+					base64: base64,
+					type: isPdf ? 'pdf' : 'image'
+				})
+			});
+			const data = await res.json();
+			return data.success ? data.url : null;
+		}
+
+		let directLocTimeout = null;
+		function handleDirectLocationInput(val, type = 'create') {
+			if (val.includes(',') && val.length > 5) {
+				const displayId = type === 'create' ? 'gpsStatusCreate' : 'gpsStatusCheckin';
+				document.getElementById(displayId).innerHTML = "✅ Đã nhận diện tọa độ thủ công";
+
+				if (type === 'create') {
+					currentCoords = val.trim();
+					// Debounce area detection for manual input
+					if (directLocTimeout) clearTimeout(directLocTimeout);
+					directLocTimeout = setTimeout(() => detectArea(currentCoords), 1000);
+				} else {
+					updateDistance();
+				}
+			}
+		}
+
+		function updateAcceptAttr() {
+			const type = document.getElementById('doc_type').value;
+			const input = document.getElementById('doc_file');
+			if (type === 'Hình ảnh') input.accept = "image/*";
+			else if (type === 'Hợp đồng' || type === 'PDF') input.accept = ".pdf";
+			else input.accept = "image/*, .pdf";
+		}
+
+		function showToast(msg, isError = false) {
+			const t = document.getElementById('toast');
+			t.innerText = msg;
+			t.style.background = isError ? '#ef4444' : '#22c55e';
+			t.classList.add('active');
+			setTimeout(() => t.classList.remove('active'), 3000);
+		}
+
+		function switchTab(tab) {
+			// Remove active class from all tabs and forms
+			document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+			document.querySelectorAll('.form-card').forEach(c => c.classList.remove('active'));
+
+			if (tab === 'list') {
+				document.getElementById('tab_list').classList.add('active');
+				document.getElementById('formList').classList.add('active');
+				setTimeout(loadCustomers, 50);
+			} else if (tab === 'checkin') {
+				document.getElementById('tab_checkin').classList.add('active');
+				document.getElementById('formCheckin').classList.add('active');
+				setTimeout(loadCheckinHistory, 50);
+			} else if (tab === 'map') {
+				document.getElementById('tab_map').classList.add('active');
+				document.getElementById('formMap').classList.add('active');
+				setTimeout(initMapIfNeeded, 100);
+			} else if (tab === 'docs') {
+				document.getElementById('tab_docs').classList.add('active');
+				document.getElementById('formDocs').classList.add('active');
+				setTimeout(() => {
+					loadDocs();
+					loadCustomers();
+				}, 50);
+			} else if (tab === 'create') {
+				switchTab('list');
+				openCreateCustomerModal();
+			}
+		}
+
+		function toggleDocForm() {
+			const form = document.getElementById('doc_tab_form');
+			const list = document.getElementById('doc_tab_list');
+			const icon = document.getElementById('docToggleIcon');
+			const title = document.querySelector('#formDocs h2');
+
+			if (form.style.display === 'none' || form.style.display === '') {
+				form.style.display = 'block';
+				list.style.display = 'none';
+				icon.innerText = '✕';
+				icon.parentNode.style.background = '#ef4444';
+				title.innerText = '📁 Nhập tài liệu mới';
+			} else {
+				cancelDocEdit();
+			}
+		}
+
+		function cancelDocEdit() {
+			document.getElementById('docForm').reset();
+			document.getElementById('edit_doc_old_name').value = "";
+			document.getElementById('btnDoc').innerText = "Lưu Tài Liệu";
+			document.getElementById('doc_file').required = true;
+			document.getElementById('doc_file_label').innerText = "Tải tệp lên (PDF/Ảnh) *";
+			document.getElementById('doc_file_info').style.display = "none";
+
+			// Always close form and show list on cancel/reset
+			document.getElementById('doc_tab_form').style.display = 'none';
+			document.getElementById('doc_tab_list').style.display = 'block';
+			document.querySelector('#formDocs h2').innerText = '📁 Danh sách tài liệu';
+
+			const icon = document.getElementById('docToggleIcon');
+			icon.innerText = '+';
+			icon.parentNode.style.background = 'var(--primary)';
+		}
+
+		function switchDocSubTab(tab) {
+			// This function is kept for compatibility but now we show list by default
+			loadDocs();
+		}
+
+		// Live Clock for Check-in Form
+		setInterval(() => {
+			const now = new Date();
+			const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + now.toLocaleDateString('vi-VN');
+			const el = document.getElementById('ci_time');
+			if (el) el.value = timeStr;
+		}, 1000);
+
+		// GPS Logic
+
+		function initGPS(forceLowAccuracy = false) {
+			if (!navigator.geolocation) {
+				const noGpsMsg = "❌ Trình duyệt không hỗ trợ định vị GPS.";
+				showToast(noGpsMsg, true);
+				updateGPSUI(noGpsMsg, "error");
+				return;
+			}
+
+			updateGPSUI("⌛ Đang tìm kiếm tín hiệu GPS...", "searching");
+
+			// Clear existing observer if any (to prevent multiple parallel watchers)
+			if (window.gpsWatcherId) navigator.geolocation.clearWatch(window.gpsWatcherId);
+
+			window.gpsWatcherId = navigator.geolocation.watchPosition(
+				pos => {
+					liveCoords = `${pos.coords.latitude}, ${pos.coords.longitude}`;
+
+					// Update form inputs
+					const ciLoc = document.getElementById('ci_location');
+					if (ciLoc) ciLoc.value = liveCoords;
+
+					// Update UI Status
+					updateGPSUI("✅ Tín hiệu GPS sẵn sàng", "success");
+
+					const btn = document.getElementById('btnCust');
+					if (btn && btn.getAttribute('data-processing') !== 'true') {
+						btn.disabled = false;
+						if (!document.getElementById('edit_cust_id').value) btn.innerText = "Lưu Khách Hàng";
+					}
+
+					if (typeof updateDistance === 'function') updateDistance();
+					if (typeof updateUserLocationMarker === 'function') updateUserLocationMarker();
+				},
+				err => {
+					// Quietly handle timeout retry without spamming console errors
+					if (err.code === 3 && !forceLowAccuracy) {
+						console.log("GPS Timeout (High Accuracy). Switching to backup mode...");
+						setTimeout(() => initGPS(true), 1000);
+						return;
+					}
+
+					console.warn("GPS Error Callback:", err);
+
+					// Detailed logging for debugging
+					let diagnosticInfo = `Code: ${err.code}, Msg: ${err.message}`;
+					if (err.code === 2) diagnosticInfo += " (Vị trí chưa xác định - kCLErrorLocationUnknown)";
+					console.error("GPS Diagnostics:", diagnosticInfo);
+
+					let errorMsg = "⚠️ Không lấy được GPS.";
+					let isFatal = false;
+
+					if (err.code === 1) {
+						errorMsg = "🚫 Vui lòng cho phép quyền truy cập GPS trong cài đặt trình duyệt.";
+						isFatal = true;
+					} else if (err.code === 3) {
+						errorMsg = "⌛ Tín hiệu yếu hoặc đang ở trong nhà. Đang chuyển sang chế độ dự phòng...";
+					}
+
+					showToast(errorMsg, true);
+					updateGPSUI(errorMsg + ' <button onclick="initGPS()" style="margin-left:10px; padding:2px 8px; font-size:10px; background:var(--primary); border:none; border-radius:4px; color:white; pointer-events:auto; cursor:pointer;">Thử lại</button>', "error");
+
+					const btn = document.getElementById('btnCust');
+					if (btn && btn.getAttribute('data-processing') !== 'true') btn.disabled = false;
+				},
+				{
+					enableHighAccuracy: !forceLowAccuracy,
+					timeout: forceLowAccuracy ? 10000 : 30000,
+					maximumAge: 10000
+				}
+			);
+		}
+
+		function updateGPSUI(html, statusClass) {
+			const stCreate = document.getElementById('gpsStatusCreate');
+			const stCheckin = document.getElementById('gpsStatusCheckin');
+
+			[stCreate, stCheckin].forEach(el => {
+				if (el) {
+					el.innerHTML = html;
+					el.className = `gps-status ${statusClass}`;
+				}
+			});
+		}
+
+		// --- MAP LOGIC ---
+		let mainMap = null;
+		let userMarker = null;
+		let currentMapTab = 'new_customers';
+
+		function initMapIfNeeded() {
+			if (!mainMap) {
+				mainMap = L.map('map-container', {
+					zoomControl: true,
+					tap: false // Better for mobile
+				}).setView([10.8231, 106.6297], 13);
+
+				L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+					attribution: '&copy; OpenStreetMap contributors'
+				}).addTo(mainMap);
+
+				// Style fix for maps in hidden tabs
+				setTimeout(() => mainMap.invalidateSize(), 400);
+			} else {
+				setTimeout(() => mainMap.invalidateSize(), 100);
+			}
+
+			updateUserLocationMarker();
+			refreshMapData();
+		}
+
+		// Icon Definitions
+		const storeIcon = L.divIcon({
+			className: 'custom-marker',
+			html: `<div style="background: var(--primary); width: 30px; height: 30px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                    <div style="transform: rotate(45deg); font-size: 14px;">🏪</div>
+                   </div>`,
+			iconSize: [30, 30],
+			iconAnchor: [15, 30]
+		});
+
+		const checkinMarkerIcon = L.divIcon({
+			className: 'custom-marker',
+			html: `<div style="background: var(--accent-purple); width: 30px; height: 30px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                    <div style="transform: rotate(45deg); font-size: 14px;">📍</div>
+                   </div>`,
+			iconSize: [30, 30],
+			iconAnchor: [15, 30]
+		});
+
+		function updateUserLocationMarker() {
+			if (!mainMap || !liveCoords) return;
+			const coords = liveCoords.split(',').map(n => parseFloat(n.trim()));
+			if (isNaN(coords[0])) return;
+
+			if (!userMarker) {
+				userMarker = L.circleMarker(coords, {
+					radius: 10,
+					fillColor: "#3b82f6",
+					color: "#fff",
+					weight: 3,
+					opacity: 1,
+					fillOpacity: 0.9,
+					className: 'user-pulse-marker'
+				}).addTo(mainMap);
+				userMarker.bindTooltip("Bạn đang ở đây", { permanent: false, direction: 'top' });
+			} else {
+				userMarker.setLatLng(coords);
+			}
+		}
+
+		function centerMapOnUser() {
+			if (!mainMap) return;
+
+			if (liveCoords) {
+				const coords = liveCoords.split(',').map(n => parseFloat(n.trim()));
+				mainMap.flyTo(coords, 17);
+				updateUserLocationMarker();
+			} else {
+				showToast("🌍 Đang cố gắng xác định vị trí... Vui lòng đợi.", false);
+				navigator.geolocation.getCurrentPosition(pos => {
+					liveCoords = `${pos.coords.latitude}, ${pos.coords.longitude}`;
+					const coords = [pos.coords.latitude, pos.coords.longitude];
+					mainMap.flyTo(coords, 17);
+					updateUserLocationMarker();
+					showToast("✅ Đã tìm thấy vị trí!");
+				}, err => {
+					showToast("❌ Không thể xác định vị trí. Vui lòng kiểm tra quyền GPS.", true);
+				}, { enableHighAccuracy: true, timeout: 10000 });
+			}
+		}
+
+		function switchMapSubTab(tab) {
+			currentMapTab = tab;
+			document.querySelectorAll('#formMap .sub-tab-btn').forEach((b, i) => {
+				b.classList.toggle('active', (tab === 'new_customers' && i === 0) || (tab === 'checkin' && i === 1));
+			});
+
+			// User requirement: For check-in, only show points within the day
+			if (tab === 'checkin') {
+				// Use local date (YYYY-MM-DD)
+				const today = new Date().toLocaleDateString('en-CA');
+				document.getElementById('map_date_start').value = today;
+				document.getElementById('map_date_end').value = today;
+			}
+			refreshMapData();
+		}
+
+		function toggleMapFullscreen() {
+			const wrapper = document.getElementById('mapWrapper');
+			wrapper.classList.toggle('fullscreen');
+			setTimeout(() => {
+				if (mainMap) mainMap.invalidateSize();
+			}, 400);
+		}
+
+		function handleMapSearch(q) {
+			if (!q || q.length < 2 || !mainMap) return;
+			const query = q.toLowerCase();
+			const match = customerList.find(c => c.name.toLowerCase().includes(query));
+			if (match && match.location) {
+				const coords = match.location.split(',').map(n => parseFloat(n.trim()));
+				mainMap.flyTo(coords, 17);
+			}
+		}
+
+		function toggleTypeFilter(type) {
+			if (hiddenTypes.has(type)) hiddenTypes.delete(type);
+			else hiddenTypes.add(type);
+			refreshMapData();
+		}
+
+		function toggleMapLegend() {
+			const wrapper = document.getElementById('mapLegendWrapper');
+			const icon = document.getElementById('legendIcon');
+			if (wrapper) {
+				wrapper.classList.toggle('collapsed');
+				const isCollapsed = wrapper.classList.contains('collapsed');
+				if (icon) icon.innerText = isCollapsed ? '▲' : '▼';
+			}
+		}
+
+		function parseDateVN(str) {
+			if (!str) return null;
+			let d = new Date(str);
+			if (!isNaN(d.getTime())) return d;
+
+			// Handle Vietnamese formats: dd/MM/yyyy or HH:mm dd/MM/yyyy
+			const parts = str.toString().trim().split(' ');
+			// Find part containing /
+			const datePart = parts.find(p => p.includes('/'));
+			if (datePart) {
+				const [day, month, year] = datePart.split('/').map(Number);
+				if (day && month && year) {
+					const timePart = parts.find(p => p.includes(':'));
+					if (timePart) {
+						const [h, m] = timePart.split(':').map(Number);
+						return new Date(year, month - 1, day, h || 0, m || 0);
+					}
+					return new Date(year, month - 1, day);
+				}
+			}
+			return null;
+		}
+
+		async function refreshMapData() {
+			if (!mainMap) return;
+
+			// Clear layers, except user marker
+			mainMap.eachLayer(layer => {
+				if ((layer instanceof L.Marker || layer instanceof L.CircleMarker) && layer !== userMarker) {
+					mainMap.removeLayer(layer);
+				}
+			});
+
+			const startVal = document.getElementById('map_date_start').value;
+			const endVal = document.getElementById('map_date_end').value;
+
+			let start = null;
+			if (startVal) {
+				const [y, m, d] = startVal.split('-').map(Number);
+				start = new Date(y, m - 1, d, 0, 0, 0, 0);
+			}
+
+			let end = null;
+			if (endVal) {
+				const [y, m, d] = endVal.split('-').map(Number);
+				end = new Date(y, m - 1, d, 23, 59, 59, 999);
+			}
+
+			// Update Legend based on context
+			const legend = document.getElementById('mapLegend');
+			if (currentMapTab === 'new_customers') {
+				const types = [...new Set(customerList.map(c => c.phanLoai || "Chưa phân loại"))];
+				legend.innerHTML = types.map(t => {
+					const color = getColorForType(t);
+					const isHidden = hiddenTypes.has(t);
+					return `
+						<div class="legend-item ${isHidden ? 'hidden' : ''}" onclick="toggleTypeFilter('${t}')" title="${t}">
+							<span class="legend-color" style="background: ${color}"></span>
+							<span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t}</span>
+						</div>
+					`;
+				}).join('');
+			} else {
+				// Legend for Purposes
+				const purposes = ['Thăm hỏi định kỳ', 'Chào mới', 'Xử lý khiếu nại', 'Thu nợ', 'Khác'];
+				legend.innerHTML = purposes.map(p => {
+					const color = getColorForPurpose(p);
+					const isHidden = hiddenTypes.has(p);
+					return `
+						<div class="legend-item ${isHidden ? 'hidden' : ''}" onclick="toggleTypeFilter('${p}')" title="${p}">
+							<span class="legend-color" style="background: ${color}"></span>
+							<span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${p}</span>
+						</div>
+					`;
+				}).join('');
+			}
+
+			// Ensure we have current filtered data
+			if (customerList.length === 0) await loadCustomers();
+			if (currentMapTab === 'checkin' && checkinHistory.length === 0) await loadCheckinHistory();
+
+			const markerGroup = [];
+
+			if (currentMapTab === 'new_customers') {
+				customerList.forEach(c => {
+					const type = c.phanLoai || "Chưa phân loại";
+					if (hiddenTypes.has(type)) return;
+
+					const date = parseDateVN(c.ngay_tao);
+					if (start && date && date < start) return;
+					if (end && date && date > end) return;
+
+					if (c.location && c.location.includes(',')) {
+						const coords = c.location.split(',').map(n => parseFloat(n.trim()));
+						if (!isNaN(coords[0])) {
+							const color = getColorForType(type);
+							const customIcon = L.divIcon({
+								html: `<div style="background-color: ${color}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>`,
+								className: 'custom-dot-icon',
+								iconSize: [14, 14],
+								iconAnchor: [7, 7]
+							});
+
+							const marker = L.marker(coords, { icon: customIcon }).addTo(mainMap);
+							marker.bindPopup(`
+									<div class="map-popup-card">
+										<h3 style="color: ${color}">${c.name}</h3>
+										<p>🏷️ <b>${type}</b></p>
+										<p>📍 ${c.address}</p>
+										<p>📅 Tạo ngày: ${c.ngay_tao}</p>
+										<button class="btn-popup" style="background: ${color}" onclick="openDetailFromMap('${c._internal_id}')">Chi tiết khách</button>
+									</div>
+								`, { closeButton: false });
+							marker.bindTooltip(c.name, { permanent: false, direction: 'top', offset: [0, -10] });
+							markerGroup.push(marker);
+						}
+					}
+				});
+			} else {
+				checkinHistory.forEach(ci => {
+					const cust = customerList.find(c => c.id === ci.customerId);
+					const purpose = ci.purpose || "Khác";
+					if (hiddenTypes.has(purpose)) return;
+
+					const date = parseDateVN(ci.time);
+					if (!date) return; // Skip if date is invalid
+					if (start && date < start) return;
+					if (end && date > end) return;
+
+					if (ci.location && ci.location.includes(',')) {
+						const coords = ci.location.split(',').map(n => parseFloat(n.trim()));
+						if (!isNaN(coords[0])) {
+							const color = getColorForPurpose(purpose);
+							const customIcon = L.divIcon({
+								html: `<div style="background-color: ${color}; width: 18px; height: 18px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 8px ${color}80; display:flex; align-items:center; justify-content:center; color:white; font-size:10px;">📍</div>`,
+								className: 'custom-checkin-icon',
+								iconSize: [20, 20],
+								iconAnchor: [10, 10]
+							});
+
+							const marker = L.marker(coords, { icon: customIcon }).addTo(mainMap);
+							marker.bindPopup(`
+									<div class="map-popup-card">
+										<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+											<h3 style="color: ${color}; margin: 0;">${cust ? cust.name : 'Khách lạ'}</h3>
+											<span style="font-size: 0.7rem; background: ${color}20; color: ${color}; padding: 2px 6px; border-radius: 4px; font-weight: 700;">${purpose}</span>
+										</div>
+										<p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">🕒 ${formatTime(ci.time)}</p>
+										
+										<div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1);">
+											<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+												<span style="font-size: 1rem;">📏</span>
+												<span style="font-weight: 700; color: #facc15;">${ci.distance} m</span>
+												<span style="font-size: 0.75rem; color: var(--text-muted);">(Khoảng cách)</span>
+											</div>
+											<div style="display: flex; align-items: center; gap: 8px;">
+												<span style="font-size: 1rem;">🚩</span>
+												<span style="font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${ci.location}</span>
+											</div>
+										</div>
+
+										${cust && cust.location ? `
+										<div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px;">
+											🎯 Điểm đến: <span style="font-family: monospace;">${cust.location}</span>
+										</div>
+										` : ''}
+
+										<button class="btn-popup" style="background: ${color}; width: 100%;" onclick="openCheckinDetailFromMap('${ci.id}')">Xem kết quả chi tiết</button>
+									</div>
+								`, { closeButton: false, minWidth: 220 });
+							markerGroup.push(marker);
+						}
+					}
+				});
+			}
+
+			// Auto-zoom to fit all markers if any
+			if (markerGroup.length > 0) {
+				const group = L.featureGroup(markerGroup);
+				mainMap.fitBounds(group.getBounds().pad(0.2));
+			}
+		}
+
+		function openDetailFromMap(uid) {
+			viewCustomerDetail(uid);
+		}
+
+		function openCheckinDetailFromMap(id) {
+			const ci = checkinHistory.find(x => x.checkin_id === id);
+			if (ci) showCheckinDetail(ci);
+		}
+
+
+		async function loadAreas() {
+			try {
+				const viewAll = document.getElementById('chk_view_all').checked;
+
+				const res = await fetch(CRM_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('getAreas', {
+						salesId: currentUser.email,
+						isAdmin: currentUser.roleId === 'R001',
+						viewAll: viewAll
+					})
+				});
+				const data = await res.json();
+				if (data.success && data.areas) {
+					areaList = data.areas;
+					const options = areaList.map(a => `<option value="${a}">${a}</option>`).join('');
+					document.getElementById('area_list').innerHTML = options;
+				}
+			} catch (e) { console.error("Lỗi tải khu vực", e); }
+		}
+
+		async function loadCustomers() {
+			try {
+				const viewAll = document.getElementById('chk_view_all').checked;
+
+				const res = await fetch(CRM_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('getCustomers', {
+						salesId: currentUser.email,
+						adminEmail: currentUser.adminEmail,
+						isAdmin: currentUser.roleId === 'R001',
+						viewAll: viewAll
+					})
+				});
+				const data = await res.json();
+				if (data.success) {
+					// Assign unique internal ID to handle duplicate real IDs in Sheet
+					customerList = data.customers.map((c, i) => ({ ...c, _internal_id: `uid_${i}_${Date.now()}` }));
+					renderCustomerTable(customerList);
+
+					// Populate Classification Choice List based on user's own items
+					const userCategories = [...new Set(customerList
+						.filter(c => c.salesOwner === currentUser.email)
+						.map(c => c.phanLoai)
+						.filter(v => v && v !== "Chưa phân loại")
+					)];
+					const typeList = document.getElementById('type_list');
+					if (typeList) {
+						typeList.innerHTML = userCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+					}
+
+					const options = '<option value="">-- Chọn khách hàng --</option>' +
+						customerList.map(c => `<option value="${c.id}" data-loc="${c.location}">${c.name}</option>`).join('');
+					const ciCust = document.getElementById('ci_customer');
+					const docCust = document.getElementById('doc_customer');
+					if (ciCust) ciCust.innerHTML = options;
+					if (docCust) docCust.innerHTML = options;
+
+					// Reset searchable inputs
+					const ssCi = document.getElementById('ss_ci_search');
+					const ssDoc = document.getElementById('ss_doc_search');
+					if (ssCi) ssCi.value = "";
+					if (ssDoc) ssDoc.value = "";
+				}
+			} catch (e) { showToast("Lỗi tải khách hàng!", true); }
+		}
+
+		// Searchable Select Logic
+		function filterSS(prefix) {
+			const searchInput = document.getElementById(`ss_${prefix}_search`);
+			const dropdown = document.getElementById(`ss_${prefix}_dropdown`);
+			const query = searchInput.value.toLowerCase().trim();
+
+			if (!query) {
+				dropdown.classList.remove('active');
+				return;
+			}
+
+			// Lọc từ danh sách customerList toàn cục
+			const filtered = customerList.filter(c =>
+				(c.name && c.name.toLowerCase().includes(query)) ||
+				(c.phone && c.phone.includes(query)) ||
+				(c.id && c.id.toLowerCase().includes(query))
+			);
+
+			if (filtered.length > 0) {
+				dropdown.innerHTML = filtered.slice(0, 15).map(c => `
+					<div class="ss-item" onclick="selectSSItem('${prefix}', '${c.id}', '${c.name.replace(/'/g, "&apos;")}')">
+						<span class="ss-name">${c.name}</span>
+						<span class="ss-sub">${c.id} ${c.phanLoai ? '• ' + c.phanLoai : ''} ${c.location ? '📍 Có tọa độ' : '❌ Chưa có tọa độ'}</span>
+					</div>
+				`).join('');
+				dropdown.classList.add('active');
+			} else {
+				dropdown.innerHTML = '<div class="ss-no-results">Không tìm thấy khách hàng nào</div>';
+				dropdown.classList.add('active');
+			}
+		}
+
+		function selectSSItem(prefix, id, name) {
+			const searchInput = document.getElementById(`ss_${prefix}_search`);
+			const dropdown = document.getElementById(`ss_${prefix}_dropdown`);
+			const hiddenSelect = document.getElementById(prefix === 'ci' ? 'ci_customer' : 'doc_customer');
+
+			// Cập nhật giá trị hiển thị và giá trị ẩn
+			searchInput.value = name.replace(/&apos;/g, "'");
+			hiddenSelect.value = id;
+			dropdown.classList.remove('active');
+
+			// Trigger logic cũ (ví dụ: tính khoảng cách)
+			if (prefix === 'ci') {
+				updateDistance();
+			}
+		}
+
+		// Đóng dropdown khi click ra ngoài
+		document.addEventListener('click', (e) => {
+			if (!e.target.closest('.searchable-select')) {
+				document.querySelectorAll('.ss-dropdown').forEach(d => d.classList.remove('active'));
+			}
+		});
+
+		// Helper to set customer programmatically
+		function setCustomerSelect(prefix, id) {
+			const hiddenSelect = document.getElementById(prefix === 'ci' ? 'ci_customer' : 'doc_customer');
+			const searchInput = document.getElementById(`ss_${prefix}_search`);
+			if (!hiddenSelect || !searchInput) return;
+
+			hiddenSelect.value = id;
+			const c = customerList.find(x => x.id === id);
+			if (c) {
+				searchInput.value = c.name;
+			} else {
+				searchInput.value = "";
+			}
+
+			if (prefix === 'ci') updateDistance();
+		}
+
+		async function loadCheckinHistory() {
+			try {
+				const viewAll = document.getElementById('chk_view_all').checked;
+
+				const isSuperAdmin = (currentUser.email === 'dunvex.green@gmail.com');
+				const res = await fetch(CRM_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('getCheckinHistory', {
+						salesId: currentUser.email,
+						adminEmail: currentUser.adminEmail,
+						isAdmin: currentUser.roleId === 'R001',
+						viewAll: viewAll,
+						viewAllSuper: isSuperAdmin ? viewAll : false
+					})
+				});
+				const data = await res.json();
+				if (data.success) {
+					// Ensure sorted by time descending (Newest first)
+					checkinHistory = (data.history || []).sort((a, b) => new Date(b.time) - new Date(a.time));
+					applyHistoryFilters();
+				} else {
+					document.getElementById('checkinHistoryBody').innerHTML =
+						`<p style="text-align: center; color: var(--danger); padding: 20px;">Lỗi: ${data.message}</p>`;
+				}
+			} catch (e) {
+				console.error("Lỗi tải lịch sử", e);
+				document.getElementById('checkinHistoryBody').innerHTML =
+					'<p style="text-align: center; color: var(--danger); padding: 20px;">Lỗi kết nối máy chủ.</p>';
+			}
+		}
+
+		function filterHistory(purpose, el) {
+			currentPurposeFilter = purpose;
+			document.querySelectorAll('.purpose-btn').forEach(b => b.classList.remove('active'));
+			el.classList.add('active');
+			applyHistoryFilters();
+		}
+
+		function applyHistoryFilters() {
+			const filtered = currentPurposeFilter === 'Tất cả'
+				? checkinHistory
+				: checkinHistory.filter(h => h.purpose === currentPurposeFilter);
+
+			const container = document.getElementById('checkinHistoryBody');
+			if (filtered.length === 0) {
+				container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">Không có bản ghi nào.</p>';
+				return;
+			}
+
+			container.innerHTML = filtered.map(h => {
+				const directImg = convertDriveLink(h.image || 'https://placehold.co/100x100/1e293b/white?text=No+Img');
+				const pColor = getColorForPurpose(h.purpose);
+
+				return `
+					<div class="history-item clickable-row" onclick="viewCheckinDetail('${h.id}')" style="border: 1px solid #cbd5e1; overflow: hidden; display: flex; align-items: stretch; gap: 0; padding: 0;">
+						<div style="width: 110px; flex-shrink: 0; position: relative; overflow: hidden; background: #f1f5f9;">
+							<img src="${directImg}" 
+								 class="history-img" onerror="this.src='https://placehold.co/100x100/1e293b/white?text=Error+Loading'" 
+								 onclick="event.stopPropagation(); zoomImage(this.src)"
+								 style="width: 100%; height: 100%; border: none; border-radius: 0; position: absolute; inset: 0;">
+						</div>
+						<div class="history-info" style="flex: 1; padding: 15px; position: relative;">
+							<button class="btn-glass" style="position: absolute; top: 10px; right: 10px; padding: 4px 8px; font-size: 0.75rem; z-index: 10; font-weight: 700; background: #fff; border: 1px solid #cbd5e1; color: #0f172a; min-height: unset; height: auto;" 
+									onclick="event.stopPropagation(); updateCheckinNote('${h.id}')">✏️ Sửa</button>
+							<div class="history-name" style="font-size: 1.1rem; font-weight: 800; color: #0f172a;">${h.customerName}</div>
+							<div class="history-meta" style="margin-top: 5px;">
+								<span style="font-weight: 700; color: #1e293b;">${formatTime(h.time)}</span>
+								<span class="history-purpose" style="background: ${pColor}20; color: ${pColor}; padding: 2px 8px; border-radius: 4px; font-weight: 800; border: 1px solid ${pColor}40; font-size: 0.75rem;">${h.purpose}</span>
+							</div>
+							<div style="font-size: 0.9rem; margin-top: 10px; color: #334155; line-height: 1.4; padding-right: 35px; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${h.note || 'Không có ghi chú'}</div>
+						</div>
+					</div>
+				`;
+			}).join('');
+		}
+
+		function zoomImage(src) {
+			document.getElementById('zoomImg').src = src;
+			document.getElementById('zoomModal').classList.add('active');
+		}
+
+		function closeZoom() {
+			document.getElementById('zoomModal').classList.remove('active');
+		}
+
+		function formatTime(iso) {
+			if (!iso) return '';
+			try {
+				const d = new Date(iso);
+				if (isNaN(d.getTime())) return iso; // Trả về text gốc nếu không parse được date
+				return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + d.toLocaleDateString('vi-VN');
+			} catch (e) { return iso; }
+		}
+
+		function renderCustomerTable(list) {
+			const body = document.getElementById('customerTableBody');
+			body.innerHTML = list.map(c => `
+				<tr class="clickable-row" style="border-bottom: 1px solid #f1f5f9;">
+					<td style="padding: 15px 12px; vertical-align: middle;" onclick="viewCustomerDetail('${c._internal_id}')">
+						<div class="customer-name" style="font-weight: 800; font-size: 1.05rem; color: #0f172a; margin-bottom: 4px;">${c.name}</div>
+						<div class="customer-address" style="font-size: 0.9rem; color: #334155; display: flex; align-items: center; gap: 5px; font-weight: 600;">
+                            <span style="color: var(--primary);">📍</span> ${c.address}
+                        </div>
+						<div class="mobile-meta" style="display: none; margin-top: 8px;">
+							<span class="tag-pill tag-primary" style="font-size: 0.75rem; font-weight: 700;">${c.phanLoai || '-'}</span>
+							<span class="tag-pill tag-accent" style="font-size: 0.75rem; font-weight: 700;">${c.area}</span>
+						</div>
+					</td>
+					<td class="desktop-only" style="padding: 12px; vertical-align: middle;">
+                        <span class="tag-pill" style="background: rgba(250, 204, 21, 0.1); color: #854d0e; font-weight: 800; border: 1px solid rgba(250, 204, 21, 0.3);">${c.phanLoai || '-'}</span>
+                    </td>
+					<td class="desktop-only" style="padding: 12px; vertical-align: middle; color: #0f172a; font-weight: 700;">${c.area}</td>
+					<td class="desktop-only" style="padding: 12px; vertical-align: middle; color: #334155; font-size: 0.9rem; font-weight: 600;">${c.salesOwner ? c.salesOwner.split('@')[0] : 'N/A'}</td>
+					<td class="desktop-only" style="padding: 12px; vertical-align: middle;" onclick="viewCustomerDetail('${c._internal_id}')">
+						<span style="background: rgba(34, 197, 94, 0.15); color: #166534; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 800;">${c.status || 'Active'}</span>
+					</td>
+					<td style="padding: 12px; text-align: right; vertical-align: middle;">
+						<div class="mobile-actions" style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
+							<button class="btn-glass" onclick="event.stopPropagation(); editCustomer('${c._internal_id}')" 
+                                style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; background: rgba(250, 204, 21, 0.1); border: 2px solid var(--primary); color: #0f172a; border-radius: 10px;" title="Sửa">
+								✏️
+							</button>
+							<button class="btn-glass" onclick="deleteCustomerWrapper('${c._internal_id}')" 
+                                style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; background: rgba(239, 68, 68, 0.1); border: 2px solid #ef4444; color: #ef4444; border-radius: 10px;" title="Xóa">
+                                🗑️
+                            </button>
+						</div>
+					</td>
+				</tr>
+			`).join('');
+		}
+
+
+		function startCheckinFromDetail() {
+			const idText = document.getElementById('det_id').innerText;
+			const id = idText.replace('ID: ', '').trim();
+			startCheckin(id);
+		}
+
+		function startCheckin(id) {
+			const c = customerList.find(x => x.id === id);
+			if (!c) return;
+
+			closeDetail(); // Close overlay if open
+			switchTab('checkin');
+			openCheckinModal();
+			setCustomerSelect('ci', id);
+		}
+
+		function editCustomer(uid) {
+			// Stop propagation if called from an event handler
+			if (window.event) window.event.stopPropagation();
+
+			const c = customerList.find(x => x._internal_id === uid);
+			if (!c) return;
+
+			document.getElementById('formTitle').innerText = "✏️ Chỉnh Sửa Khách Hàng";
+			document.getElementById('edit_cust_id').value = c.id;
+			document.getElementById('cust_name').value = c.name;
+			document.getElementById('cust_contact').value = c.contact || "";
+			document.getElementById('cust_phone').value = c.phone || "";
+			document.getElementById('cust_email').value = c.email || "";
+			document.getElementById('cust_address').value = c.address;
+			document.getElementById('cust_area').value = c.area;
+			document.getElementById('cust_type').value = c.phanLoai || "";
+
+			// Giữ nguyên tọa độ cũ, không ghi đè tự động
+			currentCoords = c.location || "";
+			document.getElementById('cust_location').value = currentCoords;
+			document.getElementById('btnGetGPS').innerText = "📡 Lấy GPS Mới";
+			document.getElementById('gpsStatusCreate').innerHTML = "✅ Đang sử dụng vị trí đã lưu";
+
+			document.getElementById('btnCust').innerText = "Cập Nhật Khách Hàng";
+			document.getElementById('btnCust').disabled = false;
+
+			// Use the new modal
+			openCreateCustomerModal(true);
+		}
+
+		// Added wrapper to stop propagation for Delete as well
+		function deleteCustomerWrapper(uid) {
+			if (window.event) window.event.stopPropagation();
+			deleteCustomer(uid);
+		}
+
+		function resetCustomerForm() {
+			document.getElementById('customerForm').reset();
+			document.getElementById('edit_cust_id').value = "";
+			document.getElementById('formTitle').innerText = "🆕 Tạo Khách Hàng Mới";
+			document.getElementById('btnCust').innerText = "Lưu Khách Hàng";
+			currentCoords = "";
+			document.getElementById('cust_location').value = "";
+		}
+
+		async function deleteCustomer(uid) {
+			const c = customerList.find(x => x._internal_id === uid);
+			if (!c) return;
+
+			if (!confirm(`Bạn có chắc chắn muốn xóa khách hàng "${c.name}"?`)) return;
+
+			try {
+				const res = await fetch(CRM_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('deleteCustomer', {
+						id: c.id
+					})
+				});
+				const data = await res.json();
+				if (data.success) {
+					showToast("Đã xóa khách hàng!");
+					loadCustomers();
+				} else {
+					showToast("Lỗi: " + data.message, true);
+				}
+			} catch (e) {
+				showToast("Lỗi kết nối khi xóa!", true);
+			}
+		}
+
+		function viewCustomerDetail(uid) {
+			const c = customerList.find(x => x._internal_id === uid);
+			if (!c) return;
+
+			// Populate Data
+			document.getElementById('det_name').innerText = c.name;
+			document.getElementById('det_id').innerText = `ID: ${c.id}`;
+			document.getElementById('det_contact').innerText = c.contact || 'Chưa cập nhật';
+			document.getElementById('det_phone').innerText = c.phone || 'N/A';
+			document.getElementById('det_address').innerText = c.address;
+			document.getElementById('det_area').innerText = `📍 ${c.area}`;
+			document.getElementById('det_location').innerText = c.location || 'N/A';
+			document.getElementById('det_type').innerText = c.phanLoai || 'Chưa phân loại';
+			document.getElementById('det_status').innerText = c.status;
+
+			// Handle History
+			const hist = checkinHistory.filter(h => h.customerId === c.id); // Use c.id here
+			const histContainer = document.getElementById('det_history');
+			if (hist.length > 0) {
+				histContainer.innerHTML = '<h3 style="font-size: 1rem; margin-bottom: 15px;">Hoạt động gần đây</h3>' +
+					hist.slice(0, 3).map(h => `
+						<div class="history-item" style="margin-bottom: 8px; padding: 10px;">
+							<div class="history-info">
+								<div class="history-meta">
+									<span>${formatTime(h.time)}</span>
+									<span class="history-purpose">${h.purpose}</span>
+								</div>
+								<div style="font-size: 0.8rem; margin-top: 3px;">${h.note || ''}</div>
+							</div>
+						</div>
+					`).join('');
+			} else {
+				histContainer.innerHTML = '';
+			}
+
+			document.getElementById('detailOverlay').classList.add('active');
+		}
+
+		function closeDetail() {
+			document.getElementById('detailOverlay').classList.remove('active');
+		}
+
+		function convertDriveLink(url) {
+			if (!url || typeof url !== 'string') return url;
+			if (url.includes('drive.google.com')) {
+				const idMatch = url.match(/[-\w]{25,}/);
+				if (idMatch && idMatch[0]) {
+					// Sử dụng lh3 với tham số sz=w1000 để bắt buộc Google Drive render ảnh trực tiếp
+					return `https://lh3.googleusercontent.com/d/${idMatch[0]}=s1000`;
+				}
+			}
+			return url;
+		}
+
+		function viewCheckinDetail(id) {
+			const h = checkinHistory.find(x => x.id === id);
+			if (!h) return;
+
+			document.getElementById('ci_det_name').innerText = h.customerName;
+			document.getElementById('ci_det_time').innerText = formatTime(h.time);
+			document.getElementById('ci_det_purpose').innerText = h.purpose;
+			document.getElementById('ci_det_dist').innerText = h.distance + " m";
+			document.getElementById('ci_det_loc').innerText = h.location;
+			document.getElementById('ci_det_note').innerText = h.note || "Không có ghi chú";
+
+			const detailImg = h.image || '';
+			document.getElementById('ci_det_img').src = convertDriveLink(detailImg);
+
+			// Show Admin Manage
+			document.getElementById('ci_det_admin').innerHTML = h.adminId ? `🛡️ Quản lý: ${h.adminId}` : "";
+
+			// Setup Edit Button
+			document.getElementById('btnEditCheckin').onclick = () => updateCheckinNote(h.id);
+
+			// Store location for map button
+			document.getElementById('checkinDetailOverlay').setAttribute('data-loc', h.location);
+
+			document.getElementById('checkinDetailOverlay').classList.add('active');
+		}
+
+		async function updateCheckinNote(id) {
+			const h = checkinHistory.find(x => x.id === id);
+			const newNote = prompt("✏️ Chỉnh sửa ghi chú kết quả:", h ? h.note : "");
+			if (newNote === null) return;
+
+			showToast("⏳ Đang cập nhật...");
+			try {
+				const res = await fetch(CRM_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('updateCheckinNote', {
+						checkinId: id,
+						note: newNote,
+						adminId: currentUser.adminEmail || currentUser.owner, // Primary admin of this org
+						overwriteAdmin: currentUser.roleId === 'R001' // Admin can overwrite wrong admin IDs
+					})
+				});
+				const data = await res.json();
+				if (data.success) {
+					showToast("✅ Đã cập nhật ghi chú!");
+					loadCheckinHistory();
+					closeCheckinDetail();
+				} else {
+					showToast("❌ Lỗi: " + data.message, true);
+				}
+			} catch (e) { showToast("❌ Lỗi kết nối", true); }
+		}
+
+		function closeCheckinDetail() {
+			document.getElementById('checkinDetailOverlay').classList.remove('active');
+		}
+
+		function openCheckinMap() {
+			const loc = document.getElementById('checkinDetailOverlay').getAttribute('data-loc');
+			if (loc) window.open(`https://www.google.com/maps?q=${loc}`, '_blank');
+		}
+
+		function openInGoogleMaps() {
+			const loc = document.getElementById('det_location').innerText;
+			if (loc && loc !== 'N/A') {
+				window.open(`https://www.google.com/maps?q=${loc}`, '_blank');
+			} else {
+				showToast("Khách hàng này chưa có tọa độ GPS!", true);
+			}
+		}
+
+		function filterLocalList() {
+			const q = document.getElementById('custSearch').value.toLowerCase();
+			const filtered = customerList.filter(c =>
+				c.name.toLowerCase().includes(q) ||
+				c.area.toLowerCase().includes(q) ||
+				c.id.toLowerCase().includes(q)
+			);
+			renderCustomerTable(filtered);
+		}
+
+		function haversine(loc1, loc2) {
+			if (!loc1 || !loc2) return 0;
+			const [lat1, lon1] = loc1.split(',').map(Number);
+			const [lat2, lon2] = loc2.split(',').map(Number);
+			const R = 6371e3;
+			const dLat = (lat2 - lat1) * Math.PI / 180;
+			const dLon = (lon2 - lon1) * Math.PI / 180;
+			const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+			return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+		}
+
+		function updateDistance() {
+			const sel = document.getElementById('ci_customer');
+			const opt = sel.options[sel.selectedIndex];
+			if (!opt || !opt.value) return;
+			const custLoc = opt.getAttribute('data-loc');
+			const dist = haversine(custLoc, liveCoords);
+			document.getElementById('ci_dist_display').innerText = dist + " m";
+
+			// Xóa nút cập nhật cũ nếu có
+			const oldBtn = document.getElementById('btnSmartUpdate');
+			if (oldBtn) oldBtn.remove();
+
+			if (dist > 500) {
+				document.getElementById('ci_dist_display').style.color = '#ef4444';
+				showToast("Cảnh báo: Vị trí lưu quá xa (>500m)", true);
+
+				// Thêm nút Cập nhật nhanh
+				const container = document.getElementById('ci_dist_display').parentNode;
+				const btn = document.createElement('button');
+				btn.id = 'btnSmartUpdate';
+				btn.className = 'btn-glass';
+				btn.innerHTML = '🔄 Cập nhật tọa độ gốc ngay';
+				btn.style.marginTop = '10px';
+				btn.style.width = '100%';
+				btn.style.background = 'rgba(239, 68, 68, 0.2)';
+				btn.style.color = '#ef4444';
+				btn.style.fontSize = '0.85rem';
+				btn.onclick = () => smartUpdateLocation(opt.value);
+				container.appendChild(btn);
+			} else {
+				document.getElementById('ci_dist_display').style.color = '#22c55e';
+			}
+		}
+
+		async function smartUpdateLocation(custId) {
+			if (!confirm("Bạn đang đứng tại đúng cửa hàng? Hành động này sẽ cập nhật lại tọa độ gốc của khách hàng theo vị trí hiện tại của bạn.")) return;
+
+			const btn = document.getElementById('btnSmartUpdate');
+			btn.disabled = true;
+			btn.innerHTML = "Đang cập nhật...";
+
+			try {
+				const res = await fetch(CRM_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('updateCustomerLocation', {
+						id: custId,
+						location: document.getElementById('ci_location').value
+					})
+				});
+				const data = await res.json();
+				if (data.success) {
+					showToast("Đã cập nhật tọa độ mới thành công!");
+					btn.remove();
+					// Reload customers to update data-loc
+					await loadCustomers();
+					// Reselect customer
+					setCustomerSelect('ci', custId);
+				} else {
+					showToast("Lỗi: " + data.message, true);
+					btn.disabled = false;
+					btn.innerHTML = '🔄 Cập nhật tọa độ gốc ngay';
+				}
+			} catch (e) {
+				showToast("Lỗi kết nối", true);
+				btn.disabled = false;
+			}
+		}
+
+		// Form Handlers
+		// Form Handlers
+		document.getElementById('customerForm').onsubmit = async (e) => {
+			e.preventDefault();
+			const btn = document.getElementById('btnCust');
+
+			// Prevent double submission if already processing
+			if (btn.disabled || btn.getAttribute('data-processing') === 'true') return;
+
+			btn.disabled = true;
+			btn.setAttribute('data-processing', 'true');
+			const originalText = btn.innerText;
+			btn.innerText = "⏳ Đang lưu...";
+
+			try {
+				const editId = document.getElementById('edit_cust_id').value;
+				const payload = {
+					action: editId ? 'updateCustomer' : 'createCustomer',
+					id: editId || undefined,
+					name: document.getElementById('cust_name').value,
+					contact: document.getElementById('cust_contact').value,
+					phone: document.getElementById('cust_phone').value,
+					email: document.getElementById('cust_email').value,
+					address: document.getElementById('cust_address').value,
+					location: currentCoords,
+					salesId: currentUser.email,
+					area: document.getElementById('cust_area').value,
+					phan_loai: document.getElementById('cust_type').value
+				};
+
+				const res = await fetch(CRM_URL, { method: 'POST', body: SecurityProvider.prepareRequest(editId ? 'updateCustomer' : 'createCustomer', payload) });
+				const data = await res.json();
+
+				if (data.success) {
+					showToast(editId ? "Đã cập nhật thành công!" : "Đã tạo khách hàng thành công!");
+
+					// Optimistic Update: Add to local list immediately
+					const newCust = {
+						_internal_id: editId || 'temp_' + Date.now(),
+						id: editId || (payload.name.substring(0, 2) + '...'), // Temp ID
+						name: payload.name,
+						contact: payload.contact,
+						phone: payload.phone,
+						email: payload.email,
+						address: payload.address,
+						location: payload.location,
+						area: payload.area,
+						phanLoai: payload.phan_loai,
+						salesOwner: currentUser.email,
+						status: 'Active', // Default
+						ngay_tao: new Date().toISOString()
+					};
+
+					if (editId) {
+						const idx = customerList.findIndex(c => c._internal_id === editId || c.id === editId);
+						if (idx !== -1) customerList[idx] = { ...customerList[idx], ...newCust };
+					} else {
+						customerList.unshift(newCust); // Add to top
+					}
+
+					// Force render
+					renderCustomerTable(customerList);
+
+					resetCustomerForm();
+					loadCustomers(); // Fetch real data in background
+					loadAreas();
+				} else {
+					showToast("Lỗi: " + data.message, true);
+				}
+			} catch (error) {
+				console.error(error);
+				showToast("Lỗi kết nối hoặc xử lý!", true);
+			} finally {
+				// Always unlock the button, even on error
+				btn.disabled = false;
+				btn.removeAttribute('data-processing');
+				// Only restore text if form wasn't reset (which sets it to "Lưu Khách Hàng")
+				// Check if we are still in edit mode or not
+				const currentEditId = document.getElementById('edit_cust_id').value;
+				if (currentEditId) {
+					btn.innerText = "Cập Nhật Khách Hàng";
+				} else {
+					btn.innerText = "Lưu Khách Hàng";
+				}
+			}
+		};
+
+		document.getElementById('checkinForm').onsubmit = async (e) => {
+			e.preventDefault();
+			const btn = document.getElementById('btnCI');
+			const fileInput = document.getElementById('ci_file');
+
+			if (!fileInput.files[0]) {
+				showToast("Vui lòng chụp ảnh minh chứng!", true);
+				return;
+			}
+
+			if (btn.disabled) return;
+			btn.disabled = true;
+			const originalBtnText = btn.innerText;
+
+			try {
+				btn.innerText = "⏳ Đang nén ảnh & chuẩn bị...";
+
+				// Nén ảnh để giảm dung lượng (giảm tải cho mạng & Drive)
+				const base64Image = await compressImage(fileInput.files[0], 1200, 0.75);
+
+				btn.innerText = "⏳ Đang gửi dữ liệu (1/1)...";
+
+				const sel = document.getElementById('ci_customer');
+				const custLoc = sel.options[sel.selectedIndex].getAttribute('data-loc');
+
+				const payload = {
+					action: 'handleCheckin',
+					customerId: sel.value,
+					customerLocation: custLoc,
+					checkinLocation: document.getElementById('ci_location').value,
+					salesId: currentUser.email,
+					adminId: currentUser.owner,
+					purpose: document.getElementById('ci_purpose').value,
+					note: document.getElementById('ci_note').value,
+					imageBase64: base64Image, // Gửi base64 trực tiếp trong payload
+					imageFilename: `CHECKIN_${currentUser.email.split('@')[0]}_${Date.now()}.jpg`
+				};
+
+				const res = await fetch(CRM_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('handleCheckin', payload)
+				});
+				const data = await res.json();
+
+				if (data.success) {
+					showToast("✅ Check-in thành công!");
+					e.target.reset();
+					// Xóa preview ảnh nếu có
+					const preview = document.getElementById('ci_img_preview');
+					if (preview) preview.src = "";
+
+					loadCheckinHistory(); // Refresh history
+					switchCheckinSubTab('history'); // Auto switch to history tab
+				} else {
+					showToast("❌ Lỗi: " + data.message, true);
+				}
+			} catch (err) {
+				console.error(err);
+				showToast("❌ Lỗi kết nối hoặc xử lý dữ liệu!", true);
+			} finally {
+				btn.disabled = false;
+				btn.innerText = originalBtnText;
+			}
+		};
+
+		document.getElementById('docForm').onsubmit = async (e) => {
+			e.preventDefault();
+			const btn = document.getElementById('btnDoc');
+			const fileInput = document.getElementById('doc_file');
+			const oldName = document.getElementById('edit_doc_old_name').value;
+
+			if (btn.disabled) return;
+			btn.disabled = true;
+			btn.innerText = "⏳ Đang xử lý...";
+
+			let fileUrl = "";
+			if (fileInput.files.length > 0) {
+				btn.innerText = "⏳ Đang tải tệp mới lên...";
+				fileUrl = await uploadToDrive(fileInput.files[0]);
+				if (!fileUrl) {
+					showToast("Lỗi tải tệp!", true);
+					btn.disabled = false;
+					btn.innerText = oldName ? "Cập Nhật" : "Thêm Tài Liệu";
+					return;
+				}
+			}
+
+			const payload = {
+				action: oldName ? 'updateDoc' : 'addDoc',
+				oldDocName: oldName || undefined,
+				customerId: document.getElementById('doc_customer').value,
+				docName: document.getElementById('doc_name').value,
+				type: document.getElementById('doc_type').value,
+				fileUrl: fileUrl || undefined,
+				note: document.getElementById('doc_note').value,
+				submitter: currentUser.email,
+				adminId: currentUser.adminEmail || currentUser.owner
+			};
+
+			try {
+				const res = await fetch(CRM_URL, { method: 'POST', body: SecurityProvider.prepareRequest(oldName ? 'updateDoc' : 'addDoc', payload) });
+				const data = await res.json();
+				if (data.success) {
+					showToast(oldName ? "✅ Đã cập nhật thành công!" : "✅ Đã lưu tài liệu thành công!");
+					cancelDocEdit();
+					loadDocs();
+				} else {
+					showToast("❌ Lỗi: " + data.message, true);
+				}
+			} catch (err) {
+				showToast("❌ Lỗi kết nối", true);
+			}
+			btn.disabled = false;
+			btn.innerText = "Thêm Tài Liệu";
+		};
+
+		let currentDetailDocIndex = -1;
+
+		function editDocFromDetail() {
+			const doc = documentList[currentDetailDocIndex];
+			if (!doc) return;
+
+			// Show and populate form
+			const form = document.getElementById('doc_tab_form');
+			form.style.display = 'block';
+			const icon = document.getElementById('docToggleIcon');
+			icon.innerText = '✕';
+			icon.parentNode.style.background = '#ef4444';
+
+			// Fill form
+			document.getElementById('edit_doc_old_name').value = doc.docName;
+			setCustomerSelect('doc', doc.customerId);
+			document.getElementById('doc_name').value = doc.docName;
+			document.getElementById('doc_type').value = doc.type;
+			document.getElementById('doc_note').value = doc.note || "";
+
+			// Adjust UI for edit mode
+			document.getElementById('btnDoc').innerText = "Cập Nhật Tài Liệu";
+			document.getElementById('doc_file').required = false;
+			document.getElementById('doc_file_label').innerText = "Thay đổi tệp (Để trống nếu giữ nguyên)";
+			document.getElementById('doc_file_info').style.display = "block";
+			document.getElementById('doc_file_info').innerText = "Tệp hiện tại: " + doc.docName;
+
+			closeDocDetail();
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+		}
+
+
+
+		async function deleteDocFromDetail() {
+			const doc = documentList[currentDetailDocIndex];
+			if (!doc) return;
+
+			if (!confirm(`Bạn có chắc chắn muốn xóa tài liệu "${doc.docName}"?`)) return;
+
+			showToast("⏳ Đang xóa...");
+			try {
+				const res = await fetch(CRM_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('deleteDoc', {
+						customerId: doc.customerId,
+						docName: doc.docName
+					})
+				});
+				const data = await res.json();
+				if (data.success) {
+					showToast("✅ Đã xóa tài liệu!");
+					closeDocDetail();
+					loadDocs();
+				} else {
+					showToast("❌ Lỗi: " + data.message, true);
+				}
+			} catch (e) {
+				showToast("❌ Lỗi kết nối", true);
+			}
+		}
+
+		let documentList = [];
+		async function loadDocs() {
+			try {
+				const viewAll = document.getElementById('chk_view_all') ? document.getElementById('chk_view_all').checked : false;
+				const isSuperAdmin = currentUser.email === 'dunvex.green@gmail.com';
+
+				const res = await fetch(CRM_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('getDocs', {
+						salesId: currentUser.email,
+						adminEmail: currentUser.adminEmail,
+						isAdmin: currentUser.roleId === 'R001',
+						viewAll: viewAll
+					})
+				});
+				const data = await res.json();
+				if (data.success) {
+					documentList = data.docs || [];
+					renderDocs(documentList);
+				} else {
+					document.getElementById('docListBody').innerHTML = `<p style="text-align: center; color: var(--danger); padding: 20px;">Lỗi: ${data.message}</p>`;
+				}
+			} catch (e) {
+				console.error("Lỗi tải tài liệu", e);
+				document.getElementById('docListBody').innerHTML = '<p style="text-align: center; color: var(--danger); padding: 20px;">Lỗi kết nối máy chủ.</p>';
+			}
+		}
+
+		function renderDocs(list) {
+			const container = document.getElementById('docListBody');
+			if (list.length === 0) {
+				container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 40px;">Chưa có tài liệu nào được lưu.</p>';
+				return;
+			}
+
+			container.innerHTML = list.map((doc, index) => {
+				const isImg = doc.fileUrl && (doc.fileUrl.includes('lh3.googleusercontent.com') || doc.type === 'Hình ảnh' || doc.fileUrl.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/));
+				const icon = isImg ? '🖼️' : (doc.type === 'Hợp đồng' ? '📄' : '📁');
+				const isMe = doc.submitter === currentUser.email;
+				const submitterDisplay = isMe ? "Bạn" : (doc.submitter ? doc.submitter.split('@')[0] : "N/A");
+
+				return `
+					<div class="history-item clickable-row" onclick="viewDocDetail(${index})">
+						<div style="width: 40px; height: 40px; border-radius: 8px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+							${icon}
+						</div>
+						<div class="history-info" style="flex: 1;">
+							<div class="history-name">${doc.docName}</div>
+							<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
+								<span style="font-size: 0.8rem; color: var(--primary);">👤 ${doc.customerName}</span>
+								<span style="font-size: 0.7rem; color: var(--text-muted);">✍️ ${submitterDisplay}</span>
+							</div>
+							<div class="history-meta">
+								<span>${formatTime(doc.time)}</span>
+								<span class="tag-pill tag-primary" style="font-size: 0.6rem;">${doc.type}</span>
+							</div>
+						</div>
+						<i class="fas fa-chevron-right" style="color: var(--text-muted); font-size: 0.8rem;"></i>
+					</div>
+				`;
+			}).join('');
+		}
+
+		function filterDocs() {
+			const q = document.getElementById('docSearch').value.toLowerCase();
+			const filtered = documentList.filter(d =>
+				d.docName.toLowerCase().includes(q) ||
+				d.customerName.toLowerCase().includes(q) ||
+				d.type.toLowerCase().includes(q)
+			);
+			renderDocs(filtered);
+		}
+
+		function viewDocDetail(index) {
+			currentDetailDocIndex = index;
+			const doc = documentList[index];
+			if (!doc) return;
+
+			document.getElementById('doc_det_customer').innerText = doc.customerName;
+			document.getElementById('doc_det_name').innerText = doc.docName;
+			document.getElementById('doc_det_type').innerText = doc.type;
+			document.getElementById('doc_det_time').innerText = formatTime(doc.time);
+			document.getElementById('doc_det_submitter').innerText = `👤 Người nhập: ${doc.submitter}`;
+			document.getElementById('doc_det_admin').innerText = `🛡️ Quản lý: ${doc.adminId || 'N/A'}`;
+			document.getElementById('doc_det_note').innerText = doc.note || "Không có ghi chú";
+
+			const previewContainer = document.getElementById('doc_file_preview');
+			const isImg = doc.fileUrl && (doc.fileUrl.includes('lh3.googleusercontent.com') || doc.type === 'Hình ảnh' || doc.fileUrl.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/));
+
+			if (isImg) {
+				const directLink = convertDriveLink(doc.fileUrl);
+				previewContainer.innerHTML = `<img src="${directLink}" style="width: 100%; border-radius: 12px; cursor: zoom-in;" onclick="zoomImage(this.src)">`;
+			} else {
+				previewContainer.innerHTML = `
+					<div style="padding: 30px; background: rgba(255,255,255,0.03); border-radius: 12px; text-align: center; border: 1px dashed var(--glass-border);">
+						<i class="fas fa-file-pdf" style="font-size: 3rem; color: #ef4444; margin-bottom: 10px;"></i>
+						<p style="font-size: 0.9rem; color: var(--text-muted);">Tài liệu PDF / File đính kèm</p>
+					</div>
+				`;
+			}
+
+			document.getElementById('doc_det_download').href = doc.fileUrl;
+			document.getElementById('docDetailOverlay').classList.add('active');
+		}
+
+		function closeDocDetail() {
+			document.getElementById('docDetailOverlay').classList.remove('active');
+		}
+
+
+		// --- CHATBOT LOGIC ---
+
+		initGPS();
+		if (currentUser) {
+			document.getElementById('user_display').innerText = `👤 ${currentUser.fullName} (${currentUser.email})`;
+
+			const roleBadge = document.getElementById('role_badge');
+			if (currentUser.roleId === 'R001') {
+				roleBadge.innerText = 'QUẢN TRỊ VIÊN';
+				document.getElementById('admin_toggle_container').style.display = 'flex';
+				if (currentUser.email === 'dunvex.green@gmail.com') {
+					document.querySelector('#admin_toggle_container label').innerHTML = `
+						<input type="checkbox" id="chk_view_all" onchange="loadCustomers(); loadCheckinHistory(); loadDocs();"
+							style="width: 18px; height: 18px; cursor: pointer;">
+						🛡️ Master View (Check-in)
+					`;
+				}
+			} else {
+				roleBadge.innerText = 'NHÂN VIÊN KINH DOANH';
+			}
+		}
+		loadCustomers(); // Initial data load
+		loadAreas();
+	</script>
+	<script src="chatbot.js"></script>
+	<script src="floating-menu.js"></script>
+	<style>
+		/* Enhanced Modal Styling for Create Customer */
+		#customerCreateModal.detail-overlay {
+			display: flex !important;
+			flex-direction: column !important;
+			/* Force flex for centering */
+			justify-content: center;
+			align-items: center;
+			background: rgba(15, 23, 42, 0.4);
+			backdrop-filter: blur(12px);
+			z-index: 9999;
+			padding: 0;
+			opacity: 0;
+			visibility: hidden;
+			transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100vw;
+			height: 100vh;
+			/* Reset transform from potential mobile push */
+			transform: none !important;
+		}
+
+		#customerCreateModal.detail-overlay.active {
+			opacity: 1;
+			visibility: visible;
+		}
+
+		/* The Card Container (Pseudo-element approach wasn't ideal, targeting children directly) */
+
+
+		/* 
+           We will treat the FORM as the main content card. 
+           But the Header is outside. We need a wrapper. 
+           Since I can't easily change the HTML structure nesting right now without risking big diffs,
+           I will use a hack: Make the overlay a flex column, and style the elements to look like one unit?
+           No, that's ugly.
+           
+           Better: I will use the `::before` trick on the OVERLAY to create the card background?
+           No, scrolling issues.
+           
+           Let's style the FORM as the main card and put the header INSIDE visually?
+           Actually, the header and form are separate siblings.
+           Let's style them to look connected.
+        */
+
+		#customerCreateModal .detail-header {
+			width: 100%;
+			max-width: 600px;
+			background: white;
+			border-bottom: 1px solid #f1f5f9;
+			border-radius: 20px 20px 0 0;
+			padding: 24px 30px;
+			margin-bottom: 0;
+			position: relative;
+			z-index: 20;
+		}
+
+		#customerCreateModal .detail-header h2 {
+			color: #0f172a;
+			font-weight: 800;
+			font-family: 'Outfit', sans-serif;
+		}
+
+		#customerCreateModal form {
+			width: 100%;
+			max-width: 600px;
+			background: white;
+			border-radius: 0 0 20px 20px;
+			padding: 30px;
+			max-height: 80vh;
+			overflow-y: auto;
+			border: 1px solid #e2e8f0;
+			border-top: none;
+		}
+
+		/* Mobile adjustment */
+		@media (max-width: 768px) {
+			.detail-overlay form {
+				max-width: 95%;
+				border-radius: 16px;
+				padding: 20px;
+			}
+		}
+
+		/* Inputs */
+		.detail-overlay .form-group label {
+			font-size: 0.85rem;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+			font-weight: 800;
+			color: #475569;
+			margin-bottom: 8px;
+		}
+
+		.detail-overlay input,
+		.detail-overlay select,
+		.detail-overlay textarea {
+			background: white !important;
+			border: 1.5px solid #cbd5e1 !important;
+			border-radius: 12px !important;
+			padding: 12px 15px !important;
+			color: #0f172a !important;
+			font-size: 1rem;
+			font-weight: 600;
+			width: 100%;
+		}
+
+		.detail-overlay input:focus {
+			border-color: var(--primary) !important;
+			box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+		}
+	</style>
+</body>
+
+</html>

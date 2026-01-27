@@ -2,814 +2,1118 @@
 <html lang="vi">
 
 <head>
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-QFQ2HMYTDH"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag('js', new Date());
+
+		gtag('config', 'G-QFQ2HMYTDH');
+	</script>
+	<script src="security-utils.js"></script>
+	<script src="assets/theme-toggle.js"></script>
+	<script>
+		// Validate access and setup session globals
+		const session = SecurityProvider.validateAccess();
+		const currentUser = session ? session.user : null;
+		const perms = session ? session.permissions : null;
+	</script>
+
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Trang Chủ - Nhà Phân Phối Pima</title>
-	<link rel="icon"
-		href="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgC6ibu0IT2Ihhik57NmlGYZgx57h3XvSk5dLipgo7cZTS0pEV7dmPGQZhwXAxTFqFH9l2C74l14MamphdzEWaRBZbeWSUsyIh2Wd-wKuPv274PMjrAgMtirxbfrK-eUcFp5Rx0cFL7uPMA93RBiWrnp5sghMDD78oBCEk3FA_QbZUY4eG3jTZK_nt65vM/s1600/logo12.png"
-		type="image/png">
-	<link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
+	<title>Dunvex | Hệ Sinh Thái Quản Lý Vật Liệu Xây Dựng</title>
+	<link rel="icon" type="image/svg+xml"
+		href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23FACC15'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' fill='white' font-size='60' font-family='sans-serif' font-weight='800'>DV</text></svg>">
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;800&display=swap"
+		rel="stylesheet">
+	<link rel="stylesheet" href="assets/theme.css">
 	<style>
-		:root {
-			--primary-color: #FFD700;
-			--accent-color: #FDB931;
-			--text-dark: #333;
-			--text-light: #555;
-			--white: #fff;
-			--bg-light: #f9f9f9;
-		}
+		/* Variables now handled in theme.css */
 
 		* {
 			margin: 0;
 			padding: 0;
 			box-sizing: border-box;
+			font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+			text-rendering: optimizeLegibility;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
 		}
 
 		body {
-			font-family: 'Segoe UI', sans-serif;
-			color: var(--text-dark);
-			background-color: var(--bg-light);
+			/* Background and color handled by theme.css */
+			min-height: 100vh;
 			line-height: 1.6;
+			overflow-x: hidden;
+			-webkit-text-size-adjust: 100%;
+			font-weight: 400;
 		}
 
-		/* Header */
-		header {
-			background: var(--white);
-			padding: 10px 40px;
-			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+		/* Custom Scrollbar */
+		::-webkit-scrollbar {
+			width: 8px;
+		}
+
+		::-webkit-scrollbar-track {
+			background: var(--bg-dark);
+		}
+
+		::-webkit-scrollbar-thumb {
+			background: var(--glass-border);
+			border-radius: 10px;
+		}
+
+		::-webkit-scrollbar-thumb:hover {
+			background: var(--primary);
+		}
+
+		/* Navigation */
+		nav {
+			position: fixed;
+			top: 0;
+			width: 100%;
+			padding: 20px 5%;
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
-			position: sticky;
-			top: 0;
-			z-index: 100;
+			z-index: 1000;
+			backdrop-filter: blur(10px);
+			border-bottom: 1px solid var(--glass-border);
+			background: var(--card-bg);
 		}
 
-		.logo {
-			max-width: 80px;
-			height: auto;
+		.logo-box {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			font-weight: 800;
+			font-size: 1.5rem;
+			letter-spacing: -1px;
+			color: var(--text-main);
 		}
 
-		.header-right {
+		.logo-box span {
+			background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+			background-clip: text;
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+		}
+
+		.nav-auth {
 			display: flex;
 			align-items: center;
 			gap: 20px;
 		}
 
-		.contact-text {
-			text-align: right;
-		}
-
-		.contact-text .hotline {
-			display: block;
-			font-weight: 700;
-			font-size: 1.1rem;
-			color: #d63031;
-		}
-
-		.contact-text .slogan {
-			display: block;
-			font-size: 0.9rem;
-			color: #636e72;
-			font-style: italic;
-		}
-
-		@media (max-width: 768px) {
-			header {
-				padding: 8px 15px;
-			}
-
-			.logo {
-				max-width: 60px;
-			}
-
-			.contact-text .slogan {
-				display: none;
-			}
-		}
-
-		/* Login Modal */
-		.login-modal {
-			display: none;
-			position: fixed;
-			z-index: 2000;
-			left: 0;
-			top: 0;
-			width: 100%;
-			height: 100%;
-			background: rgba(0, 0, 0, 0.6);
-			backdrop-filter: blur(4px);
-			align-items: center;
-			justify-content: center;
-		}
-
-		.login-modal.active {
-			display: flex;
-		}
-
-		.login-content {
-			background: white;
-			padding: 40px;
-			border-radius: 16px;
-			width: 90%;
-			max-width: 400px;
-			box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-			position: relative;
-			text-align: center;
-		}
-
-		.login-content h3 {
-			margin-bottom: 25px;
-			font-size: 1.5rem;
-			color: #2d3436;
-		}
-
-		.login-content input {
-			width: 100%;
-			padding: 12px 15px;
-			margin-bottom: 20px;
-			border: 2px solid #eee;
-			border-radius: 8px;
-			outline: none;
-			transition: border-color 0.3s;
-			font-size: 1rem;
-		}
-
-		.login-content input:focus {
-			border-color: var(--primary-color);
-		}
-
-		.login-btn {
-			width: 100%;
-			padding: 12px;
-			background: var(--primary-color);
-			color: var(--text-dark);
-			border: none;
-			border-radius: 8px;
-			font-weight: 700;
-			font-size: 1rem;
-			cursor: pointer;
-			transition: background 0.3s;
-		}
-
-		.login-btn:hover {
-			background: var(--accent-color);
-		}
-
-		.close-login {
-			position: absolute;
-			top: 15px;
-			right: 20px;
-			font-size: 24px;
-			cursor: pointer;
-			color: #aaa;
-		}
-
-		/* Header Auth Styles */
-		.user-auth-btn {
-			display: flex;
-			align-items: center;
-			gap: 8px;
-			background: #f1f2f6;
-			padding: 8px 15px;
-			border-radius: 20px;
-			cursor: pointer;
-			transition: all 0.3s;
+		.btn-glass {
+			background: var(--card-bg);
+			border: 1px solid var(--glass-border);
+			color: var(--text-main);
+			padding: 10px 24px;
+			border-radius: 12px;
 			font-weight: 600;
-			color: var(--text-dark);
-		}
-
-		.user-auth-btn:hover {
-			background: var(--primary-color);
-		}
-
-		.user-logged-in {
-			display: flex;
-			align-items: center;
-			gap: 15px;
-		}
-
-		.logout-btn {
-			font-size: 0.8rem;
-			color: #d63031;
 			cursor: pointer;
-			text-decoration: underline;
+			transition: all 0.3s ease;
+			text-decoration: none;
 		}
 
-		/* Hide menu by default */
-		#floatingMenu {
-			display: none;
+		.btn-glass:hover {
+			background: rgba(255, 255, 255, 0.1);
+			transform: translateY(-2px);
+		}
+
+		.btn-primary {
+			background: var(--primary);
+			color: white;
+			padding: 10px 24px;
+			border-radius: 12px;
+			font-weight: 600;
+			text-decoration: none;
+			transition: all 0.3s ease;
+			border: none;
+			cursor: pointer;
+		}
+
+		.btn-primary:hover {
+			box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+			transform: translateY(-2px);
 		}
 
 		/* Hero Section */
-		.hero {
-			background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-			padding: 80px 20px;
+		header.hero {
+			padding: 180px 5% 100px;
 			text-align: center;
-			color: var(--text-dark);
+			position: relative;
 		}
 
-		.hero h1 {
-			font-size: 2.5rem;
-			margin-bottom: 20px;
+		header.hero h1 {
+			font-family: 'Inter', sans-serif;
+			font-size: 4.5rem;
 			font-weight: 800;
-			text-transform: uppercase;
+			margin-bottom: 24px;
+			line-height: 1.1;
+			max-width: 900px;
+			margin-left: auto;
+			margin-right: auto;
+			letter-spacing: -2px;
+			color: var(--text-main);
 		}
 
-		.hero p {
-			font-size: 1.2rem;
-			max-width: 700px;
-			margin: 0 auto;
+		@media (max-width: 768px) {
+			header.hero h1 {
+				font-size: 2.5rem;
+			}
 		}
 
-		/* Sections */
-		.container {
-			max-width: 1100px;
-			margin: 40px auto;
-			padding: 0 20px;
+		.gradient-text {
+			background: linear-gradient(135deg, var(--text-main) 30%, var(--primary-light), var(--accent-purple));
+			-webkit-background-clip: text;
+			background-clip: text;
+			-webkit-text-fill-color: transparent;
+			/* Safari Fixes */
+			padding-bottom: 5px;
+			display: inline-block;
+			filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.1));
 		}
 
-		.section {
+		header.hero p {
+			font-size: 1.35rem;
+			font-weight: 500;
+			color: var(--text-muted);
+			max-width: 750px;
+			margin: 0 auto 40px;
+			line-height: 1.5;
+		}
+
+		/* Features Grid */
+		.features-section {
+			padding: 80px 5%;
+		}
+
+		.section-title {
+			text-align: center;
+			margin-bottom: 60px;
+		}
+
+		.section-title h2 {
+			font-size: 2.5rem;
+			margin-bottom: 16px;
+		}
+
+		.section-title p {
+			color: var(--text-muted);
+			font-size: 1.1rem;
+		}
+
+		.features-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+			gap: 24px;
+		}
+
+		.feature-card {
+			background: var(--card-bg);
+			border: 1px solid var(--glass-border);
+			padding: 40px;
+			border-radius: 24px;
+			transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+			position: relative;
+			overflow: hidden;
+		}
+
+		.feature-card:hover {
+			transform: translateY(-10px) scale(1.02);
+			border-color: var(--primary);
+			background: var(--card-bg);
+			box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+		}
+
+		.feature-icon {
+			width: 60px;
+			height: 60px;
+			background: rgba(99, 102, 241, 0.1);
+			border-radius: 16px;
 			display: flex;
 			align-items: center;
-			gap: 40px;
-			margin-bottom: 60px;
-			background: var(--white);
-			padding: 40px;
-			border-radius: 12px;
-			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-			transition: transform 0.3s;
+			justify-content: center;
+			margin-bottom: 24px;
+			color: var(--primary);
+			font-size: 1.5rem;
 		}
 
-		.section:hover {
-			transform: translateY(-5px);
+		.feature-card h3 {
+			font-size: 1.5rem;
+			margin-bottom: 12px;
 		}
 
-		.section:nth-child(even) {
-			flex-direction: row-reverse;
+		.feature-card p {
+			color: var(--text-muted);
+			font-size: 0.95rem;
 		}
 
-		.section-content {
-			flex: 1;
+
+		/* Modules Quick-Access */
+		.modules-preview {
+			padding: 100px 5%;
+			background: linear-gradient(to bottom, #ffffff, #f8fafc);
+			border-top: 1px solid var(--glass-border);
+			border-bottom: 1px solid var(--glass-border);
 		}
 
-		.section-content h2 {
-			font-size: 1.8rem;
-			color: #2d3436;
-			margin-bottom: 15px;
-			border-left: 5px solid var(--primary-color);
-			padding-left: 15px;
+		.module-list {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			gap: 16px;
+			margin-top: 40px;
 		}
 
-		.section-content p {
-			color: var(--text-light);
-			font-size: 1rem;
+		.module-tag {
+			padding: 12px 24px;
+			background: var(--card-bg);
+			border: 1px solid var(--glass-border);
+			border-radius: 99px;
+			font-weight: 600;
+			color: var(--text-main);
+			transition: 0.3s;
+			cursor: pointer;
+			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 		}
 
-		.section-img {
-			flex: 1;
-			text-align: center;
+		.module-tag:hover {
+			color: #0f172a;
+			border-color: var(--primary);
+			background: var(--primary);
+			transform: translateY(-2px);
 		}
 
-		.section-img img {
-			max-width: 100%;
-			border-radius: 8px;
-			box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+		/* Floating Contact/Menu */
+		.floating-actions {
+			position: fixed;
+			bottom: 30px;
+			right: 30px;
+			display: flex;
+			flex-direction: column;
+			gap: 12px;
+			z-index: 1000;
+		}
+
+		.float-btn {
+			width: 56px;
+			height: 56px;
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			transition: 0.3s;
+			box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+			border: 1px solid var(--glass-border);
+			text-decoration: none;
+		}
+
+		.float-btn-main {
+			background: var(--primary);
+			color: #0f172a;
+		}
+
+		.float-btn-sub {
+			background: var(--card-bg);
+			color: var(--text-main);
+			backdrop-filter: blur(10px);
+		}
+
+		.float-btn:hover {
+			transform: scale(1.1);
+		}
+
+		/* User Menu (Logged In) */
+		.user-dropdown {
+			position: relative;
+		}
+
+		.user-avatar {
+			width: 40px;
+			height: 40px;
+			background: linear-gradient(135deg, var(--primary), var(--primary-light));
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-weight: 800;
+			cursor: pointer;
+			color: #0f172a;
 		}
 
 		/* Footer */
 		footer {
-			background: #1a1a1a;
-			color: var(--white);
+			padding: 80px 5% 40px;
+			background: #1e293b;
+			color: #f8fafc;
 			text-align: center;
-			padding: 40px 20px;
-			margin-top: 80px;
-			border-top: 5px solid var(--primary-color);
 		}
 
-		footer p {
-			opacity: 0.6;
-			font-size: 0.9rem;
-			letter-spacing: 0.5px;
+		.footer-logo {
+			font-weight: 800;
+			font-size: 1.5rem;
+			margin-bottom: 20px;
+			color: #ffffff;
 		}
 
-		/* Floating Menu */
-		.floating-menu-container {
+		.footer-logo span {
+			color: var(--primary);
+		}
+
+		.copyright {
+			color: #94a3b8;
+			font-size: 0.85rem;
+		}
+
+
+		/* Floating Menu Style */
+		.menu-overlay {
 			position: fixed;
-			bottom: 30px;
-			left: 30px;
-			z-index: 1000;
-		}
-
-		.menu-btn {
-			width: 60px;
-			height: 60px;
-			background-color: var(--primary-color);
-			border-radius: 50%;
-			box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			cursor: pointer;
-			transition: transform 0.3s, background 0.3s;
-		}
-
-		.menu-btn:hover {
-			transform: scale(1.1);
-			background-color: #e6c200;
-		}
-
-		.menu-icon {
-			width: 30px;
-			height: 30px;
-			fill: #333;
-		}
-
-		.menu-list {
-			position: absolute;
-			bottom: 80px;
-			left: 0;
-			background: white;
-			width: 260px;
-			border-radius: 16px;
-			box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-			overflow: hidden;
+			bottom: 100px;
+			right: 30px;
+			background: var(--card-bg);
+			backdrop-filter: blur(20px);
+			border: 1px solid var(--glass-border);
+			border-radius: 20px;
+			width: 280px;
+			padding: 12px;
 			display: none;
-			transform-origin: bottom left;
-			animation: slideUp 0.3s ease forwards;
-			padding: 10px 0;
-			border: 1px solid rgba(0, 0, 0, 0.05);
+			box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+			z-index: 1001;
 		}
 
-		.menu-list.active {
+		.menu-overlay.active {
 			display: block;
+			animation: fadeInUp 0.3s ease;
 		}
 
-		.menu-group-title {
-			padding: 10px 20px 5px;
-			font-size: 0.75rem;
-			color: #999;
-			text-transform: uppercase;
-			font-weight: 700;
-			letter-spacing: 0.5px;
-			margin-top: 5px;
+		@keyframes fadeInUp {
+			from {
+				opacity: 0;
+				transform: translateY(20px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
 		}
 
-		.menu-group-title:first-child {
-			margin-top: 0;
-		}
-
-		.menu-list a {
+		.menu-link {
 			display: flex;
 			align-items: center;
-			gap: 10px;
-			padding: 12px 20px;
+			gap: 12px;
+			padding: 14px 16px;
+			color: var(--text-main);
 			text-decoration: none;
-			color: #2d3436;
+			border-radius: 12px;
+			transition: 0.2s;
 			font-weight: 600;
-			font-size: 0.95rem;
-			transition: background 0.2s;
-			border-left: 3px solid transparent;
 		}
 
-		.menu-list a:hover {
-			background-color: #fff9c4;
-			color: #d35400;
-			border-left-color: var(--primary-color);
+		.menu-link:hover {
+			background: rgba(255, 255, 255, 0.05);
+			color: var(--accent-purple);
 		}
 
-		@keyframes slideUp {
-			from {
-				opacity: 0;
-				transform: scale(0.8) translateY(20px);
-			}
-
-			to {
-				opacity: 1;
-				transform: scale(1) translateY(0);
-			}
+		.menu-header {
+			padding: 10px 16px;
+			font-size: 0.75rem;
+			text-transform: uppercase;
+			letter-spacing: 1px;
+			color: var(--text-muted);
+			font-weight: 800;
 		}
 
-		/* Responsive */
-		@media (max-width: 768px) {
-			.section {
-				flex-direction: column !important;
-				text-align: center;
-			}
-
-			.section-content h2 {
-				border-left: none;
-				border-bottom: 3px solid var(--primary-color);
-				display: inline-block;
-				padding-left: 0;
-				padding-bottom: 5px;
-			}
+		.hidden {
+			display: none !important;
 		}
 
-		/* Product Modal Styles (Shared for Weber & Duraflex) */
-		.product-modal {
-			display: none;
-			position: fixed;
-			z-index: 3000;
-			left: 0;
-			top: 0;
-			width: 100%;
-			height: 100%;
-			background: rgba(0, 0, 0, 0.85);
-			backdrop-filter: blur(8px);
-			align-items: center;
-			justify-content: center;
-			padding: 20px;
+		/* Guide Section Styles */
+		.guide-section {
+			padding: 100px 5%;
 		}
 
-		.product-modal.active {
-			display: flex;
-		}
-
-		.product-modal-content {
-			width: 95%;
+		.guide-container {
 			max-width: 1200px;
-			height: 85vh;
-			background: white;
-			border-radius: 24px;
-			position: relative;
-			overflow: hidden;
-			animation: modalZoom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+			margin: 0 auto;
+			display: flex;
+			flex-direction: column;
+			gap: 80px;
 		}
 
-		@keyframes modalZoom {
-			from {
-				transform: scale(0.8);
-				opacity: 0;
-			}
-
-			to {
-				transform: scale(1);
-				opacity: 1;
-			}
-		}
-
-		.close-product-modal {
-			position: absolute;
-			top: 15px;
-			right: 25px;
-			width: 45px;
-			height: 45px;
-			background: #fff;
-			color: #000;
-			border-radius: 50%;
+		.guide-card {
 			display: flex;
 			align-items: center;
-			justify-content: center;
-			font-size: 28px;
-			font-weight: bold;
-			cursor: pointer;
-			z-index: 3001;
-			box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-			transition: 0.3s;
+			gap: 60px;
+			background: var(--card-bg);
+			border: 1px solid var(--glass-border);
+			border-radius: 32px;
+			padding: 40px;
+			overflow: hidden;
+			transition: 0.4s;
 		}
 
-		.close-product-modal:hover {
-			background: var(--primary-color);
-			transform: rotate(90deg);
+		.guide-card:hover {
+			border-color: var(--primary);
+			box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
 		}
 
-		.product-iframe {
+		.guide-card.reverse {
+			flex-direction: row-reverse;
+		}
+
+		.guide-image {
+			flex: 1;
+			min-width: 300px;
+			border-radius: 20px;
+			overflow: hidden;
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+		}
+
+		.guide-image img {
 			width: 100%;
 			height: 100%;
-			border: none;
+			object-fit: cover;
+			display: block;
+			transition: 0.5s;
 		}
 
-		/* Update clickable cards */
-		.section-clickable {
-			cursor: pointer;
-			position: relative;
-			overflow: hidden;
+		.guide-card:hover .guide-image img {
+			transform: scale(1.05);
 		}
 
-		.section-clickable::after {
-			content: 'NHẤN ĐỂ XEM CHI TIẾT';
-			position: absolute;
-			bottom: 15px;
-			right: 20px;
-			background: var(--primary-color);
-			color: #000;
-			padding: 5px 12px;
+		.guide-info {
+			flex: 1;
+		}
+
+		.badge {
+			display: inline-block;
+			padding: 6px 16px;
+			background: rgba(99, 102, 241, 0.1);
+			color: var(--primary);
+			border-radius: 99px;
 			font-size: 0.75rem;
 			font-weight: 800;
-			border-radius: 4px;
-			opacity: 0;
+			letter-spacing: 1px;
+			margin-bottom: 20px;
+		}
+
+		.guide-info h3 {
+			font-size: 2rem;
+			margin-bottom: 16px;
+			line-height: 1.2;
+		}
+
+		.guide-info p {
+			color: var(--text-muted);
+			margin-bottom: 30px;
+			font-size: 1.1rem;
+		}
+
+		.guide-steps {
+			list-style: none;
+		}
+
+		.guide-steps li {
+			display: flex;
+			align-items: center;
+			gap: 16px;
+			margin-bottom: 18px;
+			color: var(--text-main);
+			font-size: 1rem;
+		}
+
+		.guide-steps li span {
+			width: 32px;
+			height: 32px;
+			background: var(--primary);
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-weight: 800;
+			font-size: 0.85rem;
+			flex-shrink: 0;
+		}
+
+		@media (max-width: 992px) {
+
+			.guide-card,
+			.guide-card.reverse {
+				flex-direction: column;
+				gap: 30px;
+				padding: 30px;
+			}
+
+			.guide-info h3 {
+				font-size: 1.8rem;
+			}
+
+			.guide-image {
+				min-width: 100%;
+			}
+		}
+
+		/* Tech Slider Animation */
+		.tech-slider-container {
+			width: 100%;
+			overflow: hidden;
+			padding: 40px 0;
+			position: relative;
+		}
+
+		.tech-slider-track {
+			display: flex;
+			width: calc(400px * 8);
+			/* Adjust based on slide width and count */
+			animation: scrollTech 40s linear infinite;
+		}
+
+		.tech-slider-track:hover {
+			animation-play-state: paused;
+		}
+
+		@keyframes scrollTech {
+			0% {
+				transform: translateX(0);
+			}
+
+			100% {
+				transform: translateX(calc(-400px * 4));
+			}
+		}
+
+		.tech-slide {
+			width: 400px;
+			padding: 0 15px;
+			flex-shrink: 0;
+		}
+
+		.tech-slide-inner {
+			background: var(--card-bg);
+			border: 1px solid var(--glass-border);
+			border-radius: 24px;
+			overflow: hidden;
+			height: 480px;
+			display: flex;
+			flex-direction: column;
 			transition: 0.3s;
 		}
 
-		.section-clickable:hover::after {
-			opacity: 1;
+		.tech-slide-inner:hover {
+			border-color: var(--primary);
+			transform: translateY(-5px);
+		}
+
+		.tech-slide-inner img {
+			width: 100%;
+			height: 220px;
+			object-fit: cover;
+		}
+
+		.tech-slide-content {
+			padding: 24px;
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+		}
+
+		.tech-slide-content h4 {
+			font-size: 1.25rem;
+			margin-bottom: 12px;
+			color: #fff;
+			font-weight: 700;
+		}
+
+		.tech-slide-content p {
+			font-size: 0.95rem;
+			color: var(--text-muted);
+			line-height: 1.6;
+		}
+
+		@media (max-width: 480px) {
+			nav {
+				padding: 10px 5%;
+			}
+
+			.logo-box {
+				font-size: 0.9rem;
+			}
+
+			.nav-auth b {
+				font-size: 0.8rem !important;
+			}
+
+			.hero h1 {
+				font-size: 2.2rem;
+			}
+
+			.hero p {
+				font-size: 0.9rem;
+			}
+
+			.hero div {
+				flex-direction: column;
+				width: 100%;
+			}
+
+			.hero .btn-primary,
+			.hero .btn-glass {
+				width: 100%;
+				padding: 12px !important;
+			}
+
+			.tech-slide {
+				width: 300px;
+			}
+
+			@keyframes scrollTech {
+				0% {
+					transform: translateX(0);
+				}
+
+				100% {
+					transform: translateX(calc(-300px * 4));
+				}
+			}
+
+			.tech-slide-inner {
+				height: 420px;
+			}
+
+			/* Specific fixes for Guide Academy on tiny screens */
+			.guide-card {
+				padding: 24px !important;
+				border-radius: 20px;
+			}
+
+			.guide-info h3 {
+				font-size: 1.4rem !important;
+				margin-bottom: 10px;
+			}
+
+			.guide-info p {
+				font-size: 0.95rem;
+				margin-bottom: 20px;
+			}
+
+			.guide-steps li {
+				font-size: 0.9rem;
+				gap: 12px;
+				align-items: flex-start;
+				/* Ensure long text doesn't break the number position */
+				line-height: 1.4;
+			}
+
+			.guide-steps li span {
+				width: 28px;
+				height: 28px;
+				font-size: 0.75rem;
+				margin-top: 2px;
+				/* Slight offset for better alignment with text top */
+			}
+
+			.guide-image {
+				height: 200px;
+				min-width: unset;
+				width: 100%;
+			}
+		}
+
+		/* Utility class for JS toggling */
+		.hidden {
+			display: none !important;
 		}
 	</style>
 </head>
 
 <body>
 
-	<header>
-		<div class="header-left">
-			<img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgC6ibu0IT2Ihhik57NmlGYZgx57h3XvSk5dLipgo7cZTS0pEV7dmPGQZhwXAxTFqFH9l2C74l14MamphdzEWaRBZbeWSUsyIh2Wd-wKuPv274PMjrAgMtirxbfrK-eUcFp5Rx0cFL7uPMA93RBiWrnp5sghMDD78oBCEk3FA_QbZUY4eG3jTZK_nt65vM/s1600/logo12.png"
-				alt="Nhà Phân Phối Logo" class="logo">
+	<nav>
+		<div class="logo-box">
+			<span>DUNVEX</span> DIGITAL
 		</div>
-		<div class="header-right">
-			<div class="contact-text" id="headerAuth">
-				<!-- Login section will be injected here -->
-				<div class="user-auth-btn" onclick="openLoginModal()">
-					<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-						stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-						<circle cx="12" cy="7" r="4"></circle>
-					</svg>
-					<span>Đăng nhập</span>
-				</div>
-				<span class="slogan">Trao Chất Lượng - Nhận Niềm Tin</span>
-			</div>
+		<div class="nav-auth" id="navAuth">
+			<a href="auth.html" class="btn-glass">Đăng nhập</a>
+			<a href="auth.html" class="btn-primary">Bắt đầu ngay</a>
+		</div>
+	</nav>
+
+	<header class="hero">
+		<h1>
+			<span class="gradient-text">Số Hóa Doanh Nghiệp</span><br>
+			Vật Liệu Xây Dựng
+		</h1>
+		<p>Hệ sinh thái thông minh giúp bạn quản lý bán hàng, check-in thị trường, kho bãi và công nợ tập trung trên một
+			ứng dụng duy nhất.</p>
+		<div style="display: flex; gap: 16px; justify-content: center;">
+			<a href="#" class="btn-primary" style="padding: 16px 40px; font-size: 1.1rem;">Tham gia hệ thống</a>
+			<a href="#guideSection" class="btn-glass" style="padding: 16px 40px; font-size: 1.1rem;">Khám phá tính
+				năng</a>
 		</div>
 	</header>
 
-	<section class="hero">
-		<h1>Nhà Phân Phối Chính Hãng</h1>
-		<p>Chuyên cung cấp các giải pháp vật liệu xây dựng hiện đại: Tấm nhựa Pima, Tấm xi măng Duraflex, và Keo dán
-			gạch Weber.</p>
-	</section>
-
-	<div class="container">
-		<!-- Section 1: Nhựa Pima -->
-		<div class="section section-clickable" onclick="openProductModal('chi-tiet-pima.html')">
-			<div class="section-content">
-				<h2>Tấm Nhựa Pima</h2>
-				<p>Tấm nhựa Pima (Pima Foam Board) là vật liệu xanh thân thiện với môi trường, có khả năng chịu nước
-					tuyệt đối, chống mối mọt và độ bền cao. Giải pháp hoàn hảo thay thế gỗ công nghiệp trong nội thất.
-				</p>
-			</div>
-			<div class="section-img">
-				<img src="https://pima.com.vn/wp-content/uploads/2025/11/OP-ECP-34-1.jpg" alt="Tấm Nhựa Pima">
-			</div>
-		</div>
-
-		<!-- Section 2: Tấm Duraflex -->
-		<div class="section section-clickable" onclick="openProductModal('chi-tiet-duraflex.html')">
-			<div class="section-content">
-				<h2>Tấm Duraflex</h2>
-				<p>Tấm xi măng sợi Duraflex bền chắc gấp đôi, chịu lực tốt, chống cháy và chịu ẩm vượt trội. Ứng dụng đa
-					dạng cho trần, vách, sàn, phù hợp với mọi công trình xây dựng hiện đại.</p>
-			</div>
-			<div class="section-img">
-				<img src="https://duraflex.com.vn/sites/default/files/styles/1920x1080/public/2025-03/DURAflex%20Low%20Carbon_%281280x720%29px.jpg?itok=K5c9Clpx"
-					alt="Tấm Duraflex">
-			</div>
-		</div>
-
-		<!-- Section 3: Keo Silicon Weber -->
-		<div class="section section-clickable" onclick="openProductModal('chi-tiet-weber.html')">
-			<div class="section-content">
-				<h2>Keo Silicon Weber</h2>
-				<p>Dòng sản phẩm keo dán gạch và keo chà ron cao cấp từ thương hiệu Weber (Pháp). Độ bám dính siêu
-					cường, chống thấm, chống nấm mốc, đảm quả tính thẩm mỹ và bền vững cho công trình.</p>
-			</div>
-			<div class="section-img">
-				<img src="https://www.vn.weber/files/vn/styles/768x768_resize/public/pictures/2024-09/WS300.jpg.webp?itok=fDJoreCk"
-					alt="Keo Weber">
-			</div>
-		</div>
-	</div>
-
-	<!-- Generic Product Detail Modal -->
-	<div id="productModal" class="product-modal">
-		<div class="product-modal-content">
-			<span class="close-product-modal" onclick="closeProductModal()">&times;</span>
-			<iframe src="" id="product-iframe" class="product-iframe"></iframe>
-		</div>
-	</div>
-
-	<footer>
-		<p>&copy; 2024-2025 Nhà Phân Phối vật liệu xanh. Tất cả các quyền được bảo lưu.</p>
-	</footer>
-
-	<!-- Login Modal -->
-	<div id="loginModal" class="login-modal">
-		<div class="login-content">
-			<span class="close-login" onclick="closeLoginModal()">&times;</span>
-			<h3>Đăng Nhập Hệ Thống</h3>
-			<p style="margin-bottom: 20px; color: #666; font-size: 0.9rem;">Vui lòng nhập email khách hàng để tiếp tục
+	<section class="features-section hidden" id="featuresSection">
+		<div class="section-title">
+			<h2>Công Nghệ Cốt Lõi và Bảo Vệ Quyền Riêng Tư</h2>
+			<p>Nền tảng được xây dựng trên những công nghệ mạnh mẽ nhất của Google và hệ thống mã hóa bảo mật tuyệt đối.
 			</p>
-			<input type="email" id="loginEmail" placeholder="Email của bạn..." onkeypress="handleEnter(event)">
-			<button class="login-btn" onclick="handleLogin()">ĐĂNG NHẬP</button>
-			<div id="loginError" style="color: #d63031; margin-top: 15px; font-size: 0.85rem; display: none;">
-				Email không tồn tại trong hệ thống!
-			</div>
 		</div>
-	</div>
 
-	<!-- Floating Menu -->
-	<div class="floating-menu-container" id="floatingMenu">
-		<div class="menu-list" id="menuList">
-			<!-- GROUP 1: BÁO GIÁ -->
-			<div class="menu-group-title">Tra cứu Báo giá</div>
-			<a href="bao-gia-pima.html">
-				💎 Báo giá Pima
-			</a>
-			<a href="bao-gia-duraflex.html">
-				🏗️ Báo giá Duraflex
-			</a>
-			<a href="bao-gia-weber.html">
-				🧱 Báo giá Weber
-			</a>
+		<!-- Infinite Tech Slider -->
+		<div class="tech-slider-container">
+			<div class="tech-slider-track">
+				<!-- Slide 1: Google Cloud -->
+				<div class="tech-slide">
+					<div class="tech-slide-inner">
+						<img src="assets/tech/google.png" alt="Google Cloud">
+						<div class="tech-slide-content">
+							<h4>Hệ Thống Google Cloud</h4>
+							<p>Vận hành trên nền tảng đám mây hiệu năng cao, đảm bảo tốc độ và sự ổn định 99.9% cho
+								doanh nghiệp.</p>
+						</div>
+					</div>
+				</div>
+				<!-- Slide 2: Encryption -->
+				<div class="tech-slide">
+					<div class="tech-slide-inner">
+						<img src="assets/tech/encryption.png" alt="Mã hóa dữ liệu">
+						<div class="tech-slide-content">
+							<h4>Mã Hóa Đa Lớp XOR/AES</h4>
+							<p>Dữ liệu nhạy cảm được băm và mã hóa ngay từ khi khởi tạo, ngăn chặn mọi nỗ lực truy cập
+								trái phép.</p>
+						</div>
+					</div>
+				</div>
+				<!-- Slide 3: Privacy -->
+				<div class="tech-slide">
+					<div class="tech-slide-inner">
+						<img src="assets/tech/privacy.png" alt="Quyền riêng tư">
+						<div class="tech-slide-content">
+							<h4>Quyền Riêng Tư Tuyệt Đối</h4>
+							<p>Cam kết dữ liệu chỉ thuộc về người tạo. Không ai, kể cả quản trị viên hệ thống, có thể
+								xem được nội dung chi tiết của bạn.</p>
+						</div>
+					</div>
+				</div>
+				<!-- Slide 4: AI Integration -->
+				<div class="tech-slide">
+					<div class="tech-slide-inner">
+						<img src="assets/tech/ai.png" alt="AI Thông Minh">
+						<div class="tech-slide-content">
+							<h4>Trí Tuệ Nhân Tạo Bảo Mật</h4>
+							<p>Tích hợp AI hỗ trợ quyết định kinh doanh nhưng vẫn tuân thủ nghiêm ngặt các tiêu chuẩn
+								bảo mật dữ liệu nội bộ.</p>
+						</div>
+					</div>
+				</div>
 
-			<!-- GROUP 2: QUẢN LÝ (Dynamic) -->
-			<div id="groupQuanLy">
-				<div class="menu-group-title">Quản lý Kinh doanh</div>
-
-				<!-- Admin Old Item -->
-				<a href="len-don.html" id="menuLenDonLegacy" style="display: none; color: #d35400;">
-					🛍️ Lên đơn (Cũ)
-				</a>
-
-				<!-- Staff New Items -->
-				<div id="groupNhanVien">
-					<a href="len-don-khach.html" style="color: #2e86de;">
-						📝 Lên đơn Khách hàng
-					</a>
-					<a href="danh-sach-don-khach.html" style="color: #10ac84;">
-						📋 Danh sách Đơn hàng
-					</a>
-					<a href="san-pham-khach.html" style="color: #5f27cd;">
-						📦 Quản lý Sản phẩm
-					</a>
-					<a href="danh-sach-khach-hang.html" style="color: #ff9f43;">
-						👥 Quản lý Khách hàng
-					</a>
-					<a href="ton-kho.html" style="color: #ffb347;">
-						📊 Báo cáo Tồn kho
-					</a>
+				<!-- Duplicate for Infinite Loop -->
+				<div class="tech-slide">
+					<div class="tech-slide-inner">
+						<img src="assets/tech/google.png" alt="Google Cloud">
+						<div class="tech-slide-content">
+							<h4>Hệ Thống Google Cloud</h4>
+							<p>Vận hành trên nền tảng đám mây hiệu năng cao, đảm bảo tốc độ và sự ổn định 99.9% cho
+								doanh nghiệp.</p>
+						</div>
+					</div>
+				</div>
+				<div class="tech-slide">
+					<div class="tech-slide-inner">
+						<img src="assets/tech/encryption.png" alt="Mã hóa dữ liệu">
+						<div class="tech-slide-content">
+							<h4>Mã Hóa Đa Lớp XOR/AES</h4>
+							<p>Dữ liệu nhạy cảm được băm và mã hóa ngay từ khi khởi tạo, ngăn chặn mọi nỗ lực truy cập
+								trái phép.</p>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
-		<div class="menu-btn" onclick="toggleMenu()">
-			<!-- Hamburger Icon SVG -->
-			<svg class="menu-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-				<path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
-			</svg>
+	</section>
+
+	<!-- User Guide / Academy Section -->
+	<section class="guide-section" id="guideSection">
+		<div class="section-title">
+			<h2>Trung Tâm Học Viện Dunvex</h2>
+			<p>Hướng dẫn chi tiết quy trình vận hành hệ thống dành cho nhân viên và quản lý</p>
 		</div>
-	</div>
+
+		<div class="guide-container">
+			<!-- Guide 1: Sản Phẩm -->
+			<div class="guide-card">
+				<div class="guide-image">
+					<img src="assets/guides/product.png" alt="Tạo sản phẩm">
+				</div>
+				<div class="guide-info">
+					<div class="badge">QUẢN LÝ SẢN PHẨM</div>
+					<h3>Cách Tạo & Cập Nhật Sản Phẩm</h3>
+					<p>Giúp hệ thống luôn cập nhật đúng mẫu mã và giá thị trường.</p>
+					<ul class="guide-steps">
+						<li><span>1</span>Truy cập <b>Quản lý Sản phẩm</b> từ Menu.</li>
+						<li><span>2</span>Nhấn <b>Thêm mới</b>, điền tên, quy cách và giá.</li>
+						<li><span>3</span>Tải ảnh sản phẩm lên để hiển thị trên Catalogue.</li>
+						<li><span>4</span>Nhấn <b>Lưu</b> để đồng bộ lên hệ thống và Cloud.</li>
+					</ul>
+				</div>
+			</div>
+
+			<!-- Guide 2: Kho Vận -->
+			<div class="guide-card reverse">
+				<div class="guide-image">
+					<img src="assets/guides/inventory.png" alt="Quản lý kho">
+				</div>
+				<div class="guide-info">
+					<div class="badge" style="background: rgba(34, 197, 94, 0.1); color: #22c55e;">KHO VẬN</div>
+					<h3>Nhập - Xuất - Tồn Kho</h3>
+					<p>Kiểm soát dòng hàng hóa ra vào kho một cách chính xác nhất.</p>
+					<ul class="guide-steps">
+						<li><span>1</span>Vào mục <b>Quản lý kho</b>. Chọn phiếu <b>Nhập</b> hoặc <b>Xuất</b>.</li>
+						<li><span>2</span>Chọn mã sản phẩm, nhập số lượng và người thực hiện.</li>
+						<li><span>3</span>Hệ thống tự động tính toán <b>Tồn cuối</b> ngay lập tức.</li>
+						<li><span>4</span>Xem lịch sử biến động kho trong tab <b>Lịch sử</b>.</li>
+					</ul>
+				</div>
+			</div>
+
+			<!-- Guide 3: CRM & Check-in -->
+			<div class="guide-card">
+				<div class="guide-image">
+					<img src="assets/guides/crm.png" alt="CRM Check-in">
+				</div>
+				<div class="guide-info">
+					<div class="badge" style="background: rgba(192, 132, 252, 0.1); color: #c084fc;">CRM & SALES</div>
+					<h3>Tạo Khách Hàng & Check-in</h3>
+					<p>Ghi nhận vị trí và nhật ký viếng thăm khách hàng thực tế.</p>
+					<ul class="guide-steps">
+						<li><span>1</span><b>Thêm KH:</b> Nhập thông tin khách hàng mới trong mục CRM.</li>
+						<li><span>2</span><b>Check-in:</b> Khi đến cửa hàng, nhấn nút 📍 <b>Check-in</b>.</li>
+						<li><span>3</span>Hệ thống lấy vị trí GPS và cho phép ghi chú nội dung buổi thăm.</li>
+						<li><span>4</span>Lịch trình được tự động tổng hợp vào báo cáo tuần của Sale.</li>
+					</ul>
+				</div>
+			</div>
+
+			<!-- Guide 4: Lên Đơn -->
+			<div class="guide-card reverse">
+				<div class="guide-image">
+					<img src="assets/guides/order.png" alt="Lên đơn hàng">
+				</div>
+				<div class="guide-info">
+					<div class="badge" style="background: rgba(56, 189, 248, 0.1); color: #38bdf8;">ĐƠN HÀNG</div>
+					<h3>Quy Trình Lên Đơn Hàng</h3>
+					<p>Từ lúc chọn hàng đến khi in phiếu giao hàng chuyên nghiệp.</p>
+					<ul class="guide-steps">
+						<li><span>1</span>Chọn <b>Lên đơn hàng</b>, tìm khách hàng trong danh sách.</li>
+						<li><span>2</span>Chọn sản phẩm, hệ thống tự động áp giá NET và chiết khấu.</li>
+						<li><span>3</span>Kiểm tra tổng tiền, phí vận chuyển và nhấn <b>Chốt đơn</b>.</li>
+						<li><span>4</span>In phiếu giao hàng (PDF/Ảnh) gửi ngay cho khách qua Zalo.</li>
+					</ul>
+				</div>
+			</div>
+
+			<!-- Guide 5: Admin -->
+			<div class="guide-card">
+				<div class="guide-image">
+					<img src="assets/guides/admin.png" alt="Quản trị Admin">
+				</div>
+				<div class="guide-info">
+					<div class="badge" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">QUẢN TRỊ & BÁO CÁO
+					</div>
+					<h3>Cấp Quyền & Nhận Báo Cáo</h3>
+					<p>Phân quyền bảo mật và cơ chế gửi báo cáo tự động cho Admin.</p>
+					<ul class="guide-steps">
+						<li><span>1</span><b>Phân quyền:</b> Admin tích chọn quyền hạn cho từng Role.</li>
+						<li><span>2</span><b>Báo cáo Tuần:</b> Hệ thống tự động đẩy doanh số theo từng Sale.</li>
+						<li><span>3</span><b>Báo cáo Admin:</b> Nhấn 📤 <b>Gửi Report</b> để nhận file Excel tổng hợp
+							qua Email.</li>
+						<li><span>4</span>Excel bao gồm: Doanh thu, Đơn hàng và <b>Khách hàng mới</b> trong kỳ.</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="modules-preview">
+		<div class="section-title">
+			<h2>Nền Tảng Sức Mạnh</h2>
+			<p>Tích hợp sâu các công nghệ điện toán đám mây</p>
+		</div>
+		<div class="module-list">
+			<div class="module-tag">📊 Google Sheets CRM</div>
+			<div class="module-tag">🤖 Trí Tuệ Nhân Tạo AI</div>
+			<div class="module-tag">📧 Xác thực Gmail OTP</div>
+			<div class="module-tag">🔗 Tích hợp QR Code</div>
+			<div class="module-tag">📱 App Mobile Ready</div>
+		</div>
+	</section>
+
+	<footer>
+		<div class="footer-logo">DUNVEX <span>DIGITAL</span></div>
+		<p class="copyright">&copy; 2024 - 2026 Dunvex Ecosystem. Nền tảng quản trị VLXD chuyên sâu.</p>
+	</footer>
+
+	</footer>
+
+	<!-- Floating Menu sẽ được tự động chèn bởi floating-menu.js -->
 
 	<script>
-		function toggleMenu() {
-			const menu = document.getElementById('menuList');
-			menu.classList.toggle('active');
-		}
-
-		// Close menu when clicking outside
-		document.addEventListener('click', function (event) {
-			const menuContainer = document.querySelector('.floating-menu-container');
-			const menu = document.getElementById('menuList');
-			if (menuContainer && !menuContainer.contains(event.target) && menu.classList.contains('active')) {
-				menu.classList.remove('active');
-			}
+		// Init UI on load
+		document.addEventListener('DOMContentLoaded', () => {
+			updateUI();
 		});
 
-		// Auth Logic
-		function openLoginModal() {
-			document.getElementById('loginModal').classList.add('active');
-			document.getElementById('loginEmail').focus();
-		}
-
-		function closeLoginModal() {
-			document.getElementById('loginModal').classList.remove('active');
-			document.getElementById('loginError').style.display = 'none';
-		}
-
-		function handleEnter(e) {
-			if (e.key === 'Enter') handleLogin();
-		}
-
-		async function handleLogin() {
-			const emailInput = document.getElementById('loginEmail').value.trim().toLowerCase();
-			if (!emailInput) return;
-
-			try {
-				const response = await fetch('data/gia_khach_hang.json');
-				const customers = await response.json();
-
-				const user = customers.find(c => c.mail && c.mail.toLowerCase().trim() === emailInput);
-
-				if (user) {
-					localStorage.setItem('userLoggedIn', JSON.stringify({
-						name: user.name,
-						email: user.mail,
-						phan_loai: user.phan_loai
-					}));
-					updateUI();
-					closeLoginModal();
-				} else {
-					document.getElementById('loginError').style.display = 'block';
-				}
-			} catch (err) {
-				console.error("Login failed", err);
-				alert("Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại!");
-			}
-		}
-
-		function logout() {
-			localStorage.removeItem('userLoggedIn');
-			updateUI();
-		}
-
 		function updateUI() {
-			const userData = JSON.parse(localStorage.getItem('userLoggedIn'));
-			const headerAuth = document.getElementById('headerAuth');
-			const floatingMenu = document.getElementById('floatingMenu');
+			const session = SecurityProvider.getSession();
+			const navAuth = document.getElementById('navAuth');
 
-			if (userData) {
-				// Logged In
-				headerAuth.innerHTML = `
-					<div class="user-logged-in">
-						<div style="text-align: right">
-							<div style="font-weight: 700; color: #2d3436;">${userData.name}</div>
-							<div class="logout-btn" onclick="logout()">Đăng xuất</div>
-						</div>
-						<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="#FFD700" stroke="#333" stroke-width="1.5">
-							<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-							<circle cx="12" cy="7" r="4"></circle>
-						</svg>
-					</div>
-					<span class="slogan">Trao Chất Lượng - Nhận Niềm Tin</span>
-				`;
-				floatingMenu.style.display = 'block';
+			if (session) {
+				const user = session.user;
+				const perms = session.permissions;
 
-				// Show/Hide menu items based on phan_loai
-				const groupQuanLy = document.getElementById('groupQuanLy');
-				const menuLenDonLegacy = document.getElementById('menuLenDonLegacy');
-				const groupNhanVien = document.getElementById('groupNhanVien');
-
-				if (userData.phan_loai === 'ad mind') {
-					// Admin thấy Legacy order và các group nhân viên
-					menuLenDonLegacy.style.display = 'flex'; // Dạng flex vì a tag là flex
-					groupNhanVien.style.display = 'none'; // Tạm thời ẩn chức năng nhân viên với admin cũ để tránh rối, hoặc hiện cả 2 tùy yêu cầu. 
-					// Theo logic cũ: admin xem 'len-don.html', nv xem cái mới. 
-					// Tuy nhiên để admin quản lý được cái mới thì nên hiện cả.
-					// Nhưng user request "admin cũ thì xem cũ". Let's stick to simple logic first.
-				} else {
-					// Nhân viên thường
-					menuLenDonLegacy.style.display = 'none';
-					groupNhanVien.style.display = 'block';
+				// Redirect Super Admin to Master Home
+				if (user.email === 'dunvex.green@gmail.com') {
+					window.location.href = 'master-home.html';
+					return;
 				}
-				// Group Quản Lý luôn hiện nếu đã login
-				groupQuanLy.style.display = 'block';
+				// Link to Admin Panel if Role is R001 OR has 'quanLyNhanVien' permission (Upgraded Staff)
+				const profilePage = (user.roleId === 'R001' || (perms && perms.quanLyNhanVien)) ? 'admin-users.html' : 'user-profile.html';
+
+				navAuth.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div style="text-align: right; line-height: 1.2;">
+                            <a href="${profilePage}" style="text-decoration: none; display: block;">
+                                <span style="color: var(--text-muted); font-size: 0.8rem; display: block;">Chào,</span>
+                                <b style="color: var(--text-main); font-size: 0.95rem;">${user.fullName}</b>
+                            </a>
+                            <button onclick="handleLogout()" style="background: none; border: none; color: #ef4444; font-size: 0.75rem; cursor: pointer; padding: 0; text-decoration: underline;">Đăng xuất</button>
+                        </div>
+                        <a href="${profilePage}" style="text-decoration: none;">
+                            <div class="user-avatar" style="transition: 0.3s; cursor: pointer;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                                ${user.fullName.charAt(0).toUpperCase()}
+                            </div>
+                        </a>
+                    </div>
+                `;
+				document.getElementById('featuresSection').classList.remove('hidden');
+
+				// Check specific permissions for feature cards
+				const isAdmin = user.roleId === 'R001';
+				const checkPerm = (p) => isAdmin || (perms ? perms[p] : ['xemBangGia', 'checkinSales', 'quanLySanPham', 'danhSachDonHang'].includes(p));
+
+				// Safely toggle cards if they exist
+				const toggleCard = (id, perm) => {
+					const el = document.getElementById(id);
+					if (el) {
+						if (checkPerm(perm)) el.classList.remove('hidden');
+						else el.classList.add('hidden');
+					}
+				};
+
+				toggleCard('card_crm', 'checkinSales');
+				toggleCard('card_orders', 'danhSachDonHang');
+				toggleCard('card_debt', 'quanLyCongNo');
+				toggleCard('card_admin', 'quanLyNhanVien');
+				toggleCard('card_pricelist', 'xemBangGia');
+				toggleCard('card_inventory', 'quanLyKho');
+
+				// Sync permissions from server for real-time updates
+				refreshPermissions(user);
 
 			} else {
-				// Not Logged In
-				headerAuth.innerHTML = `
-					<div class="user-auth-btn" onclick="openLoginModal()">
-						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-							stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-							<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-							<circle cx="12" cy="7" r="4"></circle>
-						</svg>
-						<span>Đăng nhập</span>
-					</div>
-					<span class="slogan">Trao Chất Lượng - Nhận Niềm Tin</span>
-				`;
-				floatingMenu.style.display = 'none';
+				navAuth.innerHTML = `
+                    <a href="auth.html" class="btn-glass" style="padding: 8px 16px; font-size: 0.85rem;">Đăng nhập</a>
+                    <a href="auth.html" class="btn-primary" style="padding: 8px 16px; font-size: 0.85rem;">Bắt đầu</a>
+                `;
+				const featSec = document.getElementById('featuresSection');
+				if (featSec) featSec.classList.add('hidden');
 			}
 		}
 
-		// Init UI on load
-		document.addEventListener('DOMContentLoaded', updateUI);
+		async function refreshPermissions(user) {
+			const AUTH_URL = 'https://script.google.com/macros/s/AKfycbyaz_6xI3Nz0FHnNgr9qEcPuOUGf4OY53l8x1ofSoh_LIGozbKmpSJNAwpq8U6ygpPNHw/exec';
+			try {
+				const res = await fetch(AUTH_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('get_permissions', {
+						roleId: user.roleId,
+						adminEmail: user.adminEmail || user.email
+					})
+				});
+				const data = await res.json();
+				if (data.success && data.permissions) {
+					// Tự động nhận diện nếu Server trả về list (get_phan_quyen) hoặc 1 object (get_permissions)
+					let myPerm = {};
+					if (data.permissions.data) {
+						const allRoles = data.permissions.data || [];
+						myPerm = allRoles.find(r => r.id_vai_tro === user.roleId) || allRoles[0] || {};
+					} else {
+						myPerm = data.permissions;
+					}
 
-		// Generic Product Modal Logic
-		function openProductModal(url) {
-			const modal = document.getElementById('productModal');
-			const iframe = document.getElementById('product-iframe');
-			// Add version/timestamp to bypass browser cache
-			const cacheBuster = `?v=${new Date().getTime()}`;
-			iframe.src = url + cacheBuster;
-			modal.classList.add('active');
-			document.body.style.overflow = 'hidden'; // Lock scroll
+					const flattenedPerms = {
+						...myPerm,
+						checkinSales: myPerm.checkinSales ?? myPerm.checkin_sales,
+						quanLySanPham: myPerm.quanLySanPham ?? myPerm.quan_ly_san_pham,
+						danhSachDonHang: myPerm.danhSachDonHang ?? myPerm.danh_sach_don_hang,
+						quanLyNhanVien: myPerm.quanLyNhanVien ?? myPerm.quan_ly_nhan_vien,
+						xemBangGia: myPerm.xemBangGia ?? myPerm.xem_bang_gia,
+						quanLyKho: myPerm.quanLyKho ?? myPerm.quan_ly_kho,
+						checkinSummary: myPerm.checkinSummary ?? myPerm.checkin_summary,
+						quanLyCongNo: myPerm.quanLyCongNo ?? myPerm.quan_ly_cong_no,
+						nhapKho: myPerm.nhapKho ?? myPerm.nhap_kho,
+						khoXuatHang: myPerm.khoXuatHang ?? myPerm.kho_xuat_hang,
+						giaoHang: myPerm.giaoHang ?? myPerm.giao_hang,
+						quanLyNhanSu: myPerm.quanLyNhanSu ?? myPerm.quan_ly_nhan_su,
+						hienThiTenMenu: myPerm.hienThiTenMenu ?? myPerm.hien_thi_ten_menu,
+						hrSetup: myPerm.hrSetup ?? myPerm.hr_setup,
+						traCuuSanPham: myPerm.traCuuSanPham ?? myPerm.tra_cuu_san_pham
+					};
+					// SAVE SECURE SESSION
+					SecurityProvider.saveSession(user, flattenedPerms);
+					const perms = flattenedPerms;
+					const isAdmin = user.roleId === 'R001';
+					const checkPerm = (p) => isAdmin || perms[p];
+
+					const toggleCard = (id, perm) => {
+						const el = document.getElementById(id);
+						if (el) {
+							if (checkPerm(perm)) el.classList.remove('hidden');
+							else el.classList.add('hidden');
+						}
+					};
+
+					toggleCard('card_crm', 'checkinSales');
+					toggleCard('card_orders', 'danhSachDonHang');
+					toggleCard('card_debt', 'quanLyCongNo');
+					toggleCard('card_admin', 'quanLyNhanVien');
+					toggleCard('card_pricelist', 'xemBangGia');
+					toggleCard('card_inventory', 'quanLyKho');
+
+					// Refresh floating menu as well
+					if (window.refreshDunvexMenu) window.refreshDunvexMenu();
+				}
+			} catch (e) { console.error("Sync perms error", e); }
 		}
 
-		function closeProductModal() {
-			const modal = document.getElementById('productModal');
-			const iframe = document.getElementById('product-iframe');
-			modal.classList.remove('active');
-			iframe.src = ''; // Clear source to stop video/heavy content
-			document.body.style.overflow = 'auto'; // Restore scroll
-		}
-
-		// Close modal on outside click
-		window.onclick = function (event) {
-			const modal = document.getElementById('productModal');
-			if (event.target == modal) {
-				closeProductModal();
-			}
+		// Re-use logic from floating-menu.js if needed or just let it handle redirects
+	</script>
+	<script src="security-utils.js"></script>
+	<script src="chatbot.js"></script>
+	<script src="floating-menu.js"></script>
+	<script>
+		function handleLogout() {
+			SecurityProvider.logout();
 		}
 	</script>
-
 </body>
 
 </html>
-```

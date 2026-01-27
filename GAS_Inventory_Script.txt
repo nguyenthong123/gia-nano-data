@@ -1,0 +1,503 @@
+const API_SECRET = 'dv_api_secret_2025_prod_v2';
+const DATA_FOLDER_ID = '1_LT4rzVui2E3BgfcwUSfMsUGQMN9NRTs';
+
+const FILES = {
+  NHAP: 'ton_kho_nhap.json',
+  XUAT: 'ton_kho_xuat.json',
+  TONG_HOP: 'ton_kho_tong_hop.json',
+  ORDER_DETAIL: 'order_chi_tiet.json',
+  ORDER_HEADER: 'order.json'
+};
+
+const AUTH_SS_ID = '1rhP1UCiMLi8yNVvcd56SsZIJAm09Yxu6WpjxuHKYKb0';
+const LOW_STOCK_THRESHOLD = 10;
+
+// --- SECURITY CONFIG (XOR ENCRYPTION) ---
+const XOR_SECRET = 'dunvex_secure_key_2025_custom';
+// Legacy AES Key
+const AES_KEY = Utilities.newBlob('dunvex_secure_16').getBytes();
+
+/**
+ * HỆ THỐNG LƯU TRỮ AN TOÀN (SAFE STORAGE ENGINE)
+ * Chống Race Condition bằng LockService và JSON Lines
+ */
+const SafeStore = {
+  getFile: function(filename, createIfMissing = false) {
+    const folder = DriveApp.getFolderById(DATA_FOLDER_ID);
+    const files = folder.getFilesByName(filename);
+    while (files.hasNext()) {
+      const f = files.next();
+      if (!f.isTrashed()) return f;
+    }
+    if (createIfMissing) return folder.createFile(filename, '', MimeType.PLAIN_TEXT);
+    return null;
+  },
+  read: function(filename) {
+    try {
+      const file = this.getFile(filename);
+      if (!file) return [];
+      const content = file.getBlob().getDataAsString().trim();
+      if (!content) return [];
+      if (content.startsWith('[')) return JSON.parse(content);
+      return content.split('\n').filter(l => l.trim()).map(l => JSON.parse(l));
+    } catch (e) { return []; }
+  },
+  write: function(filename, newData, action = 'APPEND') {
+    const lock = LockService.getScriptLock();
+    try {
+      lock.waitLock(30000);
+      const file = this.getFile(filename, true);
+      let data = this.read(filename);
+
+      if (action === 'APPEND') data.push(newData);
+      else if (action === 'UPDATE') {
+        const id = (newData.id || newData.id_don_hang || newData.productId || "").toString();
+        const idx = data.findIndex(item => (
+          (item.id || "").toString() === id || 
+          (item.id_don_hang || "").toString() === id || 
+          (item.productId || "").toString() === id
+        ));
+        if (idx !== -1) data[idx] = newData;
+        else data.push(newData);
+      } else if (action === 'DELETE') {
+        const targetId = (typeof newData === 'string' ? newData : (newData.id || newData.id_don_hang || newData.productId || "")).toString().trim();
+        const beforeCount = data.length;
+        data = data.filter(item => {
+          const itemId = (item.id || item.id_don_nhap_xuat || "").toString().trim();
+          const itemOrderId = (item.id_don_hang || "").toString().trim();
+          const itemProdId = (item.productId || item.id_san_pham || "").toString().trim();
+          return itemId !== targetId && itemOrderId !== targetId && itemProdId !== targetId;
+        });
+        Logger.log(`Delete ${targetId} from ${filename}: ${beforeCount} -> ${data.length}`);
+      } else if (action === 'REPLACE_ALL') data = newData;
+
+      file.setContent(data.map(item => JSON.stringify(item)).join('\n'));
+      return { success: true };
+    } catch (e) { return { success: false, message: e.toString() }; }
+    finally { lock.releaseLock(); }
+  }
+};
+
+function encryptXOR(text) {
+  if (!text) return "";
+  try {
+    const inputBytes = Utilities.newBlob(text.toString()).getBytes();
+    const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+    const outputBytes = [];
+    for (let i = 0; i < inputBytes.length; i++) {
+        outputBytes.push(inputBytes[i] ^ keyBytes[i % keyBytes.length]);
+    }
+    return Utilities.base64Encode(outputBytes);
+  } catch (e) { return "ENC_ERR: " + e.toString(); }
+}
+
+function decryptXOR(base64Text) {
+  if (!base64Text || base64Text.length < 5 || base64Text.startsWith("ENC_ERR")) return base64Text;
+  try {
+    const inputBytes = Utilities.base64Decode(base64Text);
+    const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+    const outputBytes = [];
+    for (let i = 0; i < inputBytes.length; i++) {
+        outputBytes.push(inputBytes[i] ^ keyBytes[i % keyBytes.length]);
+    }
+    return Utilities.newBlob(outputBytes).getDataAsString();
+  } catch (e) { return base64Text; }
+}
+
+function decryptAES(base64Text) {
+  if (!base64Text || base64Text.length < 10) return base64Text;
+  try {
+    const decoded = Utilities.base64Decode(base64Text);
+    const decrypted = Utilities.decrypt(Utilities.CipherAlgorithm.AES_128, AES_KEY, decoded);
+    return decrypted.getDataAsString();
+  } catch (e) { return null; }
+}
+
+function encryptData(text) { return encryptXOR(text); }
+
+function decryptData(base64Text) {
+  let dec = decryptXOR(base64Text);
+  if ((!dec || !dec.includes('@')) && base64Text) {
+     const aes = decryptAES(base64Text);
+     if (aes && aes.includes('@')) return aes;
+  }
+  return dec || base64Text;
+}
+
+function doGet(e) {
+  const action = e.parameter.action;
+  const adminEmail = e.parameter.adminEmail || e.parameter.mail; // Compatibility with old ton-kho.html
+  let result;
+  if (action === 'read' || action === 'get_inventory_logs') {
+    result = getInventoryLogs(adminEmail);
+  } else if (action === 'get_inventory_report') {
+    result = getInventoryReport(adminEmail);
+  } else {
+    result = { success: false, message: 'Invalid GET action' };
+  }
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  let result;
+  try {
+    const contents = e.postData ? e.postData.contents : "";
+    if (!contents) return ContentService.createTextOutput(JSON.stringify({ success: false, message: 'Data empty' })).setMimeType(ContentService.MimeType.JSON);
+    const data = JSON.parse(contents);
+
+    // --- API SECURITY CHECK ---
+    if (data.apiKey !== API_SECRET) {
+      return ContentService.createTextOutput(JSON.stringify({ 
+        success: false, 
+        message: 'Unauthorized Inventory Access' 
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const action = (data.action || "").toString().trim();
+    switch (action) {
+      case 'get_inventory_report': result = getInventoryReport(data.adminEmail); break;
+      case 'recalculate_stock': result = calculateStock(data.adminEmail); break;
+      case 'save_inventory_entry': result = saveInventoryEntry(data, data.adminEmail); break;
+      case 'sync_order_to_inventory': result = syncOrderToInventory(data.orderId, data.userEmail, data.adminEmail, data.status); break;
+      case 'get_inventory_logs': result = getInventoryLogs(data.adminEmail || data.mail); break;
+      case 'hard_delete':
+      case 'delete_inventory_entry': 
+        result = deleteInventoryEntry(data.id || data.id_don_nhap_xuat, data.adminEmail || data.mail); 
+        break;
+      case 'update_inventory_entry': result = updateInventoryEntry(data, data.adminEmail || data.mail); break;
+      case 'test_email_alert': result = testEmailAlert(data.adminEmail); break;
+      default: result = { success: false, message: 'Invalid action: ' + action };
+    }
+  } catch (error) { result = { success: false, message: error.toString() }; }
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function getFile(filename) {
+  const folder = DriveApp.getFolderById(DATA_FOLDER_ID);
+  const files = folder.getFilesByName(filename);
+  if (files.hasNext()) return files.next();
+  return folder.createFile(filename, '[]', MimeType.PLAIN_TEXT);
+}
+
+function syncOrderToInventory(orderId, userEmail, adminEmail, status) {
+  try {
+    const safeAdmin = (adminEmail || "").toLowerCase().trim();
+    // Trigger recalculation to refresh summary and low stock alerts
+    calculateStock(safeAdmin); 
+    return { success: true, message: 'Đã cập nhật tồn kho theo đơn hàng: ' + orderId };
+  } catch (e) { return { success: false, message: e.toString() }; }
+}
+
+function saveInventoryEntry(data, adminEmail) {
+  try {
+    const filename = data.type === 'NHAP' ? FILES.NHAP : FILES.XUAT;
+    const safeAdmin = (adminEmail || "").toLowerCase().trim();
+    const entry = {
+      id: "INV-" + new Date().getTime(),
+      productId: data.productId,
+      productName: data.productName,
+      quantity: parseFloat(data.quantity || 0),
+      unit: data.unit,
+      date: new Date().toISOString(),
+      user: encryptData(data.userEmail),
+      ownedByAdmin: encryptData(safeAdmin),
+      note: data.note || ''
+    };
+    const res = SafeStore.write(filename, entry, 'APPEND');
+    // Luôn tính toán lại để đảm bảo số liệu nhảy ngay lập tức
+    calculateStock(safeAdmin); 
+    return res;
+  } catch (e) { return { success: false, message: e.toString() }; }
+}
+
+function getManagedEmails(adminEmail) {
+  const normAdmin = (adminEmail || "").toLowerCase().trim();
+  const emails = new Set([normAdmin]);
+  if (normAdmin === 'dunvex.green@gmail.com') return null; // Super Admin sees all
+
+  try {
+    const ss = SpreadsheetApp.openById(AUTH_SS_ID);
+    const useSheet = ss.getSheetByName('use');
+    if (useSheet) {
+      const data = useSheet.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        const uEmail = (decryptData(data[i][1]) || "").toLowerCase().trim();
+        const manager = (decryptData(data[i][5]) || "").toLowerCase().trim();
+        if (manager === normAdmin) emails.add(uEmail);
+      }
+    }
+  } catch (e) { Logger.log("getManagedEmails Error: " + e.toString()); }
+  return emails;
+}
+
+function calculateStock(adminEmail) {
+  if (!adminEmail) return { success: false, message: "Email Admin missing" };
+  const safeAdmin = adminEmail.toLowerCase().trim();
+  const managedEmails = getManagedEmails(safeAdmin);
+  
+  try {
+    const nhapData = SafeStore.read(FILES.NHAP);
+    const xuatData = SafeStore.read(FILES.XUAT);
+    const allOrders = SafeStore.read(FILES.ORDER_HEADER);
+    const allDetails = SafeStore.read(FILES.ORDER_DETAIL);
+    
+    const stockMap = {};
+
+    // 1. Xử lý NHẬP KHO (Chỉ lấy các bản ghi thuộc admin quản lý)
+    nhapData.filter(i => {
+      const owner = (decryptData(i.ownedByAdmin) || "").toLowerCase().trim();
+      return owner === safeAdmin;
+    }).forEach(i => {
+      const pid = i.productId || i.id_san_pham;
+      if (!stockMap[pid]) stockMap[pid] = { id: pid, name: i.productName, unit: i.unit, in: 0, out: 0 };
+      stockMap[pid].in += (parseFloat(i.quantity) || 0);
+    });
+
+    // 2. Xử lý XUẤT KHO THỦ CÔNG (Bỏ qua các bản ghi SYNC- từ đơn hàng cũ)
+    xuatData.filter(i => {
+      const owner = (decryptData(i.ownedByAdmin) || "").toLowerCase().trim();
+      const isManual = !i.id || !i.id.toString().startsWith("SYNC-");
+      return owner === safeAdmin && isManual;
+    }).forEach(i => {
+      const pid = i.productId || i.id_san_pham;
+      if (!stockMap[pid]) stockMap[pid] = { id: pid, name: i.productName, unit: i.unit, in: 0, out: 0 };
+      stockMap[pid].out += (parseFloat(i.quantity) || 0);
+    });
+
+    // 3. Xử lý XUẤT KHO TỪ ĐƠN HÀNG (Tính toán động từ Đơn Chốt)
+    const finalizedOrders = allOrders.filter(o => {
+      const statusRaw = (o.trang_thai_don_hang || "").toString().toLowerCase();
+      const creator = (decryptData(o.nguoi_len_don) || "").toLowerCase().trim();
+      const manager = (decryptData(o.manager_email) || "").toLowerCase().trim();
+      
+      // Chấp nhận cả "đơn chốt", "don chốt" và "hoàn thành"
+      const isFinal = (statusRaw.indexOf("chốt") !== -1 || statusRaw.indexOf("hoàn thành") !== -1);
+      
+      // Kiểm tra đội nhóm: Hoặc là admin cấp cao (null), hoặc người tạo/quản lý thuộc team
+      const isMyTeam = (managedEmails === null || managedEmails.has(creator) || manager === safeAdmin);
+      return isFinal && isMyTeam;
+    });
+
+    const finalizedOrderIds = new Set(finalizedOrders.map(o => o.id_don_hang));
+    allDetails.filter(d => finalizedOrderIds.has(d.id_don_hang)).forEach(d => {
+      const pid = d.ma_san_pham || d.id_san_pham;
+      if (!stockMap[pid]) stockMap[pid] = { id: pid, name: d.ten_san_pham, unit: d.don_vi_tinh || 'Cái', in: 0, out: 0 };
+      stockMap[pid].out += (parseFloat(d.so_luong) || 0);
+    });
+
+    const encAdmin = encryptData(safeAdmin);
+    
+    // TỐI ƯU CỰC KỲ QUAN TRỌNG: Chỉ giữ lại những mã có giao dịch thực tế
+    // Nếu muốn linh động hơn, ta có thể lọc theo danh sách SP hiện tại của Admin (optional)
+    const finalStock = Object.values(stockMap).map(i => ({
+      id: i.id, name: i.name, unit: i.unit, 
+      tongNhap: i.in, tongXuat: i.out, tonKho: i.in - i.out,
+      ownedByAdmin: encAdmin
+    })).filter(i => i.tongNhap > 0 || i.tongXuat > 0 || i.tonKho !== 0);
+
+    // Cập nhật bảng tổng hợp (Tenant isolation)
+    let allSummary = SafeStore.read(FILES.TONG_HOP);
+    allSummary = allSummary.filter(s => (decryptData(s.ownedByAdmin) || "").toLowerCase() !== safeAdmin);
+    allSummary.push(...finalStock);
+    SafeStore.write(FILES.TONG_HOP, allSummary, 'REPLACE_ALL');
+    
+    checkLowStockAndNotify(finalStock, safeAdmin);
+    return { success: true, data: finalStock };
+  } catch (e) { return { success: false, message: e.toString() }; }
+}
+
+/**
+ * Gửi email cảnh báo khi có sản phẩm sắp hết hàng (< 10)
+ * Tích hợp Cache để tránh gửi mail spam liên tục
+ */
+function checkLowStockAndNotify(stockList, adminEmail) {
+  if (!adminEmail || !stockList) return;
+  
+  const cache = CacheService.getScriptCache();
+  const lowStockItems = stockList.filter(item => {
+    if (parseFloat(item.tonKho) <= LOW_STOCK_THRESHOLD) {
+      // Chỉ gửi cảnh báo nếu trong 12 giờ qua chưa báo cho mã hàng này
+      const cacheKey = 'LOW_STOCK_' + adminEmail + '_' + item.id;
+      if (!cache.get(cacheKey)) {
+        cache.put(cacheKey, 'SENT', 43200); // 12 tiếng (43200 giây)
+        return true;
+      }
+    }
+    return false;
+  });
+
+  if (lowStockItems.length === 0) return;
+
+  const subject = `⚠️ [CẢNH BÁO KHO] Một số mặt hàng sắp hết - Dunvex Digital`;
+  let itemsHtml = lowStockItems.map(item => `
+    <tr style="border-bottom: 1px solid #eee;">
+      <td style="padding: 12px; text-align: left;">
+        <span style="font-weight: bold; color: #1e293b;">${item.name}</span><br>
+        <small style="color: #94a3b8;">Mã: ${item.id}</small>
+      </td>
+      <td style="padding: 12px; text-align: center; font-weight: 800; color: #ef4444; font-size: 16px;">
+        ${item.tonKho} ${item.unit}
+      </td>
+    </tr>
+  `).join('');
+
+  const htmlBody = `
+    <div style="font-family: Arial, sans-serif; max-width: 550px; margin: 0 auto; border: 2px solid #ef4444; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+      <div style="background: #ef4444; padding: 25px; text-align: center; color: white;">
+        <div style="font-size: 40px; margin-bottom: 10px;">🚨</div>
+        <h2 style="margin: 0; text-transform: uppercase; letter-spacing: 1px;">Cảnh Báo Sắp Hết Hàng</h2>
+        <p style="opacity: 0.9; margin-top: 5px;">Hệ thống phát hiện tồn kho đang dưới ngưỡng báo động (< ${LOW_STOCK_THRESHOLD})</p>
+      </div>
+      <div style="padding: 30px; background: white;">
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
+          <thead>
+            <tr style="background: #f8fafc; border-bottom: 2px solid #eee;">
+              <th style="padding: 12px; text-align: left; color: #64748b; font-size: 11px; text-transform: uppercase;">Mặt hàng</th>
+              <th style="padding: 12px; text-align: center; color: #64748b; font-size: 11px; text-transform: uppercase;">Tồn thực tế</th>
+            </tr>
+          </thead>
+          <tbody>${itemsHtml}</tbody>
+        </table>
+        
+        <div style="background: #fff7ed; padding: 15px; border-radius: 12px; border: 1px solid #ffedd5; margin-bottom: 25px; text-align: center;">
+          <p style="margin: 0; color: #9a3412; font-size: 14px; font-weight: 600;">⚠️ Lưu ý: Bạn cần nhập kho thêm để đảm bảo việc kinh doanh.</p>
+        </div>
+
+        <div style="text-align: center;">
+          <a href="https://dunvex.com/quan-ly-kho.html" style="display: inline-block; background: #6366f1; color: white; padding: 14px 28px; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 15px; box-shadow: 0 4px 6px rgba(99, 102, 241, 0.2);">📦 VÀO QUẢN LÝ KHO TỔNG</a>
+        </div>
+      </div>
+      <div style="background: #f8fafc; padding: 15px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #eee;">
+        Hệ thống thông báo tồn kho tự động Dunvex Digital. Cảnh báo này gửi tối đa 1 lần mỗi 12 giờ cho cùng 1 mặt hàng.
+      </div>
+    </div>`;
+
+  try {
+    MailApp.sendEmail({
+      to: adminEmail,
+      subject: subject,
+      htmlBody: htmlBody
+    });
+  } catch (e) {
+    Logger.log("Lỗi gửi mail cảnh báo kho: " + e.toString());
+  }
+}
+
+function getInventoryLogs(adminEmail) {
+  try {
+    const safeAdmin = (adminEmail || "").toLowerCase().trim();
+    const managedEmails = getManagedEmails(safeAdmin);
+    
+    // 1. Lấy dữ liệu Nhập (Manual)
+    const nhaps = SafeStore.read(FILES.NHAP)
+      .filter(i => (decryptData(i.ownedByAdmin) || "").toLowerCase() === safeAdmin)
+      .map(i => {
+        i.type = 'NHAP'; 
+        i.user = decryptData(i.user); 
+        return i;
+      });
+
+    // 2. Lấy dữ liệu Xuất thủ công (Bỏ qua SYNC- cũ)
+    const xuatManuals = SafeStore.read(FILES.XUAT)
+      .filter(i => {
+        const owner = (decryptData(i.ownedByAdmin) || "").toLowerCase() === safeAdmin;
+        const isManual = !i.id || !i.id.toString().startsWith("SYNC-");
+        return owner && isManual;
+      })
+      .map(i => {
+        i.type = 'XUAT'; 
+        i.user = decryptData(i.user); 
+        return i;
+      });
+
+    // 3. Lấy dữ liệu Xuất từ Đơn hàng (Dynamic)
+    const allOrders = SafeStore.read(FILES.ORDER_HEADER);
+    const allDetails = SafeStore.read(FILES.ORDER_DETAIL);
+    
+    const finalizedOrders = allOrders.filter(o => {
+      const statusRaw = (o.trang_thai_don_hang || "").toString().toLowerCase();
+      const creator = (decryptData(o.nguoi_len_don) || "").toLowerCase().trim();
+      const manager = (decryptData(o.manager_email) || "").toLowerCase().trim();
+      const isFinal = (statusRaw.indexOf("chốt") !== -1 || statusRaw.indexOf("hoàn thành") !== -1);
+      return isFinal && (managedEmails === null || managedEmails.has(creator) || manager === safeAdmin);
+    });
+
+    const orderXuatLogs = [];
+    const orderIds = new Set(finalizedOrders.map(o => o.id_don_hang));
+    
+    // Tạo map để lấy nhanh metadata của đơn hàng
+    const orderMap = {};
+    finalizedOrders.forEach(o => { orderMap[o.id_don_hang] = o; });
+
+    allDetails.filter(d => orderIds.has(d.id_don_hang)).forEach(d => {
+      const parentOrder = orderMap[d.id_don_hang];
+      orderXuatLogs.push({
+        id: "SYNC-" + d.id_don_hang,
+        date: parentOrder.ngay_len_don || parentOrder['ngày tạo'] || new Date().toISOString(),
+        productId: d.ma_san_pham || d.id_san_pham,
+        productName: d.ten_san_pham,
+        type: 'XUAT',
+        quantity: parseFloat(d.so_luong) || 0,
+        unit: d.don_vi_tinh || 'Cái',
+        user: decryptData(parentOrder.nguoi_len_don),
+        note: "Xuất theo đơn hàng: " + d.id_don_hang
+      });
+    });
+
+    const all = [...nhaps, ...xuatManuals, ...orderXuatLogs].sort((a, b) => {
+      const dateA = a.date ? new Date(a.date.toString().replace(/(\d{2}):(\d{2}) (\d{2})\/(\d{2})\/(\d{4})/, "$5-$4-$3T$1:$2:00")) : new Date(0);
+      const dateB = b.date ? new Date(b.date.toString().replace(/(\d{2}):(\d{2}) (\d{2})\/(\d{2})\/(\d{4})/, "$5-$4-$3T$1:$2:00")) : new Date(0);
+      return dateB - dateA;
+    });
+    
+    return { success: true, data: all };
+  } catch (e) { return { success: false, message: e.toString() }; }
+}
+
+function getInventoryReport(adminEmail) {
+  try {
+    const safeAdmin = (adminEmail || "").toLowerCase().trim();
+    const filtered = SafeStore.read(FILES.TONG_HOP).filter(s => (decryptData(s.ownedByAdmin) || "").toLowerCase() === safeAdmin);
+    return { success: true, data: filtered };
+  } catch(e) { return { success: false, message: e.toString() }; }
+}
+
+function deleteInventoryEntry(id, adminEmail) {
+  if (!id) return { success: false, message: "Missing ID" };
+  try {
+     const safeAdmin = (adminEmail || "").toLowerCase().trim();
+     SafeStore.write(FILES.NHAP, id, 'DELETE');
+     SafeStore.write(FILES.XUAT, id, 'DELETE');
+     calculateStock(safeAdmin);
+     return { success: true };
+  } catch(e) { return { success: false, message: e.toString() }; }
+}
+
+function updateInventoryEntry(data, adminEmail) {
+   try {
+    const safeAdmin = (adminEmail || "").toLowerCase().trim();
+    let res = SafeStore.write(FILES.NHAP, data, 'UPDATE');
+    if (!res.success) res = SafeStore.write(FILES.XUAT, data, 'UPDATE');
+    calculateStock(safeAdmin);
+    return { success: true };
+   } catch(e) { return { success: false, message: e.toString() }; }
+}
+
+/**
+ * Hàm test để gửi email mẫu
+ */
+function testEmailAlert(adminEmail) {
+  if (!adminEmail) return { success: false, message: "Email Admin missing" };
+  const mockStock = [
+    { id: 'TEST-ID', name: 'SẢN PHẨM TEST (CÀNH BÁO)', unit: 'Cái', tonKho: 5 }
+  ];
+  const subject = `🧪 [TEST ALERT] Cảnh báo tồn kho mẫu - Dunvex Digital`;
+  
+  // Xóa cache test nếu có để đảm bảo gửi được
+  const cache = CacheService.getScriptCache();
+  cache.remove('LOW_STOCK_' + adminEmail + '_TEST-ID');
+  
+  checkLowStockAndNotify(mockStock, adminEmail.toLowerCase().trim());
+  return { success: true, message: "Đã gửi email test đến: " + adminEmail };
+}
+

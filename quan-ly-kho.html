@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-QFQ2HMYTDH"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag('js', new Date());
+
+		gtag('config', 'G-QFQ2HMYTDH');
+	</script>
+
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Quản Lý Tồn Kho | Dunvex Digital</title>
+	<link rel="icon" type="image/svg+xml"
+		href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23FACC15'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' fill='white' font-size='60' font-family='sans-serif' font-weight='800'>DV</text></svg>">
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;800&display=swap"
+		rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+	<script src="security-utils.js"></script>
+	<script>
+		const session = SecurityProvider.validateAccess();
+		const currentUser = session ? session.user : null;
+		const currentPerms = session ? session.permissions : null;
+	</script>
+	<link rel="stylesheet" href="assets/theme.css">
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+			text-rendering: optimizeLegibility;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+			font-weight: 500;
+		}
+
+		body {
+			background-color: var(--bg-body);
+			color: var(--text-main);
+			min-height: 100vh;
+			padding: 20px;
+			background-image: var(--bg-gradient-1), var(--bg-gradient-2);
+			background-attachment: fixed;
+			-webkit-text-size-adjust: 100%;
+		}
+
+		.container {
+			max-width: 1100px;
+			margin: 0 auto;
+		}
+
+		.header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 30px;
+			padding: 24px 30px;
+			background: white;
+			border: 1px solid var(--glass-border);
+			border-radius: 24px;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+		}
+
+		.header h1 {
+			font-size: 2rem;
+			font-weight: 800;
+			color: #0f172a;
+			margin: 0;
+			font-family: 'Outfit', sans-serif;
+			letter-spacing: -1px;
+		}
+
+		/* Tabs */
+		.tabs {
+			display: flex;
+			gap: 8px;
+			margin-bottom: 30px;
+			background: white;
+			padding: 6px;
+			border-radius: 18px;
+			width: fit-content;
+			border: 1px solid var(--glass-border);
+			box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+		}
+
+		.tab-btn {
+			padding: 12px 24px;
+			border-radius: 14px;
+			border: none;
+			background: transparent;
+			color: #64748b;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+			font-size: 0.9rem;
+		}
+
+		.tab-btn.active {
+			background: var(--primary);
+			color: #0f172a !important;
+			box-shadow: 0 4px 12px rgba(250, 204, 21, 0.3);
+		}
+
+		.tab-btn:not(.active):hover {
+			background: #f8fafc;
+			color: #0f172a;
+		}
+
+		/* View Content */
+		.view-content {
+			display: none;
+			animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+		}
+
+		.view-content.active {
+			display: block;
+		}
+
+		@keyframes fadeIn {
+			from {
+				opacity: 0;
+				transform: translateY(12px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		/* Stock Grid */
+		.stock-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+			gap: 24px;
+		}
+
+		.stock-card {
+			background: white;
+			border: 1px solid var(--glass-border);
+			padding: 28px;
+			border-radius: 24px;
+			position: relative;
+			transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+		}
+
+		.stock-card:hover {
+			border-color: var(--primary);
+			transform: translateY(-8px);
+			box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+		}
+
+		.stock-name {
+			font-weight: 800;
+			font-size: 1.25rem;
+			margin-bottom: 6px;
+			color: #1e293b;
+			line-height: 1.3;
+		}
+
+		.stock-id {
+			font-size: 0.8rem;
+			color: #94a3b8;
+			margin-bottom: 20px;
+			font-weight: 700;
+			letter-spacing: 0.5px;
+		}
+
+		.stock-stats {
+			display: flex;
+			align-items: baseline;
+		}
+
+		.stock-value {
+			font-size: 2.2rem;
+			font-weight: 900;
+			color: #0f172a;
+			font-family: 'Outfit', sans-serif;
+		}
+
+		.stock-unit {
+			font-size: 1rem;
+			color: #64748b;
+			margin-left: 8px;
+			font-weight: 700;
+		}
+
+		.status-tag {
+			position: absolute;
+			top: 24px;
+			right: 24px;
+			padding: 6px 12px;
+			border-radius: 10px;
+			font-size: 0.7rem;
+			font-weight: 800;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+		}
+
+		.status-low {
+			background: rgba(239, 68, 68, 0.1);
+			color: var(--danger);
+		}
+
+		.status-ok {
+			background: rgba(34, 197, 94, 0.1);
+			color: var(--success);
+		}
+
+		/* Form Styling */
+		.form-card {
+			background: white;
+			padding: 40px;
+			border-radius: 30px;
+			border: 1px solid var(--glass-border);
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+			max-width: 600px;
+			margin: 0 auto;
+		}
+
+		.form-group {
+			margin-bottom: 24px;
+		}
+
+		.form-group label {
+			display: block;
+			margin-bottom: 10px;
+			font-size: 0.85rem;
+			font-weight: 800;
+			color: #475569;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+		}
+
+		input,
+		select,
+		textarea {
+			width: 100%;
+			padding: 14px 18px;
+			border-radius: 14px;
+			border: 1.5px solid #e2e8f0;
+			background: #f8fafc;
+			font-size: 1rem;
+			font-weight: 600;
+			transition: all 0.3s;
+			color: #1e293b;
+			outline: none;
+		}
+
+		input:focus,
+		select:focus,
+		textarea:focus {
+			border-color: var(--primary);
+			background: white;
+			box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.15);
+		}
+
+		.btn-submit {
+			width: 100%;
+			padding: 16px;
+			background: var(--primary);
+			color: #0f172a;
+			border: none;
+			border-radius: 16px;
+			font-weight: 800;
+			font-size: 1rem;
+			cursor: pointer;
+			text-transform: uppercase;
+			letter-spacing: 1px;
+			transition: all 0.3s;
+			box-shadow: 0 4px 12px rgba(250, 204, 21, 0.2);
+		}
+
+		.btn-submit:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 10px 20px rgba(250, 204, 21, 0.4);
+			filter: brightness(1.05);
+		}
+
+		/* Close Button for Form */
+		.btn-close-form {
+			width: 36px;
+			height: 36px;
+			border-radius: 10px;
+			border: 1px solid #e2e8f0;
+			background: #f8fafc;
+			color: #64748b;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			transition: all 0.2s;
+		}
+
+		.btn-close-form:hover {
+			background: #fee2e2;
+			color: #ef4444;
+			border-color: #fecaca;
+		}
+
+		/* Plus Button in Tabs */
+		.tab-btn-plus {
+			width: 44px;
+			height: 44px;
+			background: var(--primary);
+			color: #0f172a;
+			border-radius: 12px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			border: none;
+			box-shadow: 0 4px 10px rgba(250, 204, 21, 0.3);
+			transition: all 0.3s;
+			margin-left: 5px;
+		}
+
+		.tab-btn-plus:hover {
+			transform: scale(1.05);
+			box-shadow: 0 6px 15px rgba(250, 204, 21, 0.4);
+		}
+
+		/* Loader */
+		#loader {
+			display: none;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(15, 23, 42, 0.8);
+			z-index: 9999;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.spinner {
+			width: 40px;
+			height: 40px;
+			border: 4px solid rgba(255, 255, 255, 0.1);
+			border-top-color: var(--primary);
+			border-radius: 50%;
+			animation: spin 1s infinite linear;
+		}
+
+		@keyframes spin {
+			to {
+				transform: rotate(360deg);
+			}
+		}
+
+		/* Toast */
+		#toast {
+			position: fixed;
+			bottom: 30px;
+			left: 50%;
+			transform: translateX(-50%) translateY(100px);
+			padding: 15px 30px;
+			border-radius: 50px;
+			background: var(--primary);
+			color: white;
+			font-weight: 700;
+			transition: 0.5s;
+			z-index: 10000;
+		}
+
+		#toast.show {
+			transform: translateX(-50%) translateY(0);
+		}
+
+		/* Floating Menu Style */
+		.floating-actions {
+			position: fixed;
+			bottom: 30px;
+			right: 30px;
+			display: flex;
+			flex-direction: column;
+			gap: 12px;
+			z-index: 1000;
+		}
+
+		.float-btn {
+			width: 56px;
+			height: 56px;
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			transition: 0.3s;
+			box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+			border: 1px solid var(--glass-border);
+			text-decoration: none;
+		}
+
+		.float-btn-main {
+			background: var(--primary);
+			color: white;
+		}
+
+		.float-btn:hover {
+			transform: scale(1.1);
+		}
+
+		.menu-overlay {
+			position: fixed;
+			bottom: 100px;
+			right: 30px;
+			background: var(--card-bg);
+			backdrop-filter: blur(20px);
+			border: 1px solid var(--glass-border);
+			border-radius: 20px;
+			width: 280px;
+			padding: 12px;
+			display: none;
+			box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+			z-index: 1001;
+		}
+
+		.menu-overlay.active {
+			display: block;
+			animation: fadeInUp 0.3s ease;
+		}
+
+		@keyframes fadeInUp {
+			from {
+				opacity: 0;
+				transform: translateY(20px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		.menu-link {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			padding: 14px 16px;
+			color: var(--text-main);
+			text-decoration: none;
+			border-radius: 12px;
+			transition: 0.2s;
+			font-weight: 600;
+		}
+
+		.menu-link:hover {
+			background: rgba(255, 255, 255, 0.05);
+			color: var(--accent-purple);
+		}
+
+		.menu-header {
+			padding: 10px 16px;
+			font-size: 0.75rem;
+			text-transform: uppercase;
+			letter-spacing: 1px;
+			color: var(--text-muted);
+			font-weight: 800;
+		}
+
+		.hidden {
+			display: none !important;
+		}
+
+		.btn {
+			padding: 10px 20px;
+			border-radius: 12px;
+			font-weight: 600;
+			cursor: pointer;
+			transition: 0.3s;
+			border: none;
+			font-size: 0.9rem;
+			text-decoration: none;
+		}
+
+		/* History Table */
+		.history-container {
+			background: white;
+			border: 1px solid var(--glass-border);
+			border-radius: 24px;
+			overflow: hidden;
+			margin-top: 20px;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+		}
+
+		.history-table {
+			width: 100%;
+			border-collapse: collapse;
+			color: #0f172a;
+			font-size: 0.95rem;
+		}
+
+		.history-table th {
+			background: #f8fafc;
+			padding: 18px 15px;
+			text-align: left;
+			font-weight: 800;
+			color: #334155;
+			text-transform: uppercase;
+			font-size: 0.8rem;
+			letter-spacing: 1px;
+			border-bottom: 2px solid #f1f5f9;
+		}
+
+		.history-table td {
+			padding: 18px 15px;
+			border-bottom: 1px solid #f1f5f9;
+			font-weight: 600;
+		}
+
+		.type-badge {
+			padding: 4px 10px;
+			border-radius: 8px;
+			font-size: 0.7rem;
+			font-weight: 800;
+		}
+
+		.type-nhap {
+			background: rgba(34, 197, 94, 0.1);
+			color: var(--success);
+		}
+
+		.type-xuat {
+			background: rgba(239, 68, 68, 0.1);
+			color: var(--danger);
+		}
+
+		.action-btns {
+			display: flex;
+			gap: 8px;
+		}
+
+		.btn-mini {
+			padding: 6px 10px;
+			border-radius: 8px;
+			font-size: 0.75rem;
+			cursor: pointer;
+			border: none;
+			color: white;
+		}
+
+		.btn-edit {
+			background: var(--primary);
+		}
+
+		.btn-delete {
+			background: var(--danger);
+		}
+
+		/* Modal Styles */
+		.modal {
+			display: none;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(15, 23, 42, 0.9);
+			backdrop-filter: blur(5px);
+			z-index: 10000;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.modal.active {
+			display: flex;
+		}
+
+		.modal-content {
+			background: white;
+			border: 1px solid var(--glass-border);
+			border-radius: 28px;
+			width: 95%;
+			max-width: 550px;
+			padding: 40px;
+			position: relative;
+			box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+		}
+
+		.modal-header {
+			margin-bottom: 25px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.modal-close {
+			cursor: pointer;
+			color: var(--text-muted);
+		}
+
+		/* Responsive adjustments */
+		@media (max-width: 768px) {
+			body {
+				padding: 15px 10px;
+			}
+
+			.header {
+				padding: 15px 20px;
+				flex-direction: column;
+				gap: 15px;
+				align-items: flex-start;
+				border-radius: 20px;
+			}
+
+			.header h1 {
+				font-size: 1.6rem;
+			}
+
+			.header-actions {
+				width: 100%;
+				display: flex;
+				justify-content: space-between;
+				gap: 8px;
+			}
+
+			.header .btn {
+				flex: 1;
+				justify-content: center;
+				font-size: 0.8rem;
+				padding: 10px;
+			}
+
+			.tabs-container {
+				gap: 8px !important;
+				margin-bottom: 20px !important;
+			}
+
+			.tabs {
+				flex: 1;
+				overflow-x: auto;
+				flex-wrap: nowrap;
+				padding: 4px;
+				scrollbar-width: none;
+				border-radius: 14px;
+			}
+
+			.tabs::-webkit-scrollbar {
+				display: none;
+			}
+
+			.tab-btn {
+				padding: 8px 14px;
+				font-size: 0.8rem;
+				white-space: nowrap;
+				border-radius: 10px;
+			}
+
+			.tab-btn-plus {
+				width: 40px;
+				height: 40px;
+				border-radius: 10px;
+				flex-shrink: 0;
+			}
+
+			.form-card {
+				padding: 25px 20px;
+				border-radius: 24px;
+			}
+
+			.stock-grid {
+				grid-template-columns: 1fr;
+				gap: 16px;
+			}
+
+			.stock-card {
+				padding: 24px;
+				border-radius: 20px;
+			}
+
+			.history-table th:nth-child(5),
+			.history-table td:nth-child(5),
+			.history-table th:nth-child(6),
+			.history-table td:nth-child(6),
+			.history-table th:nth-child(7),
+			.history-table td:nth-child(7) {
+				display: none;
+				/* Chỉ giữ Ngày, Loại, Sản phẩm, SL trên mobile */
+			}
+
+			.history-table th,
+			.history-table td {
+				padding: 12px 10px;
+				font-size: 0.8rem;
+			}
+
+			.modal-content {
+				padding: 25px;
+				width: 92%;
+			}
+		}
+
+		@media (max-width: 480px) {
+			.header h1 {
+				font-size: 1.4rem;
+			}
+
+			.tab-btn {
+				padding: 8px 10px;
+				font-size: 0.75rem;
+			}
+
+			.stock-value {
+				font-size: 1.8rem;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<div id="loader">
+		<div class="spinner"></div>
+	</div>
+	<div id="toast">Thông báo!</div>
+
+	<div class="container">
+		<div class="header">
+			<div>
+				<h1 style="margin-top: 5px;">Hệ Thống Kho Vận</h1>
+			</div>
+			<div class="header-actions">
+				<button onclick="recalculateStock()" class="btn btn-primary" id="btnRecalc"
+					style="background: #6366f1; color: white; border: none; box-shadow: 0 4px 10px rgba(99,102,241,0.3);">
+					<i class="fa-solid fa-arrows-rotate"></i> Tính toán tồn
+				</button>
+				<button onclick="testEmailAlert()" class="btn"
+					style="background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid var(--danger);">🧪
+					Mail Alert</button>
+				<a href="index.html" class="btn btn-glass">
+					<i class="fa-solid fa-house"></i> Trang chủ
+				</a>
+			</div>
+		</div>
+
+		<div class="tabs-container" style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
+			<div class="tabs" style="margin-bottom: 0;">
+				<button class="tab-btn active" onclick="switchTab('report')">📊 Báo Cáo Tồn</button>
+				<button class="tab-btn" id="tabNhapKho" onclick="switchTab('input')">➕ Nhập Kho</button>
+				<button class="tab-btn" onclick="switchTab('history')">📜 Lịch Sử</button>
+			</div>
+			<button class="tab-btn-plus" id="plusQuickBtn" onclick="switchTab('input')" title="Nhập hàng nhanh">
+				<i class="fa-solid fa-plus"></i>
+			</button>
+		</div>
+
+		<!-- BÁO CÁO TỒN -->
+		<div id="reportView" class="view-content active">
+			<div
+				style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 5px;">
+				<p style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;" id="lastUpdateText">
+					Dữ liệu tổng hợp từ lịch sử & đơn hàng chốt
+				</p>
+				<button class="btn-mini" onclick="loadStockReport()"
+					style="background: var(--glass-border); color: var(--text-main); border-radius: 20px; padding: 5px 12px;">
+					<i class="fa-solid fa-rotate"></i> Cập nhật bảng
+				</button>
+			</div>
+			<div id="stockGrid" class="stock-grid">
+				<!-- Stock cards will load here -->
+			</div>
+		</div>
+
+		<div id="inputView" class="view-content">
+			<div class="form-card">
+				<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+					<h2 style="font-weight: 800; font-family: 'Outfit'; color: #0f172a; margin: 0;">📌 Cập Nhật Kho</h2>
+					<button class="btn-close-form" onclick="switchTab('report')" title="Thoát">
+						<i class="fa-solid fa-xmark"></i>
+					</button>
+				</div>
+				<div class="form-group">
+					<label>Loại giao dịch</label>
+					<select id="invType" onchange="updateFormUI()">
+						<option value="NHAP">➕ Nhập Kho (Tăng số lượng)</option>
+						<option value="XUAT">➖ Xuất Kho (Giảm số lượng)</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label>Chọn sản phẩm</label>
+					<select id="prodSelect">
+						<option value="">-- Click để chọn sản phẩm --</option>
+					</select>
+				</div>
+
+				<!-- Admin Only Section: Old Inventory -->
+				<div class="admin-only-group" id="adminOldEntry" style="display: none;">
+					<label
+						style="color: var(--primary); border-bottom: 1.5px solid var(--primary); padding-bottom: 2px; margin-bottom: 15px;">Dành
+						cho Admin: Số lượng cũ</label>
+					<div class="form-group" style="margin-bottom: 0;">
+						<label>Tồn kho hiện tại (thực tế)</label>
+						<input type="number" id="oldQty" placeholder="0" style="background: white;">
+						<p style="font-size: 0.7rem; color: #92400e; margin-top: 5px;">* Sử dụng khi muốn reset/cập nhật
+							lại mốc tồn kho cũ.</p>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label id="qtyLabel">Số lượng giao dịch</label>
+					<input type="number" id="inpQty" placeholder="Số lượng thực hiện...">
+				</div>
+				<div class="form-group">
+					<label>Ghi chú</label>
+					<textarea id="inpNote" rows="3"
+						placeholder="Ví dụ: Nhập hàng container, Xuất cho công trình..."></textarea>
+				</div>
+				<button class="btn-submit" id="btnInvSubmit" onclick="submitInventory()">Xác Nhận Cập Nhật Kho</button>
+			</div>
+		</div>
+
+
+
+		<div id="historyView" class="view-content">
+			<div class="history-container">
+				<table class="history-table">
+					<thead>
+						<tr>
+							<th>Ngày</th>
+							<th>Loại</th>
+							<th>Sản phẩm</th>
+							<th>S.Lượng</th>
+							<th>Người thực hiện</th>
+							<th>Ghi chú</th>
+							<th>Hành động</th>
+						</tr>
+					</thead>
+					<tbody id="historyBody">
+						<!-- logs will load here -->
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal Sửa Bản Ghi -->
+	<div class="modal" id="editModal">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h2 style="font-weight: 800;">Sửa Bản Ghi Kho</h2>
+				<span class="modal-close" onclick="closeModal()">✕</span>
+			</div>
+			<input type="hidden" id="edit_log_id">
+			<div class="form-group">
+				<label>Số lượng</label>
+				<input type="number" id="edit_qty">
+			</div>
+			<div class="form-group">
+				<label>Ghi chú</label>
+				<textarea id="edit_note" rows="3"></textarea>
+			</div>
+			<button class="btn-submit" onclick="saveEdit()">Cập Nhật Thay Đổi</button>
+		</div>
+	</div>
+
+	<!-- Floating Actions Container -->
+	<div class="floating-actions" id="mainFloatingActions">
+		<div class="menu-overlay" id="menuOverlay">
+			<div id="staffMenu" class="hidden">
+				<div class="menu-header">Kinh Doanh & Kho</div>
+				<a href="crm-sales.html" id="menu_checkin" class="menu-link hidden"
+					style="color: var(--accent-purple); font-weight: 800;">📍 Check-in Sales</a>
+				<a href="quan-ly-san-pham.html" id="menu_products" class="menu-link hidden"
+					style="color: var(--primary); font-weight: 800;">📦 Quản lý Sản phẩm</a>
+				<a href="len-don-hang.html" id="menu_create" class="menu-link hidden">📝 Lên đơn mới</a>
+				<a href="danh-sach-don-hang.html" id="menu_list" class="menu-link hidden">📋 Danh sách đơn hàng</a>
+				<a href="tao-bang-gia.html" id="menu_create_pl" class="menu-link hidden" style="color: #fbbf24;">📝 Tạo
+					bảng giá mới</a>
+				<a href="danh-sach-bang-gia.html" id="menu_list_pl" class="menu-link hidden" style="color: #fbbf24;">🏷️
+					Danh sách bảng giá</a>
+				<a href="quan-ly-kho.html" id="menu_inventory" class="menu-link hidden" style="color: #22c55e;">📊 Quản
+					lý kho vận</a>
+			</div>
+
+			<div id="adminMenu" class="hidden">
+				<div class="menu-header">Quản Trị Hệ Thống</div>
+				<a href="admin-users.html" id="menu_admin" class="menu-link hidden"
+					style="color: var(--accent-purple);">🔐 Cấp quyền nhân viên</a>
+			</div>
+
+			<div class="menu-link" onclick="logout()"
+				style="color: #ef4444; border-top: 1px solid var(--glass-border); margin-top: 8px;">🚪 Đăng xuất</div>
+		</div>
+
+		<div class="float-btn float-btn-main" onclick="toggleMenu()" id="menuTriggerBtn">
+			<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<line x1="3" y1="12" x2="21" y2="12"></line>
+				<line x1="3" y1="6" x2="21" y2="6"></line>
+				<line x1="3" y1="18" x2="21" y2="18"></line>
+			</svg>
+		</div>
+	</div>
+
+	<script>
+		const INV_URL = 'https://script.google.com/macros/s/AKfycbxhXNBpF0lgvQg-EQ-Y5GpBIfGl7orPeIZdkVIOo3BoJmvJpdqHvSnvrMQOtOzGZh_u/exec';
+		const PROD_URL = 'https://script.google.com/macros/s/AKfycbw-iU2IYU1yHpybQ308SsY8QWJfp-zxJ9oZSfFJniREfctsbhCLy_7Rc-Ns0CFM8xDehg/exec';
+
+		// currentUser is already defined in the head script
+
+		// Xác định email Admin quản lý (Nếu là Admin thì là chính mình, nếu là NV thì lấy từ thông tin gán)
+		const currentAdminEmail = currentUser.roleId === 'R001' ? currentUser.email : (currentUser.managerEmail || currentUser.email);
+
+		let products = [];
+
+		async function init() {
+			checkAccessControl();
+			updateFloatingMenuUI();
+
+			// Chỉ hiển thị các tính năng Nhập Kho/Cập Nhật cho Admin (R001)
+			if (currentUser && currentUser.roleId === 'R001') {
+				const adminField = document.getElementById('adminOldEntry');
+				if (adminField) adminField.style.display = 'block';
+
+				const plusBtn = document.getElementById('plusQuickBtn');
+				if (plusBtn) plusBtn.style.display = 'flex';
+
+				const tabNhap = document.getElementById('tabNhapKho');
+				if (tabNhap) tabNhap.style.display = 'block';
+			} else {
+				// Nếu không phải Admin thì ẩn nút + và Tab Nhập Kho
+				const plusBtn = document.getElementById('plusQuickBtn');
+				if (plusBtn) plusBtn.style.display = 'none';
+
+				const tabNhap = document.getElementById('tabNhapKho');
+				if (tabNhap) tabNhap.style.display = 'none';
+			}
+
+			// Chạy song song cả 2 tác vụ để giảm thời gian chờ
+			Promise.all([
+				loadProducts(),
+				loadStockReport()
+			]);
+		}
+
+		function checkAccessControl() {
+			const perms = currentPerms || {};
+			// Admin (R001) luôn có quyền, hoặc kiểm tra quyền nhapKho
+			const canInput = (currentUser && currentUser.roleId === 'R001') || (perms.nhapKho !== false);
+
+			if (!canInput) {
+				const tabs = document.querySelectorAll('.tab-btn');
+				if (tabs[1]) tabs[1].style.display = 'none'; // Ẩn tab "Nhập Kho"
+
+				const btnSub = document.getElementById('btnInvSubmit');
+				if (btnSub) {
+					btnSub.disabled = true;
+					btnSub.innerText = "BẠN KHÔNG CÓ QUYỀN THAO TÁC";
+					btnSub.style.opacity = "0.5";
+					btnSub.style.cursor = "not-allowed";
+				}
+			}
+		}
+
+		function updateFloatingMenuUI() {
+			const perms = currentPerms;
+			if (currentUser.roleId === 'R001') document.getElementById('adminMenu').classList.remove('hidden');
+			document.getElementById('staffMenu').classList.remove('hidden');
+
+			if (perms) {
+				if (perms.checkinSales) document.getElementById('menu_checkin').classList.remove('hidden');
+				if (perms.quanLySanPham) document.getElementById('menu_products').classList.remove('hidden');
+				if (perms.lenDonMoi) document.getElementById('menu_create').classList.remove('hidden');
+				if (perms.danhSachDonHang) document.getElementById('menu_list').classList.remove('hidden');
+				if (perms.quanLyNhanVien) document.getElementById('menu_admin').classList.remove('hidden');
+				if (perms.taoBangGia) document.getElementById('menu_create_pl').classList.remove('hidden');
+				if (perms.xemBangGia) document.getElementById('menu_list_pl').classList.remove('hidden');
+				if (perms.quanLyKho) document.getElementById('menu_inventory').classList.remove('hidden');
+			}
+		}
+
+		function toggleMenu() {
+			document.getElementById('menuOverlay').classList.toggle('active');
+		}
+
+		function logout() {
+			localStorage.clear();
+			window.location.href = 'auth.html';
+		}
+
+		// Close menu on outside click
+		window.onclick = function (event) {
+			const overlay = document.getElementById('menuOverlay');
+			const trigger = document.getElementById('menuTriggerBtn');
+			if (overlay && overlay.classList.contains('active') && !overlay.contains(event.target) && !trigger.contains(event.target)) {
+				overlay.classList.remove('active');
+			}
+		}
+
+		async function loadProducts() {
+			try {
+				const resProd = await fetch(PROD_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('get_products', {
+						userEmail: currentUser.email,
+						isAdmin: currentUser.roleId === 'R001',
+						adminEmail: currentUser.adminEmail
+					})
+				});
+				const data = await resProd.json();
+				if (data.success) {
+					products = data.products;
+					const select = document.getElementById('prodSelect');
+					products.forEach(p => {
+						const displayId = p.id_san_pham || 'Không ID';
+						select.innerHTML += `<option value="${displayId}">${p.ten_san_pham} (${displayId})</option>`;
+					});
+				}
+			} catch (e) {
+				console.error(e);
+			}
+		}
+
+		async function loadStockReport() {
+			toggleLoader(true);
+			try {
+				const res = await fetch(INV_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('get_inventory_report', {
+						adminEmail: currentAdminEmail
+					})
+				});
+				const data = await res.json();
+				if (data.success) {
+					renderStock(data.data);
+					document.getElementById('lastUpdateText').innerText = "Cập nhật lúc: " + new Date().toLocaleTimeString();
+				} else {
+					console.error("Backend Error:", data.message);
+					showToast("Lỗi từ hệ thống: " + data.message, true);
+					document.getElementById('stockGrid').innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--danger); padding: 50px;">Lỗi tải dữ liệu: ${data.message}</p>`;
+				}
+			} catch (e) {
+				console.error(e);
+				showToast("Lỗi kết nối máy chủ!", true);
+				document.getElementById('stockGrid').innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--danger); padding: 50px;">Không thể kết nối với Script. Vui lòng kiểm tra lại URL hoặc quyền truy cập.</p>';
+			} finally {
+				toggleLoader(false);
+			}
+		}
+
+		async function recalculateStock() {
+			if (!confirm("Hệ thống sẽ quét lại toàn bộ giao dịch và đơn hàng để tính lại tồn kho chính xác nhất. Quá trình này có thể mất vài giây. Tiếp tục?")) return;
+
+			const btn = document.getElementById('btnRecalc');
+			const originalText = btn.innerHTML;
+			btn.disabled = true;
+			btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tính...';
+			toggleLoader(true);
+
+			try {
+				const res = await fetch(INV_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('recalculate_stock', {
+						adminEmail: currentAdminEmail
+					})
+				});
+				const data = await res.json();
+				if (data.success) {
+					showToast("✅ Đã tính toán xong toàn bộ tồn kho!");
+					renderStock(data.data);
+					document.getElementById('lastUpdateText').innerText = "Vừa tính toán lại xong!";
+				} else {
+					showToast("❌ Lỗi: " + data.message, true);
+				}
+			} catch (e) {
+				showToast("❌ Lỗi kết nối máy chủ!", true);
+			} finally {
+				btn.disabled = false;
+				btn.innerHTML = originalText;
+				toggleLoader(false);
+			}
+		}
+
+		function renderStock(list) {
+			const grid = document.getElementById('stockGrid');
+			if (!list || list.length === 0) {
+				grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 50px;">Chưa có dữ liệu tồn kho cho doanh nghiệp của bạn.</p>';
+				return;
+			}
+
+			grid.innerHTML = list.map(item => `
+				<div class="stock-card">
+					<div class="status-tag ${item.tonKho < 10 ? 'status-low' : 'status-ok'}">
+						${item.tonKho < 10 ? 'SẮP HẾT' : 'SẴN HÀNG'}
+					</div>
+					<div class="stock-name">${item.name}</div>
+					<div class="stock-id">${item.id}</div>
+					<div class="stock-value">${item.tonKho.toLocaleString('vi-VN')}</div>
+					<span class="stock-unit">${item.unit}</span>
+					<div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 15px;">
+						Đã nhập: ${item.tongNhap} | Đã xuất: ${item.tongXuat}
+					</div>
+				</div>
+			`).join('');
+		}
+
+		function updateFormUI() {
+			const type = document.getElementById('invType').value;
+			const label = document.getElementById('qtyLabel');
+			const btn = document.getElementById('btnInvSubmit');
+
+			if (type === 'NHAP') {
+				label.innerText = "Số lượng nhập";
+				btn.innerText = "Xác Nhận Nhập Kho";
+				btn.style.background = "var(--primary)";
+			} else {
+				label.innerText = "Số lượng xuất";
+				btn.innerText = "Xác Nhận Xuất Kho";
+				btn.style.background = "var(--danger)";
+			}
+		}
+
+		async function submitInventory() {
+			const perms = currentPerms || {};
+			const isAdmin = currentUser && currentUser.roleId === 'R001';
+
+			if (!isAdmin && perms.nhapKho === false) {
+				showToast("Bạn không có quyền thực hiện thao tác này!", true);
+				return;
+			}
+
+			const type = document.getElementById('invType').value;
+			const maSP = document.getElementById('prodSelect').value;
+			const qty = document.getElementById('inpQty').value;
+			const oldQty = document.getElementById('oldQty') ? document.getElementById('oldQty').value : null;
+			const note = document.getElementById('inpNote').value;
+
+			if (!maSP || (!qty && !oldQty)) {
+				showToast("Vui lòng điền đầy đủ thông tin!", true);
+				return;
+			}
+
+			const prod = products.find(p => (p.id_san_pham || p.ma_san_pham) === maSP);
+			if (!prod) {
+				showToast("Không tìm thấy thông tin sản phẩm!", true);
+				return;
+			}
+
+			const finalNote = oldQty ? `[CẬP NHẬT TỒN CŨ: ${oldQty}] - ${note}` : note;
+			const finalQty = oldQty ? oldQty : qty; // Nếu có stock cũ thì ưu tiên số đó để reset
+
+			toggleLoader(true);
+			try {
+				const res = await fetch(INV_URL, {
+					method: 'POST',
+					body: JSON.stringify({
+						apiKey: 'dv_api_secret_2025_prod_v2', // Thêm apiKey bị thiếu
+						action: 'save_inventory_entry',
+						type: oldQty ? 'NHAP' : type, // Mặc định là Nhập nếu reset số cũ
+						productId: maSP,
+						productName: prod.ten_san_pham,
+						unit: prod.don_vi_tinh || 'Cái',
+						quantity: finalQty,
+						userEmail: currentUser.email,
+						adminEmail: currentAdminEmail,
+						note: finalNote
+					})
+				});
+				const data = await res.json();
+				if (data.success) {
+					showToast(type === 'NHAP' ? "Nhập kho thành công!" : "Xuất kho thành công!");
+					document.getElementById('inpQty').value = '';
+					document.getElementById('inpNote').value = '';
+					switchTab('report');
+					loadStockReport();
+				} else {
+					showToast("Lỗi: " + (data.message || "Không xác định"), true);
+				}
+			} catch (e) {
+				showToast("Lỗi kết nối hoặc Script chưa được cấp quyền!", true);
+				console.error("Fetch Error:", e);
+			} finally {
+				toggleLoader(false);
+			}
+		}
+
+		async function loadInventoryHistory() {
+			toggleLoader(true);
+			try {
+				const res = await fetch(INV_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('get_inventory_logs', { // Sửa lại đúng action backend
+						adminEmail: currentAdminEmail,
+						viewAll: true,
+						limit: 500
+					})
+				});
+				const data = await res.json();
+				if (data.success) {
+					// Sắp xếp giảm dần theo thời gian (mới nhất lên đầu)
+					const sorted = (data.data || []).sort((a, b) => {
+						const parseDate = (d) => {
+							if (!d) return 0;
+							// Xử lý format DD/MM/YYYY nếu có
+							if (typeof d === 'string' && d.includes('/')) {
+								const parts = d.split(' ')[0].split('/');
+								if (parts.length === 3) return new Date(`${parts[2]}-${parts[1]}-${parts[0]}`).getTime();
+							}
+							return new Date(d).getTime();
+						};
+						return parseDate(b.date) - parseDate(a.date);
+					});
+					renderHistory(sorted);
+				}
+			} catch (e) {
+				console.error(e);
+				showToast("Lỗi tải lịch sử kho!", true);
+			} finally {
+				toggleLoader(false);
+			}
+		}
+
+		function renderHistory(list) {
+			const body = document.getElementById('historyBody');
+			if (!list || list.length === 0) {
+				body.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:50px; color:var(--text-muted);">Chưa có lịch sử giao dịch.</td></tr>';
+				return;
+			}
+
+			body.innerHTML = list.map(l => {
+				const date = new Date(l.date).toLocaleString('vi-VN');
+				const isAuto = l.id.startsWith("SYNC-");
+				return `
+					<tr>
+						<td>${date}</td>
+						<td><span class="type-badge ${l.type === 'NHAP' ? 'type-nhap' : 'type-xuat'}">${l.type === 'NHAP' ? 'NHẬP' : 'XUẤT'}</span></td>
+						<td><b>${l.productName}</b><br><small>${l.productId}</small></td>
+						<td style="font-weight:700;">${l.quantity} ${l.unit}</td>
+						<td><small>${l.user}</small></td>
+						<td><small>${l.note || '-'}</small></td>
+						<td class="action-btns">
+							${isAuto ? '<span style="font-size:0.7rem; color:var(--text-muted);">Tự động</span>' : `
+								<button class="btn-mini btn-edit" onclick="openEditModal('${l.id}', ${l.quantity}, '${l.note || ""}')">Sửa</button>
+								<button class="btn-mini btn-delete" onclick="deleteLog('${l.id}')">Xóa</button>
+							`}
+						</td>
+					</tr>
+				`;
+			}).join('');
+		}
+
+		async function deleteLog(id) {
+			if (!confirm("Bạn có chắc chắn muốn xóa bản ghi này? Tồn kho sẽ được tính toán lại.")) return;
+			toggleLoader(true);
+			try {
+				const res = await fetch(INV_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('delete_inventory_entry', {
+						id: id,
+						adminEmail: currentAdminEmail
+					})
+				});
+				const data = await res.json();
+				if (data.success) {
+					showToast("Đã xóa bản ghi!");
+					loadInventoryHistory();
+					loadStockReport();
+				} else {
+					showToast(data.message, true);
+				}
+			} catch (e) {
+				showToast("Lỗi kết nối", true);
+			} finally {
+				toggleLoader(false);
+			}
+		}
+
+		function openEditModal(id, qty, note) {
+			document.getElementById('edit_log_id').value = id;
+			document.getElementById('edit_qty').value = qty;
+			document.getElementById('edit_note').value = note;
+			document.getElementById('editModal').classList.add('active');
+		}
+
+		function closeModal() {
+			document.getElementById('editModal').classList.remove('active');
+		}
+
+		async function saveEdit() {
+			const id = document.getElementById('edit_log_id').value;
+			const qty = document.getElementById('edit_qty').value;
+			const note = document.getElementById('edit_note').value;
+			const btn = document.querySelector('#editModal .btn-submit');
+
+			if (!qty) return showToast("Vui lòng nhập số lượng", true);
+
+			// Disable button
+			btn.disabled = true;
+			btn.innerText = "Đang xử lý...";
+			btn.style.opacity = "0.7";
+			btn.style.cursor = "not-allowed";
+
+			toggleLoader(true);
+			try {
+				const res = await fetch(INV_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('update_inventory_entry', {
+						adminEmail: currentAdminEmail,
+						logId: id,
+						quantity: qty,
+						note: note
+					})
+				});
+				const data = await res.json();
+				if (data.success) {
+					showToast("Đã cập nhật bản ghi!");
+					closeModal();
+					loadInventoryHistory();
+					loadStockReport();
+				} else {
+					showToast(data.message, true);
+				}
+			} catch (e) {
+				showToast("Lỗi kết nối", true);
+			} finally {
+				toggleLoader(false);
+				// Re-enable button
+				btn.disabled = false;
+				btn.innerText = "Cập Nhật Thay Đổi";
+				btn.style.opacity = "1";
+				btn.style.cursor = "pointer";
+			}
+		}
+
+		function switchTab(tab) {
+			document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+			document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
+
+			const view = document.getElementById(tab + 'View');
+			if (view) view.classList.add('active');
+
+			const btnMap = { 'report': 0, 'input': 1, 'history': 2 };
+			const targetBtn = document.querySelectorAll('.tab-btn')[btnMap[tab]];
+			if (targetBtn) targetBtn.classList.add('active');
+
+			if (tab === 'history') loadInventoryHistory();
+			if (tab === 'report') loadStockReport();
+		}
+
+		function toggleLoader(show) {
+			document.getElementById('loader').style.display = show ? 'flex' : 'none';
+		}
+
+		function showToast(msg, isError = false) {
+			const t = document.getElementById('toast');
+			t.innerText = msg;
+			t.style.background = isError ? 'var(--danger)' : 'var(--primary)';
+			t.classList.add('show');
+			setTimeout(() => t.classList.remove('show'), 3000);
+		}
+
+		async function testEmailAlert() {
+			if (!confirm("Hệ thống sẽ gửi một email cảnh báo mẫu đến: " + currentAdminEmail + "\nBạn có muốn thực hiện không?")) return;
+			toggleLoader(true);
+			try {
+				const res = await fetch(INV_URL, {
+					method: 'POST',
+					body: JSON.stringify({
+						action: 'test_email_alert',
+						adminEmail: currentAdminEmail
+					})
+				});
+				const data = await res.json();
+				if (data.success) {
+					showToast("Đã gửi email test thành công!");
+				} else {
+					showToast("Lỗi: " + data.message, true);
+				}
+			} catch (e) {
+				showToast("Lỗi kết nối", true);
+			} finally {
+				toggleLoader(false);
+			}
+		}
+
+		init();
+	</script>
+	<script src="chatbot.js"></script>
+	<script src="floating-menu.js"></script>
+</body>
+
+</html>

@@ -2,41 +2,55 @@
 <html lang="vi">
 
 <head>
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-QFQ2HMYTDH"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag('js', new Date());
+
+		gtag('config', 'G-QFQ2HMYTDH');
+	</script>
+
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Nhập Kho - Nano Data Premium</title>
-	<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;800&display=swap"
 		rel="stylesheet">
+	<link rel="icon" type="image/svg+xml"
+		href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23FACC15'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' fill='white' font-size='60' font-family='sans-serif' font-weight='800'>DV</text></svg>">
+	<script src="security-utils.js"></script>
+	<script>
+		const session = SecurityProvider.validateAccess();
+		const currentUser = session ? session.user : null;
+		const currentPerms = session ? session.permissions : null;
+	</script>
+	<link rel="stylesheet" href="assets/theme.css">
 	<style>
-		:root {
-			--primary: #FFB347;
-			--primary-dark: #f39c12;
-			--bg-dark: #0f0f0f;
-			--card-bg: #1a1a1a;
-			--glass: rgba(255, 255, 255, 0.05);
-			--glass-border: rgba(255, 255, 255, 0.1);
-			--text-main: #ffffff;
-			--text-gray: #a0a0a0;
-			--success: #2ecc71;
-			--error: #e74c3c;
-		}
-
 		* {
 			box-sizing: border-box;
 			margin: 0;
 			padding: 0;
 			-webkit-tap-highlight-color: transparent;
+			font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+			text-rendering: optimizeLegibility;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+			font-weight: 500;
 		}
 
 		body {
-			background: var(--bg-dark);
+			background-color: var(--bg-body);
 			color: var(--text-main);
-			font-family: 'Plus Jakarta Sans', sans-serif;
 			min-height: 100vh;
 			display: flex;
 			justify-content: center;
 			align-items: center;
 			padding: 20px;
+			-webkit-text-size-adjust: 100%;
+			background-image: var(--bg-gradient-1), var(--bg-gradient-2);
+			background-attachment: fixed;
 		}
 
 		.container {
@@ -63,79 +77,126 @@
 		}
 
 		.header h1 {
-			font-size: 2rem;
+			font-size: 2.2rem;
 			font-weight: 800;
-			background: linear-gradient(45deg, #fff, var(--primary));
-			-webkit-background-clip: text;
-			background-clip: text;
-			-webkit-text-fill-color: transparent;
+			color: #0f172a;
 			margin-bottom: 10px;
+			letter-spacing: -0.5px;
 		}
 
 		.card {
-			background: var(--card-bg);
+			background: white;
 			border: 1px solid var(--glass-border);
-			padding: 30px;
-			border-radius: 24px;
-			box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+			padding: 40px;
+			border-radius: 28px;
+			box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
 		}
 
 		.form-group {
 			margin-bottom: 20px;
+			position: relative;
 		}
 
 		.form-group label {
 			display: block;
-			color: var(--text-gray);
-			font-size: 0.85rem;
+			color: #1e293b;
+			font-size: 0.9rem;
 			text-transform: uppercase;
-			letter-spacing: 1px;
-			font-weight: 700;
+			letter-spacing: 0.5px;
+			font-weight: 800;
 			margin-bottom: 10px;
 		}
 
 		.form-group select,
 		.form-group input {
 			width: 100%;
-			background: #222;
-			border: 1px solid var(--glass-border);
-			padding: 14px 18px;
+			background: white !important;
+			border: 1.5px solid #cbd5e1 !important;
+			padding: 15px 18px;
 			border-radius: 14px;
-			color: white;
+			color: #0f172a !important;
 			font-size: 1rem;
 			outline: none;
 			transition: 0.3s;
+			font-weight: 600;
 		}
 
 		.form-group select:focus,
 		.form-group input:focus {
-			border-color: var(--primary);
-			box-shadow: 0 0 15px rgba(255, 179, 71, 0.1);
+			border-color: var(--primary) !important;
+			box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.15);
 		}
 
 		.form-group input:disabled {
 			opacity: 0.6;
 			cursor: not-allowed;
-			background: #111;
+			background: #f1f5f9 !important;
+			border-color: #e2e8f0 !important;
+		}
+
+		/* Search Suggestion Styling */
+		.suggestion-box {
+			position: absolute;
+			top: 100%;
+			left: 0;
+			right: 0;
+			background: white;
+			border: 1px solid var(--glass-border);
+			border-radius: 12px;
+			margin-top: 5px;
+			max-height: 250px;
+			overflow-y: auto;
+			z-index: 100;
+			display: none;
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+		}
+
+		.suggestion-item {
+			padding: 12px 18px;
+			cursor: pointer;
+			transition: 0.2s;
+			display: flex;
+			flex-direction: column;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+		}
+
+		.suggestion-item:last-child {
+			border-bottom: none;
+		}
+
+		.suggestion-item:hover {
+			background: var(--primary);
+			color: #0f172a;
+		}
+
+		.suggestion-item .prod-name {
+			font-weight: 600;
+			font-size: 0.95rem;
+		}
+
+		.suggestion-item .prod-id {
+			font-size: 0.75rem;
+			opacity: 0.7;
 		}
 
 		.btn-submit {
 			width: 100%;
 			padding: 16px;
-			background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-			color: #000;
+			background: var(--primary);
+			color: #0f172a;
 			border: none;
 			border-radius: 16px;
 			font-size: 1rem;
-			font-weight: 800;
+			font-weight: 900;
 			cursor: pointer;
 			transition: 0.3s;
 			margin-top: 10px;
+			box-shadow: 0 4px 12px rgba(250, 204, 21, 0.3);
 		}
 
 		.btn-submit:hover {
 			transform: translateY(-2px);
-			box-shadow: 0 10px 20px rgba(255, 179, 71, 0.2);
+			box-shadow: 0 10px 25px rgba(250, 204, 21, 0.5);
 		}
 
 		.btn-submit:disabled {
@@ -149,15 +210,16 @@
 		}
 
 		.nav-links a {
-			color: var(--text-gray);
+			color: #334155;
 			text-decoration: none;
-			font-size: 0.9rem;
-			font-weight: 600;
+			font-size: 0.95rem;
+			font-weight: 700;
 			transition: 0.2s;
 		}
 
 		.nav-links a:hover {
 			color: var(--primary);
+			text-decoration: underline;
 		}
 
 		#statusMsg {
@@ -166,74 +228,6 @@
 			font-size: 0.9rem;
 			font-weight: 600;
 		}
-
-		/* Floating Menu - Left side */
-		.floating-menu {
-			position: fixed;
-			bottom: 30px;
-			left: 30px;
-			z-index: 1000;
-		}
-
-		.fab-btn {
-			width: 65px;
-			height: 65px;
-			background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-			border-radius: 50%;
-			border: none;
-			color: #000;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			cursor: pointer;
-			box-shadow: 0 10px 30px rgba(255, 179, 71, 0.3);
-			transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-		}
-
-		.fab-btn:hover {
-			transform: scale(1.1);
-		}
-
-		.fab-menu-list {
-			position: absolute;
-			bottom: 85px;
-			left: 0;
-			display: flex;
-			flex-direction: column;
-			gap: 12px;
-			opacity: 0;
-			pointer-events: none;
-			transform: translateY(20px);
-			transition: 0.3s ease;
-		}
-
-		.fab-menu-list.active {
-			opacity: 1;
-			pointer-events: all;
-			transform: translateY(0);
-		}
-
-		.menu-item {
-			background: #1a1a1a;
-			padding: 12px 20px;
-			border-radius: 16px;
-			color: white;
-			text-decoration: none;
-			display: flex;
-			align-items: center;
-			gap: 12px;
-			white-space: nowrap;
-			border: 1px solid var(--glass-border);
-			font-weight: 600;
-			font-size: 0.9rem;
-			transition: 0.2s;
-		}
-
-		.menu-item:hover {
-			background: #252525;
-			border-color: var(--primary);
-			color: var(--primary);
-		}
 	</style>
 </head>
 
@@ -241,7 +235,7 @@
 	<div class="container">
 		<div class="header">
 			<h1>Nhập Kho Hàng</h1>
-			<p style="color: var(--text-gray);">Quản lý nguồn hàng vào Nano Data</p>
+			<p style="color: #64748b; font-weight: 600;">Quản lý nguồn hàng vào Nano Data</p>
 		</div>
 
 		<div class="card">
@@ -252,9 +246,9 @@
 
 			<div class="form-group">
 				<label>Tên Sản Phẩm</label>
-				<select id="selectProduct" onchange="updateProductId()">
-					<option value="">-- Chọn sản phẩm --</option>
-				</select>
+				<input type="text" id="productSearch" placeholder="Tìm tên sản phẩm..."
+					oninput="handleSearch(this.value)" autocomplete="off">
+				<div class="suggestion-box" id="suggestionBox"></div>
 			</div>
 
 			<div class="form-group">
@@ -276,34 +270,28 @@
 		</div>
 	</div>
 
-	<!-- Menu nổi bên trái -->
-	<div class="floating-menu">
-		<div class="fab-menu-list" id="fabMenu">
-			<a href="len-don-khach.html" class="menu-item">Tạo đơn mới</a>
-			<a href="danh-sach-don-khach.html" class="menu-item">Danh sách đơn hàng</a>
-			<a href="san-pham-khach.html" class="menu-item">Sản phẩm</a>
-			<a href="danh-sach-khach-hang.html" class="menu-item">Khách hàng</a>
-			<a href="ton-kho.html" class="menu-item">Tồn kho</a>
-			<a href="index.html" class="menu-item">Trang chủ</a>
-		</div>
-		<button class="fab-btn" onclick="toggleFabMenu()">
-			<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-				<line x1="3" y1="12" x2="21" y2="12" />
-				<line x1="3" y1="6" x2="21" y2="6" />
-				<line x1="3" y1="18" x2="21" y2="18" />
-			</svg>
-		</button>
-	</div>
-
 	<script>
-		const TONKHO_URL = 'https://script.google.com/macros/s/AKfycbwugXwFGv-z0h8ZU2tTAVyZ7tKt34idUqu6DlxdOV_nXGJf3ES4YGuSn7t0RMa9KJZI/exec';
-		const PRODUCT_URL = 'https://script.google.com/macros/s/AKfycbzM8tzbdJJvXE0r6NcP8cJGO2RHsgYUR6Jy73U4NDLkSQRjT3fus_i4lugwVQZIKI8zhw/exec';
+		// --- CONFIGURATION ---
+		const TONKHO_URL = 'https://script.google.com/macros/s/AKfycbxhXNBpF0lgvQg-EQ-Y5GpBIfGl7orPeIZdkVIOo3BoJmvJpdqHvSnvrMQOtOzGZh_u/exec';
+		// Sử dụng script URL đồng bộ với Quản lý sản phẩm
+		const PRODUCT_URL = 'https://script.google.com/macros/s/AKfycbw-iU2IYU1yHpybQ308SsY8QWJfp-zxJ9oZSfFJniREfctsbhCLy_7Rc-Ns0CFM8xDehg/exec';
 
 		let allProducts = [];
-		let userData = JSON.parse(localStorage.getItem('userLoggedIn') || '{}');
+		// currentUser and perms are defined in head
 
 		document.addEventListener('DOMContentLoaded', () => {
-			if (!userData.email) window.location.href = 'index.html';
+			if (!currentUser.email) window.location.href = 'auth.html';
+
+			// Kiểm tra quyền Nhập Kho
+			if (currentPerms && currentPerms.nhapKho === false) {
+				const btn = document.getElementById('btnSubmit');
+				btn.disabled = true;
+				btn.style.opacity = "0.5";
+				btn.innerText = "BẠN KHÔNG CÓ QUYỀN NHẬP KHO";
+				document.getElementById('statusMsg').innerText = "Vui lòng liên hệ Admin để cấp quyền Nhập Kho.";
+				document.getElementById('statusMsg').style.color = "var(--error)";
+			}
+
 			generateIdDon();
 			loadProducts();
 		});
@@ -316,64 +304,82 @@
 
 		async function loadProducts() {
 			try {
-				const res = await fetch(`${PRODUCT_URL}?action=read&username=${encodeURIComponent(userData.email)}&t=${new Date().getTime()}`);
+				const payload = {
+					action: 'get_products',
+					userEmail: currentUser.email,
+					isAdmin: currentUser.roleId === 'R001',
+					adminEmail: currentUser.adminEmail
+				};
+
+				const res = await fetch(PRODUCT_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('get_products', payload)
+				});
 				const result = await res.json();
 				if (result.success) {
-					const sheetData = result.data || [];
-					let legacyData = [];
-
-					if (result.legacyData) {
-						legacyData = result.legacyData.map(item => {
-							let normalizedItem = {};
-							for (let key in item) {
-								let normKey = key.replace(/\s+/g, ''); // Xóa mọi khoảng trắng để chuẩn hóa
-								normalizedItem[normKey] = item[key];
-							}
-							return normalizedItem;
-						}).filter(item => {
-							const email = item.tendangnhap || item.ten_dang_nhap;
-							return email === userData.email;
-						});
-					}
-
-					// Hợp nhất: Ưu tiên Sheet
-					const sheetIds = new Set(sheetData.map(p => String(p.id_san_pham || p.idsanpham || '').trim().toUpperCase()));
-					const filteredLegacy = legacyData.filter(p => !sheetIds.has(String(p.id_san_pham || p.idsanpham || '').trim().toUpperCase()));
-
-					// Lọc sản phẩm bị xóa
-					allProducts = [...sheetData, ...filteredLegacy].filter(p => {
+					allProducts = (result.products || []).filter(p => {
 						const status = String(p.trang_thai_xoa_sp || p.trangthaixoasp || p.trangthaixoa || p.trang_thai_xoa || '').trim().toUpperCase();
 						return status !== 'DELETED';
 					});
-
-					const select = document.getElementById('selectProduct');
-					allProducts.forEach(p => {
-						const name = p.ten_san_pham || p.ten_sp || p.tensanpham;
-						if (!name) return;
-						const opt = document.createElement('option');
-						opt.value = name;
-						opt.innerText = name;
-						select.appendChild(opt);
-					});
+					console.log("Loaded products:", allProducts.length);
 				}
 			} catch (e) {
 				console.error("Lỗi tải sản phẩm", e);
 			}
 		}
 
-		function updateProductId() {
-			const name = document.getElementById('selectProduct').value;
-			const product = allProducts.find(p => (p.ten_san_pham || p.ten_sp) === name);
-			document.getElementById('idSanPham').value = product ? (product.id_san_pham || product.id) : '';
+		function handleSearch(val) {
+			const box = document.getElementById('suggestionBox');
+			if (!val || val.length < 1) {
+				box.style.display = 'none';
+				return;
+			}
+
+			const query = val.toLowerCase();
+			const filtered = allProducts.filter(p => {
+				const name = (p.ten_san_pham || "").toLowerCase();
+				const id = (p.id_san_pham || "").toLowerCase();
+				return name.includes(query) || id.includes(query);
+			}).slice(0, 10); // Giới hạn 10 kết quả
+
+			if (filtered.length > 0) {
+				box.innerHTML = filtered.map(p => `
+					<div class="suggestion-item" onclick="selectProduct('${p.id_san_pham}', '${p.ten_san_pham.replace(/'/g, "\\'")}')">
+						<span class="prod-name">
+                            ${p.ten_san_pham} 
+                            <span style="font-size: 0.8em; color: var(--primary); opacity: 0.9; margin-left: 5px;">
+                                [${p.ten_nghanh_hang || 'Khác'}]
+                            </span>
+                        </span>
+						<span class="prod-id">Mã: ${p.id_san_pham}</span>
+					</div>
+				`).join('');
+				box.style.display = 'block';
+			} else {
+				box.style.display = 'none';
+			}
 		}
+
+		function selectProduct(id, name) {
+			document.getElementById('productSearch').value = name;
+			document.getElementById('idSanPham').value = id;
+			document.getElementById('suggestionBox').style.display = 'none';
+		}
+
+		// Đóng suggestion box khi click ngoài
+		document.addEventListener('click', (e) => {
+			if (!e.target.closest('.form-group')) {
+				document.getElementById('suggestionBox').style.display = 'none';
+			}
+		});
 
 		async function submitNhapKho() {
 			const idDon = document.getElementById('idDonNhap').value;
-			const name = document.getElementById('selectProduct').value;
+			const name = document.getElementById('productSearch').value;
 			const idSP = document.getElementById('idSanPham').value;
 			const qty = parseFloat(document.getElementById('soLuongNhap').value);
 
-			if (!name || isNaN(qty) || qty <= 0) {
+			if (!name || isNaN(qty) || qty <= 0 || !idSP) {
 				alert("Vui lòng chọn sản phẩm và nhập số lượng hợp lệ!");
 				return;
 			}
@@ -385,30 +391,20 @@
 			msg.innerText = "";
 
 			const payload = {
-				action: 'create_entry',
-				data: {
-					date: new Date().toLocaleString('vi-VN'),
-					id_don_nhap_xuat: idDon,
-					id_san_pham: idSP,
-					ten_san_pham: name,
-					so_luong_nhap: qty,
-					so_luong_xuat: 0,
-					mail_dang_nhap: userData.email
-				}
+				action: 'save_inventory_entry',
+				adminEmail: currentUser.adminEmail || currentUser.email,
+				type: 'NHAP',
+				productId: idSP,
+				productName: name,
+				quantity: qty,
+				userEmail: currentUser.email,
+				note: "Nhập thủ công mã: " + idDon
 			};
 
 			try {
-				// Tạm thời nếu chưa có URL thì báo lỗi để người dùng gắn vào
-				if (TONKHO_URL.includes('PASTE_YOUR_NEW_TONKHO_URL_HERE')) {
-					alert("Bạn cần deploy Script Tồn Kho và dán URL vào biến TONKHO_URL trong file nhap-kho.html nhé!");
-					btn.disabled = false;
-					btn.innerText = "XÁC NHẬN NHẬP KHO";
-					return;
-				}
-
 				const res = await fetch(TONKHO_URL, {
 					method: 'POST',
-					body: JSON.stringify(payload)
+					body: SecurityProvider.prepareRequest('save_inventory_entry', payload)
 				});
 				const result = await res.json();
 				if (result.success) {
@@ -427,18 +423,9 @@
 				btn.innerText = "XÁC NHẬN NHẬP KHO";
 			}
 		}
-
-		function toggleFabMenu() {
-			document.getElementById('fabMenu').classList.toggle('active');
-		}
-
-		// Đóng menu khi click ngoài
-		document.addEventListener('click', (e) => {
-			if (!e.target.closest('.floating-menu')) {
-				document.getElementById('fabMenu').classList.remove('active');
-			}
-		});
 	</script>
+	<script src="floating-menu.js"></script>
+	<script src="chatbot.js"></script>
 </body>
 
 </html>

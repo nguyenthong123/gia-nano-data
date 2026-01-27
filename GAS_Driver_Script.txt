@@ -1,0 +1,321 @@
+const API_SECRET = 'dv_api_secret_2025_prod_v2';
+/**
+ * GAS_Driver_Script.txt
+ * Dedicated script for Driver Delivery Operations - Dunvex Digital
+ * Version: 2026-01-16 (Enhanced Search & Location)
+ */
+
+const DATA_FOLDER_ID = '1_LT4rzVui2E3BgfcwUSfMsUGQMN9NRTs'; 
+const IMAGE_FOLDER_ID = '1dGFgw96a6gWVdHMq6rkk4fFRpDJqi5cG';
+const CUSTOMER_SS_ID = '15niaoQ7FozkRCushPGNtq4zj6pwA0UQ5Wel61ksv8L8';
+const CUSTOMER_SHEET_NAME = 'data_khach_hang';
+
+const ORDER_HEADER_FILE = 'order.json';
+const ORDER_DETAIL_FILE = 'order_chi_tiet.json';
+const WAREHOUSE_LOG_FILE = 'warehouse_logs.json';
+const DELIVERY_LOG_FILE = 'delivery_logs.json';
+const XOR_SECRET = 'dunvex_secure_key_2025_custom';
+
+/**
+ * SafeStore Utility for JSON Operations in Google Drive
+ */
+const SafeStore = {
+  read: function(filename) {
+    try {
+      const folder = DriveApp.getFolderById(DATA_FOLDER_ID);
+      const files = folder.getFilesByName(filename);
+      if (!files.hasNext()) return [];
+      const content = files.next().getBlob().getDataAsString().trim();
+      if (!content) return [];
+      if (content.startsWith('[')) return JSON.parse(content);
+      return content.split('\n').filter(l => l.trim()).map(l => JSON.parse(l));
+    } catch (e) { return []; }
+  },
+  
+  write: function(filename, newData, action = 'APPEND') {
+    const lock = LockService.getScriptLock();
+    try {
+      lock.waitLock(30000);
+      const folder = DriveApp.getFolderById(DATA_FOLDER_ID);
+      let file, files = folder.getFilesByName(filename);
+      if (files.hasNext()) file = files.next();
+      else file = folder.createFile(filename, '', MimeType.PLAIN_TEXT);
+
+      if (action === 'APPEND') {
+        const currentContent = file.getBlob().getDataAsString();
+        const separator = (currentContent && !currentContent.endsWith('\n')) ? '\n' : '';
+        const itemsToAppend = Array.isArray(newData) ? newData : [newData];
+        file.setContent(currentContent + separator + itemsToAppend.map(item => JSON.stringify(item)).join('\n'));
+      } else if (action === 'UPDATE_STATUS') {
+         let data = this.read(filename);
+         const id = newData.id_don_hang;
+         const idx = data.findIndex(item => item.id_don_hang === id || item.id === id);
+         if (idx !== -1) {
+           data[idx].trang_thai_don_hang = newData.status;
+           file.setContent(data.map(item => JSON.stringify(item)).join('\n'));
+         }
+      }
+      return { success: true };
+    } catch (e) { return { success: false, message: e.toString() }; }
+    finally { lock.releaseLock(); }
+  }
+};
+
+function decryptXOR(text) {
+  if (!text || text === 'n/a') return "";
+  try {
+    const bytes = Utilities.base64Decode(text.toString().trim());
+    const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+    let result = "";
+    for (let i = 0; i < bytes.length; i++) {
+        result += String.fromCharCode(bytes[i] ^ keyBytes[i % keyBytes.length]);
+    }
+    return result;
+  } catch (e) { return text; }
+}
+
+function encryptXOR(text) {
+  if (!text) return "";
+  const inputBytes = Utilities.newBlob(text.toString()).getBytes();
+  const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+  const outputBytes = [];
+  for (let i = 0; i < inputBytes.length; i++) {
+    outputBytes.push(inputBytes[i] ^ keyBytes[i % keyBytes.length]);
+  }
+  return Utilities.base64Encode(outputBytes);
+}
+
+function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+
+    // --- API SECURITY CHECK ---
+    if (data.apiKey !== API_SECRET) {
+      return ContentService.createTextOutput(JSON.stringify({ 
+        success: false, 
+        message: 'Unauthorized Driver Access' 
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const action = (data.action || "").toString().trim();
+    
+    if (action === 'get_delivery_list') return ContentService.createTextOutput(JSON.stringify(getDeliveryList(data.adminEmail))).setMimeType(ContentService.MimeType.JSON);
+    
+    if (action === 'confirm_delivery') return ContentService.createTextOutput(JSON.stringify(handleConfirmDelivery(data))).setMimeType(ContentService.MimeType.JSON);
+
+    return ContentService.createTextOutput(JSON.stringify({ success: false, message: 'Invalid action' })).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ success: false, message: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function removeAccents(str) {
+  if (!str) return "";
+  return str.toString()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/đ/g, 'd').replace(/Đ/g, 'D')
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, ' ');
+}
+
+// Helper to get field case-insensitively
+function getField(obj, ...keys) {
+  for (const k of keys) {
+    if (obj[k] !== undefined && obj[k] !== "") return obj[k];
+  }
+  // Case-insensitive search
+  const objKeys = Object.keys(obj);
+  for (const k of keys) {
+    const found = objKeys.find(ok => ok.toLowerCase() === k.toLowerCase());
+    if (found) return obj[found];
+  }
+  return undefined;
+}
+
+function getDeliveryList(adminEmail) {
+  const targetAdmin = (adminEmail || "").toLowerCase().trim();
+  if (!targetAdmin) return { success: false, message: "Missing Admin Email" };
+  
+  // 1. Lấy logs warehouse & delivery logs
+  const whLogs = SafeStore.read(WAREHOUSE_LOG_FILE);
+  const deliveryLogs = SafeStore.read(DELIVERY_LOG_FILE);
+  
+  const finishedOrderIdsFromLogs = whLogs
+    .filter(log => {
+       const owner = decryptXOR(log.admin_email).toLowerCase().trim();
+       const status = (log.status || "").toLowerCase();
+       return status.includes('soạn') && owner === targetAdmin;
+    })
+    .map(log => log.order_id.toString());
+
+  // Map history by Order ID
+  const historyMap = {};
+  deliveryLogs.forEach(log => {
+      // Check admin ownership
+      const owner = decryptXOR(log.admin_email).toLowerCase().trim();
+      if (owner === targetAdmin) {
+          historyMap[log.order_id.toString()] = {
+              image_url: log.image_url,
+              time: log.timestamp,
+              note: log.note,
+              status: log.status
+          };
+      }
+  });
+    
+  // 2. Lấy thông tin đơn hàng
+  const orders = SafeStore.read(ORDER_HEADER_FILE);
+  const deliveryData = orders.filter(o => {
+     const id = (getField(o, 'id_don_hang', 'id') || "").toString();
+     const status = (getField(o, 'trang_thai_don_hang', 'status') || "").toLowerCase();
+     const ownerVal = getField(o, 'manager_email', 'admin_email', 'quan_ly') || "";
+     const owner = decryptXOR(ownerVal).toLowerCase().trim();
+     
+     const isMine = (owner === targetAdmin);
+     
+     // Điều kiện hiển thị:
+     // 1. Có trong logs kho (Soạn xong)
+     // 2. Hoặc trạng thái trong file order là Chờ giao/Soạn xong/Đã chốt
+     // 3. Hoặc ĐÃ CÓ trong lịch sử giao hàng (delivery_logs)
+     
+     const isReady = finishedOrderIdsFromLogs.includes(id) || 
+                     status.includes('soạn xong') || 
+                     status.includes('soan xong') || 
+                     status === 'chốt' || 
+                     status === 'đã chốt' ||
+                     status.includes('chờ giao');
+                     
+     const isDeliveredHistory = historyMap[id] !== undefined;
+
+     return isMine && (isReady || isDeliveredHistory);
+  });
+
+  if (deliveryData.length === 0) {
+    return { success: true, deliveries: [], debug: `Không tìm thấy đơn hàng cho ${targetAdmin}` };
+  }
+
+  // 3. Lấy vị trí từ sheet CRM
+  const ss = SpreadsheetApp.openById(CUSTOMER_SS_ID);
+  const sheet = ss.getSheetByName(CUSTOMER_SHEET_NAME);
+  const data = sheet.getDataRange().getValues();
+  
+  const headers = data[0].map(h => h.toString().toLowerCase().trim());
+  const nameIdx = headers.findIndex(h => h.includes('ten_khach_hang') || h.includes('tên khách') || h === 'tên');
+  const locIdx = headers.findIndex(h => h.includes('vi_tri') || h.includes('vị trí') || h.includes('tọa độ') || h.includes('coords'));
+  const phoneIdx = headers.findIndex(h => h.includes('so_dien_thoai') || h.includes('sdt') || h.includes('phone') || h.includes('điện thoại'));
+  
+  const locMap = {};
+  
+  for(let i=1; i<data.length; i++) {
+     const rawName = data[i][nameIdx === -1 ? 1 : nameIdx];
+     const name = removeAccents(rawName);
+     const loc = data[i][locIdx === -1 ? 6 : locIdx]; 
+     
+     // Giải mã SĐT
+     let phone = "";
+     if (phoneIdx !== -1) {
+        const rawPhone = data[i][phoneIdx];
+        phone = decryptXOR(rawPhone).toString();
+        if (!phone.match(/\d+/)) phone = (rawPhone || "").toString(); 
+     } else {
+        const rawPhone = data[i][3]; 
+        phone = decryptXOR(rawPhone).toString();
+        if (!phone.match(/\d+/)) phone = (rawPhone || "").toString();
+     }
+
+     if(name && loc && loc.toString().includes(',')) {
+        locMap[name] = {
+          loc: loc.toString().trim(),
+          phone: phone.replace(/[^\d]/g, '')
+        };
+     }
+  }
+
+  // 4. Lấy chi tiết đơn hàng (products)
+  const allDetails = SafeStore.read(ORDER_DETAIL_FILE);
+
+  const result = deliveryData.map(o => {
+     const id = (getField(o, 'id_don_hang', 'id') || "N/A").toString();
+     const cusEnc = getField(o, 'customer_name_enc', 'ten_khach_enc');
+     
+     let cusName = cusEnc ? decryptXOR(cusEnc) : getField(o, 'customer_name', 'ten_khach', 'ten_khach_hang', 'name', 'customer');
+     if (!cusName) cusName = "N/A";
+     
+     const normalizedCusName = removeAccents(cusName);
+     
+     // Check History match
+     const historyLog = historyMap[id];
+     
+     // Status logic
+     let finalStatus = "Soạn xong";
+     if (historyLog) {
+         finalStatus = "Đã giao";
+     } else {
+         finalStatus = getField(o, 'trang_thai_don_hang', 'status') || "Soạn xong";
+     }
+
+     // Details
+     const items = allDetails.filter(d => (d.id_don_hang || d.order_id) === id).map(d => ({
+       product: d.ten_san_pham || d.product_name || "Sản phẩm",
+       qty: d.so_luong || d.quantity || 0,
+       unit: d.don_vi_tinh || d.unit || ""
+     }));
+
+     return {
+        order_id: id,
+        customer_name: cusName,
+        customer_phone: locMap[normalizedCusName]?.phone || "",
+        customer_location: locMap[normalizedCusName]?.loc || "",
+        date: historyLog ? historyLog.time : (getField(o, 'ngay_len_don', 'date') || ""),
+        status: finalStatus,
+        proof_image: historyLog ? historyLog.image_url : "", // ẢNH BẰNG CHỨNG
+        items: items,
+        raw_keys: cusName === "N/A" ? Object.keys(o).join(', ') : "" 
+     };
+  });
+
+  // Filter: Must have location OR be in history (already delivered might not need loc to list in history)
+  // But user said "display data checked", usually implies we list them. 
+  // Let's keep filter by location for map safety, but FOR HISTORY TAB, maybe location is less critical?
+  // Let's filter: IF pending -> need loc. IF delivered -> maybe show anyway?
+  // Current logic: filter filtered. 
+  // Let's just return all valid orders, frontend filters tabs.
+  
+  return { 
+    success: true, 
+    deliveries: result, // Return all, let frontend filter valid/invalid loc if needed or show error `No Loc`
+    total_orders: result.length,
+    matched_with_loc: 0,
+    debug: ""
+  }; 
+}
+
+function handleConfirmDelivery(data) {
+  const adminEmailEnc = encryptXOR(data.adminEmail);
+  const driverEmailEnc = encryptXOR(data.driverEmail);
+  let imageUrl = "";
+
+  if (data.image) {
+    const folder = DriveApp.getFolderById(IMAGE_FOLDER_ID);
+    const blob = Utilities.newBlob(Utilities.base64Decode(data.image.split(',')[1]), 'image/jpeg', `delivery_${data.order_id}_${new Date().getTime()}.jpg`);
+    const file = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    imageUrl = `https://lh3.googleusercontent.com/d/${file.getId()}`;
+  }
+
+  const log = {
+    order_id: data.order_id,
+    admin_email: adminEmailEnc,
+    driver_email: driverEmailEnc,
+    status: 'Đã giao',
+    timestamp: new Date().toISOString(),
+    image_url: imageUrl,
+    note: data.note || ""
+  };
+  SafeStore.write(DELIVERY_LOG_FILE, log, 'APPEND');
+  // SafeStore.write(ORDER_HEADER_FILE, { id_don_hang: data.order_id, status: 'Đã giao' }, 'UPDATE_STATUS');
+
+  return { success: true, imageUrl: imageUrl };
+}

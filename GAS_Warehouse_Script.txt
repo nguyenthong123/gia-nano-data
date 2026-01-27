@@ -1,0 +1,188 @@
+const API_SECRET = 'dv_api_secret_2025_prod_v2';
+/**
+ * GAS_Warehouse_Script.txt
+ * Dedicated script for Warehouse Operations - Dunvex Digital
+ * Fix: STRICT SECURITY MODE (Filter by Encrypted Manager Email)
+ */
+
+const DATA_FOLDER_ID = '1_LT4rzVui2E3BgfcwUSfMsUGQMN9NRTs'; 
+const ORDER_HEADER_FILE = 'order.json';
+const ORDER_DETAIL_FILE = 'order_chi_tiet.json';
+const WAREHOUSE_LOG_FILE = 'warehouse_logs.json';
+const XOR_SECRET = 'dunvex_secure_key_2025_custom';
+
+const SafeStore = {
+  read: function(filename) {
+    try {
+      const folder = DriveApp.getFolderById(DATA_FOLDER_ID);
+      const files = folder.getFilesByName(filename);
+      if (!files.hasNext()) return [];
+      const content = files.next().getBlob().getDataAsString().trim();
+      if (!content) return [];
+      if (content.startsWith('[')) return JSON.parse(content);
+      return content.split('\n').filter(l => l.trim()).map(l => JSON.parse(l));
+    } catch (e) { return []; }
+  },
+  
+  write: function(filename, newData, action = 'APPEND') {
+    const lock = LockService.getScriptLock();
+    try {
+      lock.waitLock(30000);
+      const folder = DriveApp.getFolderById(DATA_FOLDER_ID);
+      let file, files = folder.getFilesByName(filename);
+      if (files.hasNext()) file = files.next();
+      else file = folder.createFile(filename, '', MimeType.PLAIN_TEXT);
+
+      if (action === 'APPEND') {
+        const currentContent = file.getBlob().getDataAsString();
+        const separator = (currentContent && !currentContent.endsWith('\n')) ? '\n' : '';
+        const itemsToAppend = Array.isArray(newData) ? newData : [newData];
+        file.setContent(currentContent + separator + itemsToAppend.map(item => JSON.stringify(item)).join('\n'));
+      } else if (action === 'UPDATE_HEADER') {
+         let content = file.getBlob().getDataAsString();
+         let isJsonArray = content.trim().startsWith('[');
+         let data = this.read(filename);
+         const id = newData.id_don_hang;
+         const idx = data.findIndex(item => item.id_don_hang === id || item.id === id);
+         
+         if (idx !== -1) {
+           data[idx] = Object.assign({}, data[idx], newData);
+           if (isJsonArray) {
+             file.setContent(JSON.stringify(data, null, 2));
+           } else {
+             file.setContent(data.map(item => JSON.stringify(item)).join('\n'));
+           }
+         }
+      }
+      return { success: true };
+    } catch (e) { return { success: false, message: e.toString() }; }
+    finally { lock.releaseLock(); }
+  }
+};
+
+function decryptXOR(text) {
+  if (!text || text === 'n/a') return "";
+  try {
+    const bytes = Utilities.base64Decode(text.toString().trim());
+    const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+    let result = "";
+    for (let i = 0; i < bytes.length; i++) {
+        result += String.fromCharCode(bytes[i] ^ keyBytes[i % keyBytes.length]);
+    }
+    return result;
+  } catch (e) { return text; }
+}
+
+function encryptXOR(text) {
+  if (!text) return "";
+  const inputBytes = Utilities.newBlob(text.toString()).getBytes();
+  const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+  const outputBytes = [];
+  for (let i = 0; i < inputBytes.length; i++) {
+    outputBytes.push(inputBytes[i] ^ keyBytes[i % keyBytes.length]);
+  }
+  return Utilities.base64Encode(outputBytes);
+}
+
+function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+
+    // --- API SECURITY CHECK ---
+    if (data.apiKey !== API_SECRET) {
+      return ContentService.createTextOutput(JSON.stringify({ 
+        success: false, 
+        message: 'Unauthorized Warehouse Access' 
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const action = (data.action || "").toString().trim();
+    
+    if (action === 'get_warehouse_orders') {
+      // BẮT BUỘC PHẢI CÓ EMAIL ADMIN ĐỂ LỌC
+      if (!data.adminEmail) return ContentService.createTextOutput(JSON.stringify({ success: false, message: 'Missing Org Email' })).setMimeType(ContentService.MimeType.JSON);
+      return ContentService.createTextOutput(JSON.stringify(getOrdersForWarehouse(data.adminEmail))).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    if (action === 'get_warehouse_details') {
+       const details = SafeStore.read(ORDER_DETAIL_FILE);
+       const items = details.filter(d => d.id_don_hang.toString() === (data.order_id || "").toString());
+       return ContentService.createTextOutput(JSON.stringify({ success: true, details: items })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    if (action === 'save_warehouse_log') {
+       const log = {
+         order_id: data.order_id,
+         admin_email: encryptXOR(data.admin_email),
+         staff_email: encryptXOR(data.staff_email),
+         status: data.status, 
+         note: data.note || "",
+         timestamp: new Date().toISOString()
+       };
+       SafeStore.write(WAREHOUSE_LOG_FILE, log, 'APPEND');
+
+       // SafeStore.write(ORDER_HEADER_FILE, { 
+       //   id_don_hang: data.order_id, 
+       //   trang_thai_don_hang: data.status 
+       // }, 'UPDATE_HEADER');
+
+       return ContentService.createTextOutput(JSON.stringify({ success: true })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({ success: false, message: 'Invalid action' })).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ success: false, message: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function getField(obj, primaryKey, fallbackKey) {
+   if (obj[primaryKey] !== undefined) return obj[primaryKey];
+   if (fallbackKey && obj[fallbackKey] !== undefined) return obj[fallbackKey];
+   const key = Object.keys(obj).find(k => k.toLowerCase() === primaryKey.toLowerCase());
+   return key ? obj[key] : undefined;
+}
+
+function getOrdersForWarehouse(targetAdminEmail) {
+  const headers = SafeStore.read(ORDER_HEADER_FILE);
+  const target = (targetAdminEmail || "").toLowerCase().trim();
+  const ALLOWED_STATUSES = ['chốt', 'đang soạn', 'thiếu hàng', 'soạn xong', 'đã giao'];
+
+  const filtered = headers.filter(o => {
+    // 1. Check Status
+    const statusVal = getField(o, 'trang_thai_don_hang', 'trang_thai') || "";
+    const st = statusVal.toString().toLowerCase();
+    const isAllowed = ALLOWED_STATUSES.some(s => st.includes(s));
+    
+    // 2. STRICT SECURITY CHECK - MANAGER EMAIL
+    const ownerVal = getField(o, 'manager_email') || "";
+    const owner = decryptXOR(ownerVal).toLowerCase().trim();
+    
+    // BẮT BUỘC KHỚP 100% (STRICT EQUAL)
+    if (!owner) return false; 
+    
+    const isOwner = (owner === target);
+    
+    return isAllowed && isOwner;
+  });
+
+  return {
+    success: true,
+    orders: filtered.map(o => {
+       const copy = Object.assign({}, o);
+       
+       copy.id_don_hang = getField(o, 'id_don_hang', 'id') || "N/A";
+       copy.ngay_len_don = getField(o, 'ngay_len_don', 'date') || "";
+       const makerVal = getField(o, 'nguoi_len_don') || "";
+       copy.nguoi_len_don = decryptXOR(makerVal);
+       
+       let cusName = getField(o, 'customer_name_enc');
+       if (cusName) copy.customer_name = decryptXOR(cusName);
+       else copy.customer_name = getField(o, 'customer_name') || ("Đơn #" + copy.id_don_hang);
+
+       copy.trang_thai = getField(o, 'trang_thai_don_hang', 'trang_thai');
+
+       return copy;
+    }),
+    details: [] 
+  };
+}

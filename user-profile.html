@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-QFQ2HMYTDH"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag('js', new Date());
+
+		gtag('config', 'G-QFQ2HMYTDH');
+	</script>
+
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Hồ Sơ Cá Nhân | Dunvex Digital</title>
+	<link rel="icon" type="image/svg+xml"
+		href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23FACC15'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' fill='white' font-size='60' font-family='sans-serif' font-weight='800'>DV</text></svg>">
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;800&display=swap"
+		rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+	<script src="security-utils.js"></script>
+	<script src="assets/theme-toggle.js"></script>
+	<script>
+		const session = SecurityProvider.validateAccess();
+		const currentUser = session ? session.user : null;
+	</script>
+	<link rel="stylesheet" href="assets/theme.css">
+	<style>
+		:root {
+			--primary: #6366f1;
+			--bg-dark: #0f172a;
+			--card-bg: rgba(30, 41, 59, 0.7);
+			--glass-border: rgba(255, 255, 255, 0.1);
+			--text-main: #ffffff;
+			--text-muted: #cbd5e1;
+			--accent-purple: #c084fc;
+		}
+
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+			text-rendering: optimizeLegibility;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+			font-weight: 500;
+		}
+
+		body {
+			background-color: var(--bg-body);
+			color: var(--text-main);
+			min-height: 100vh;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 20px;
+			background-image: var(--bg-gradient-1), var(--bg-gradient-2);
+			background-attachment: fixed;
+			-webkit-text-size-adjust: 100%;
+		}
+
+		.profile-card {
+			background: white;
+			border: 1px solid var(--glass-border);
+			border-radius: 32px;
+			padding: 50px;
+			width: 100%;
+			max-width: 500px;
+			text-align: center;
+			box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+		}
+
+		.avatar-large {
+			width: 120px;
+			height: 120px;
+			background: linear-gradient(135deg, var(--primary), #fde047);
+			border-radius: 50%;
+			margin: 0 auto 24px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 3rem;
+			font-weight: 900;
+			color: #0f172a;
+			box-shadow: 0 8px 25px rgba(250, 204, 21, 0.4);
+		}
+
+		h1 {
+			font-size: 2rem;
+			font-weight: 800;
+			margin-bottom: 8px;
+			color: #0f172a;
+			text-transform: capitalize;
+		}
+
+		.email-display {
+			color: #64748b;
+			margin-bottom: 32px;
+			font-size: 1rem;
+			font-weight: 600;
+		}
+
+		.info-grid {
+			display: grid;
+			gap: 16px;
+			margin-bottom: 40px;
+			text-align: left;
+		}
+
+		.info-item {
+			background: #f8fafc;
+			padding: 18px 22px;
+			border-radius: 16px;
+			border: 1px solid #e2e8f0;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.info-label {
+			color: #475569;
+			font-size: 0.8rem;
+			text-transform: uppercase;
+			letter-spacing: 1px;
+			font-weight: 800;
+		}
+
+		.info-value {
+			font-weight: 800;
+			color: #0f172a;
+		}
+
+		.badge {
+			background: rgba(250, 204, 21, 0.15);
+			color: #b45309;
+			padding: 6px 14px;
+			border-radius: 10px;
+			font-size: 0.8rem;
+			border: 1px solid rgba(250, 204, 21, 0.3);
+			font-weight: 800;
+		}
+
+		.btn-group {
+			display: flex;
+			gap: 12px;
+		}
+
+		.btn {
+			flex: 1;
+			padding: 16px;
+			border-radius: 12px;
+			font-weight: 800;
+			cursor: pointer;
+			transition: 0.3s;
+			text-decoration: none;
+			border: none;
+			font-size: 1rem;
+		}
+
+		.btn-home {
+			background: var(--primary);
+			color: #0f172a;
+			box-shadow: 0 4px 15px rgba(250, 204, 21, 0.3);
+		}
+
+		.btn-home:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 10px 25px rgba(250, 204, 21, 0.5);
+		}
+
+		.btn-logout {
+			background: rgba(239, 68, 68, 0.1);
+			color: #ef4444;
+			border: 1px solid rgba(239, 68, 68, 0.2);
+		}
+
+		.btn-logout:hover {
+			background: rgba(239, 68, 68, 0.2);
+		}
+	</style>
+</head>
+
+<body>
+	<div class="profile-card">
+		<div class="avatar-large" id="bigAvatar">?</div>
+		<h1 id="userName">Đang tải...</h1>
+		<p class="email-display" id="userEmail">...</p>
+
+		<div class="info-grid">
+			<div class="info-item">
+				<span class="info-label">Mã Nhân Viên</span>
+				<span class="info-value" id="userId">...</span>
+			</div>
+			<div class="info-item">
+				<span class="info-label">Vai Trò</span>
+				<span class="info-value badge" id="userRole">...</span>
+			</div>
+			<div class="info-item">
+				<span class="info-label">Trạng Thái</span>
+				<span class="info-value" style="color: #22c55e;">● Hoạt động</span>
+			</div>
+		</div>
+
+		<div class="btn-group">
+			<a href="index.html" class="btn btn-glass">
+				<i class="fa-solid fa-house"></i> Trang chủ
+			</a>
+			<button onclick="logout()" class="btn btn-logout">Đăng Xuất</button>
+		</div>
+	</div>
+
+	<script>
+		window.onload = function () {
+			if (!currentUser) {
+				window.location.href = 'auth.html';
+				return;
+			}
+
+			document.getElementById('userName').innerText = currentUser.fullName.toLowerCase();
+			document.getElementById('userEmail').innerText = currentUser.email;
+			document.getElementById('userId').innerText = currentUser.id || 'N/A';
+			document.getElementById('bigAvatar').innerText = currentUser.fullName.charAt(0).toUpperCase();
+
+			const roles = { 'R001': 'Quản Trị Viên', 'R002': 'Nhân Viên Sale', 'R003': 'Quản Lý Kho', 'R004': 'Kế Toán', 'R005': 'Khách Hàng' };
+			document.getElementById('userRole').innerText = roles[currentUser.roleId] || currentUser.roleId;
+		};
+
+		function logout() {
+			SecurityProvider.logout();
+		}
+	</script>
+	<script src="floating-menu.js"></script>
+	<script src="chatbot.js"></script>
+</body>
+
+</html>

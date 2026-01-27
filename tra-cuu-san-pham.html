@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-QFQ2HMYTDH"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag('js', new Date());
+
+		gtag('config', 'G-QFQ2HMYTDH');
+	</script>
+
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Tra cứu Sản phẩm | Dunvex Digital</title>
+	<link rel="icon" type="image/svg+xml"
+		href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23FACC15'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' fill='white' font-size='60' font-family='sans-serif' font-weight='800'>DV</text></svg>">
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;800&display=swap"
+		rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+	<script src="security-utils.js"></script>
+	<script src="assets/theme-toggle.js"></script>
+	<script>
+		const session = SecurityProvider.validateAccess();
+		const currentUser = session ? session.user : null;
+	</script>
+	<link rel="stylesheet" href="assets/theme.css">
+	<style>
+		:root {
+			--primary: #6366f1;
+			--bg-dark: #0f172a;
+			--card-bg: rgba(30, 41, 59, 0.7);
+			--glass-border: rgba(255, 255, 255, 0.1);
+			--text-main: #ffffff;
+			--text-muted: #cbd5e1;
+			--accent-purple: #c084fc;
+			--danger: #ef4444;
+			--success: #22c55e;
+		}
+
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+			text-rendering: optimizeLegibility;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+			font-weight: 500;
+		}
+
+		body {
+			background-color: var(--bg-body);
+			color: var(--text-main);
+			min-height: 100vh;
+			background-image: var(--bg-gradient-1), var(--bg-gradient-2);
+			background-attachment: fixed;
+			padding: 20px;
+			-webkit-text-size-adjust: 100%;
+		}
+
+		.container {
+			max-width: 1100px;
+			margin: 0 auto;
+		}
+
+		/* Top Bar */
+		.top-bar {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 40px;
+			padding: 20px 0;
+		}
+
+		.top-bar h1 {
+			font-size: 2.22rem;
+			font-weight: 800;
+			color: #0f172a;
+			letter-spacing: -0.5px;
+		}
+
+		.actions {
+			display: flex;
+			gap: 15px;
+		}
+
+		/* Buttons */
+		.btn {
+			padding: 12px 24px;
+			border-radius: 12px;
+			font-weight: 800;
+			cursor: pointer;
+			transition: 0.3s;
+			border: 1.5px solid #cbd5e1;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			text-decoration: none;
+			font-size: 0.95rem;
+		}
+
+		.btn-primary {
+			background: var(--primary);
+			color: #0f172a;
+			border: none;
+			box-shadow: 0 4px 12px rgba(250, 204, 21, 0.3);
+		}
+
+		.btn-primary:hover {
+			background: #facc15;
+			transform: translateY(-2px);
+			box-shadow: 0 8px 20px rgba(250, 204, 21, 0.4);
+		}
+
+		.btn-glass {
+			background: white;
+			color: #334155;
+		}
+
+		.btn-glass:hover {
+			background: #f8fafc;
+			border-color: #94a3b8;
+		}
+
+		/* Search Box */
+		.search-box {
+			position: relative;
+			flex: 1;
+			max-width: 400px;
+		}
+
+		.search-box input {
+			width: 100%;
+			padding: 14px 15px 14px 40px;
+			background: white !important;
+			border: 1.5px solid #cbd5e1 !important;
+			border-radius: 14px;
+			color: #0f172a !important;
+			outline: none;
+			font-weight: 600;
+		}
+
+		/* Product Grid */
+		.product-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+			gap: 30px;
+		}
+
+		.product-card {
+			background: white;
+			border: 1px solid var(--glass-border);
+			border-radius: 20px;
+			overflow: hidden;
+			transition: 0.3s;
+			position: relative;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+		}
+
+		.product-card:hover {
+			transform: translateY(-8px);
+			border-color: var(--primary);
+			box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+		}
+
+		.image-container {
+			width: 100%;
+			height: 200px;
+			background: #f8fafc;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			overflow: hidden;
+		}
+
+		.image-container img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+
+		.product-info {
+			padding: 20px;
+		}
+
+		.product-category {
+			font-size: 0.8rem;
+			color: #b45309;
+			background: rgba(250, 204, 21, 0.12);
+			display: inline-block;
+			padding: 4px 10px;
+			border-radius: 8px;
+			text-transform: uppercase;
+			font-weight: 800;
+			margin-bottom: 10px;
+		}
+
+		.product-title {
+			font-size: 1.25rem;
+			font-weight: 800;
+			margin-bottom: 15px;
+			color: #0f172a;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		.product-meta {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 12px;
+			font-size: 0.9rem;
+			color: #475569;
+			margin-bottom: 20px;
+			font-weight: 600;
+		}
+
+		.product-price {
+			font-size: 1.5rem;
+			font-weight: 900;
+			color: #1e293b;
+		}
+
+		.card-actions {
+			display: flex;
+			gap: 10px;
+		}
+
+		.card-actions button {
+			flex: 1;
+			padding: 12px;
+			font-size: 0.9rem;
+			font-weight: 700;
+		}
+
+		/* Modal */
+		.modal {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.8);
+			backdrop-filter: blur(5px);
+			display: none;
+			align-items: center;
+			justify-content: center;
+			z-index: 1000;
+			padding: 20px;
+		}
+
+		.modal.active {
+			display: flex;
+		}
+
+		.modal-content {
+			background: white;
+			width: 100%;
+			max-width: 900px;
+			border-radius: 28px;
+			padding: 0;
+			position: relative;
+			height: 85vh;
+			overflow: hidden;
+			box-shadow: 0 25px 70px rgba(0, 0, 0, 0.3);
+		}
+
+		#viewIframe {
+			width: 100%;
+			height: 100%;
+			border: none;
+			border-radius: 24px;
+		}
+
+		.close-view {
+			position: absolute;
+			top: 15px;
+			right: 15px;
+			background: rgba(0, 0, 0, 0.5);
+			color: white;
+			border: 1px solid var(--glass-border);
+			width: 36px;
+			height: 36px;
+			border-radius: 50%;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			z-index: 1010;
+		}
+
+		/* Toast */
+		#toast {
+			position: fixed;
+			bottom: 30px;
+			right: 30px;
+			padding: 15px 25px;
+			border-radius: 12px;
+			background: var(--success);
+			color: white;
+			font-weight: 600;
+			transform: translateY(150%);
+			transition: 0.4s;
+			z-index: 2000;
+		}
+
+		#toast.active {
+			transform: translateY(0);
+		}
+
+		.loader {
+			display: none;
+			text-align: center;
+			padding: 50px;
+			font-size: 1.2rem;
+			color: var(--text-muted);
+		}
+	</style>
+</head>
+
+<body>
+
+	<div id="toast">Thông báo!</div>
+
+	<div class="container">
+		<div class="top-bar">
+			<div>
+				<h1>🔍 Tra cứu Sản phẩm</h1>
+				<p id="userStatus" style="color: var(--text-muted); font-size: 0.9rem;">Đang đăng nhập: ...</p>
+			</div>
+			<div class="actions">
+				<a href="index.html" class="btn btn-glass">
+					<i class="fa-solid fa-house"></i> Trang chủ
+				</a>
+			</div>
+		</div>
+
+		<div style="margin-bottom: 30px;">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+				<div class="search-box">
+					<input type="text" id="searchInput" placeholder="Tìm kiếm tên sản phẩm, mã, ngành hàng..."
+						oninput="applyFilters()">
+				</div>
+				<p id="stats" style="color: var(--text-muted); font-size: 0.9rem;">Đang tải...</p>
+			</div>
+		</div>
+
+		<div id="loading" class="loader">🚀 Đang tải danh mục sản phẩm...</div>
+		<div id="productGrid" class="product-grid"></div>
+	</div>
+
+	<!-- VIEW DETAIL MODAL -->
+	<div id="viewModal" class="modal">
+		<div class="modal-content">
+			<button class="close-view" onclick="closeViewModal()">&times;</button>
+			<iframe src="" id="viewIframe"></iframe>
+		</div>
+	</div>
+
+	<script>
+		const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw-iU2IYU1yHpybQ308SsY8QWJfp-zxJ9oZSfFJniREfctsbhCLy_7Rc-Ns0CFM8xDehg/exec';
+
+		let allProducts = [];
+		// currentUser defined in head
+
+		async function loadData() {
+			document.getElementById('loading').style.display = 'block';
+			try {
+				const response = await fetch(SCRIPT_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('get_products', {
+						userEmail: currentUser.email,
+						isAdmin: currentUser.roleId === 'R001',
+						adminEmail: currentUser.adminEmail
+					})
+				});
+				const data = await response.json();
+				if (data.success) {
+					allProducts = data.products;
+					localStorage.setItem('last_loaded_products', JSON.stringify(allProducts));
+					applyFilters();
+				} else {
+					showToast("Lỗi: " + data.message, true);
+				}
+			} catch (e) {
+				showToast("Không thể kết nối Backend", true);
+			}
+			document.getElementById('loading').style.display = 'none';
+
+			const roleName = currentUser.roleId === 'R001' ? 'Quản trị viên' : 'Nhân viên';
+			document.getElementById('userStatus').innerText = `${roleName}: ${currentUser.email}`;
+		}
+
+		function renderProducts(products) {
+			const grid = document.getElementById('productGrid');
+			if (products.length === 0) {
+				grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 50px; color: var(--text-muted);">Không tìm thấy sản phẩm nào phù hợp.</div>';
+				return;
+			}
+			grid.innerHTML = products.map(p => `
+                <div class="product-card">
+                    <div class="image-container">
+                        <img src="${convertDriveLink(p.image_san_pham) || 'https://placehold.co/300x200/1e293b/white?text=No+Image'}" 
+                             onerror="this.src='https://placehold.co/300x200/1e293b/white?text=Error'">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-category">${p.ten_nghanh_hang || 'SẢN PHẨM'}</div>
+                        <div class="product-title" title="${p.ten_san_pham}">${p.ten_san_pham}</div>
+                        <div class="product-meta">
+                            <span>Quy cách: ${p.quy_cach || '-'}</span>
+                            <span>Đóng kiện: ${p.dong_kien || '-'}</span>
+                            <span>Trọng lượng: ${p.trong_luong_rieng || '-'} kg</span>
+                            <span style="font-size: 0.7rem; color: var(--text-muted)">ID: ${p.id_san_pham}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:15px;">
+                            <div class="product-price">${formatPrice(p.gia_san_pham)} đ</div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-primary" onclick="viewProductDetail('${p.id_san_pham}')">XEM CHI TIẾT</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+		}
+
+		function convertDriveLink(url) {
+			if (!url) return '';
+			if (url.includes('drive.google.com')) {
+				const id = url.split('/d/')[1]?.split('/')[0] || url.split('id=')[1]?.split('&')[0];
+				return id ? `https://lh3.googleusercontent.com/d/${id}` : url;
+			}
+			return url;
+		}
+
+		function viewProductDetail(id) {
+			localStorage.setItem('last_selected_product_id', id);
+			const iframe = document.getElementById('viewIframe');
+			iframe.src = `chi-tiet-san-pham.html?id=${id}`;
+			document.getElementById('viewModal').classList.add('active');
+		}
+
+		function closeViewModal() {
+			document.getElementById('viewModal').classList.remove('active');
+			document.getElementById('viewIframe').src = "";
+		}
+
+		function applyFilters() {
+			const q = document.getElementById('searchInput').value.toLowerCase();
+			const filtered = allProducts.filter(p => {
+				return p.ten_san_pham?.toLowerCase().includes(q) ||
+					p.ten_nghanh_hang?.toLowerCase().includes(q) ||
+					p.id_san_pham?.toLowerCase().includes(q);
+			});
+
+			renderProducts(filtered);
+			document.getElementById('stats').innerText = `Tổng cộng: ${filtered.length} sản phẩm`;
+		}
+
+		function formatPrice(num) {
+			return Number(num).toLocaleString('vi-VN');
+		}
+
+		function showToast(msg, isError = false) {
+			const t = document.getElementById('toast');
+			t.innerText = msg;
+			t.style.background = isError ? 'var(--danger)' : 'var(--success)';
+			t.classList.add('active');
+			setTimeout(() => { if (t) t.classList.remove('active'); }, 3000);
+		}
+
+		window.onload = loadData;
+	</script>
+	<script src="floating-menu.js"></script>
+</body>
+
+</html>

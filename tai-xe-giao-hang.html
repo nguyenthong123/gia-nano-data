@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-QFQ2HMYTDH"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag('js', new Date());
+
+		gtag('config', 'G-QFQ2HMYTDH');
+	</script>
+
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Tài Xế Giao Hàng | Dunvex Digital</title>
+	<link rel="icon" type="image/svg+xml"
+		href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23FACC15'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' fill='white' font-size='60' font-family='sans-serif' font-weight='800'>DV</text></svg>">
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;800&display=swap"
+		rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+	<!-- Leaflet Map -->
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+	<!-- Leaflet Routing Machine -->
+	<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+	<script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+	<!-- SweetAlert2 -->
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+	<script src="security-utils.js"></script>
+	<script>
+		const session = SecurityProvider.validateAccess();
+		const currentUser = session ? session.user : null;
+	</script>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+			text-rendering: optimizeLegibility;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+		}
+
+		body {
+			margin: 0;
+			padding: 0;
+			overflow: hidden;
+			background-color: #f8fafc;
+			display: flex;
+			flex-direction: column;
+			height: 100vh;
+			-webkit-text-size-adjust: 100%;
+		}
+
+		header {
+			background: white;
+			padding: 15px 20px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			border-bottom: 1px solid #e2e8f0;
+			z-index: 1001;
+			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+		}
+
+		.header-title {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			font-size: 1.2rem;
+			font-weight: 800;
+			color: #0f172a;
+			font-family: 'Outfit', sans-serif;
+		}
+
+		.user-pill {
+			background: rgba(255, 255, 255, 0.05);
+			padding: 6px 12px;
+			border-radius: 99px;
+			font-size: 0.8rem;
+			color: var(--text-muted);
+			border: 1px solid var(--glass-border);
+		}
+
+		#map {
+			flex: 1;
+			width: 100%;
+			z-index: 1;
+		}
+
+		/* Detail Card Overlay */
+		#deliveryCard {
+			display: none;
+			padding: 20px;
+			background: white;
+			border-radius: 12px;
+			margin-top: 10px;
+			position: static;
+			width: 100%;
+			box-shadow: none;
+			animation: fadeIn 0.3s ease;
+		}
+
+		@keyframes fadeIn {
+			from {
+				opacity: 0;
+				transform: translateY(10px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		/* Hide sidebar list when card is active if needed, or just stack them */
+		/* Let's toggle visibility via JS */
+
+		.card-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: flex-start;
+			margin-bottom: 15px;
+		}
+
+		.order-id {
+			font-size: 0.8rem;
+			color: #f59e0b;
+			font-weight: 800;
+		}
+
+		.customer-name {
+			font-size: 1.3rem;
+			font-weight: 800;
+			margin: 5px 0;
+			color: #0f172a;
+		}
+
+		.info-item {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			margin-bottom: 8px;
+			font-size: 0.9rem;
+			color: #64748b;
+		}
+
+		.info-item i {
+			color: #6366f1;
+			width: 16px;
+		}
+
+		.action-btns {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 12px;
+			margin-top: 20px;
+		}
+
+		.btn {
+			padding: 12px;
+			border-radius: 12px;
+			border: none;
+			font-weight: 700;
+			cursor: pointer;
+			transition: 0.3s;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+		}
+
+		.btn-nav {
+			background: #f1f5f9;
+			color: #334155;
+			border: 1px solid #e2e8f0;
+		}
+
+		.btn-success {
+			background: var(--accent-green);
+			color: white;
+		}
+
+		.btn:hover {
+			transform: translateY(-2px);
+			filter: brightness(1.1);
+		}
+
+		.close-btn {
+			background: rgba(255, 255, 255, 0.1);
+			width: 32px;
+			height: 32px;
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+		}
+
+		/* Marker Styles */
+		.driver-marker {
+			background: var(--accent-color);
+			border: 2px solid white;
+			border-radius: 50%;
+			box-shadow: 0 0 15px var(--accent-color);
+		}
+
+		.delivery-marker {
+			background: var(--accent-orange);
+			border: 2px solid white;
+			border-radius: 50%;
+			box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+		}
+
+		/* Custom Popup */
+		.leaflet-popup-content-wrapper {
+			background: white;
+			color: #0f172a;
+			border-radius: 12px;
+			box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+		}
+
+		.leaflet-popup-tip {
+			background: white;
+		}
+
+		/* Loader */
+		#loader {
+			position: fixed;
+			inset: 0;
+			background: var(--bg-dark);
+			z-index: 9999;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			gap: 15px;
+		}
+
+		.spinner {
+			width: 40px;
+			height: 40px;
+			border: 4px solid rgba(255, 255, 255, 0.1);
+			border-top: 4px solid var(--accent-color);
+			border-radius: 50%;
+			animation: spin 1s linear infinite;
+		}
+
+		@keyframes spin {
+			to {
+				transform: rotate(360deg);
+			}
+		}
+
+		/* Image Capture Section */
+		#captureModal {
+			display: none;
+			position: fixed;
+			inset: 0;
+			background: black;
+			z-index: 2000;
+			flex-direction: column;
+		}
+
+		#camera {
+			flex: 1;
+			width: 100%;
+			object-fit: cover;
+		}
+
+		.camera-controls {
+			padding: 30px;
+			display: flex;
+			justify-content: space-around;
+			align-items: center;
+			background: rgba(0, 0, 0, 0.5);
+		}
+
+		.btn-capture {
+			width: 70px;
+			height: 70px;
+			border-radius: 50%;
+			border: 5px solid white;
+			background: transparent;
+		}
+
+		/* Floating List Toggle */
+		.list-toggle {
+			position: fixed;
+			top: 85px;
+			right: 20px;
+			background: white;
+			width: 50px;
+			height: 50px;
+			border-radius: 15px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			z-index: 1000;
+			border: 1px solid #e2e8f0;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+			color: #f59e0b;
+		}
+
+		.delivery-sidebar {
+			position: fixed;
+			top: 0;
+			right: -350px;
+			width: 320px;
+			height: 100vh;
+			background: white;
+			z-index: 1001;
+			transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+			padding: 80px 20px 20px;
+			border-left: 1px solid #e2e8f0;
+			box-shadow: -10px 0 30px rgba(0, 0, 0, 0.05);
+			overflow-y: auto;
+			display: flex;
+			flex-direction: column;
+		}
+
+		.delivery-sidebar.active {
+			right: 0;
+		}
+
+		.sidebar-item {
+			background: #f8fafc;
+			border: 1px solid #e2e8f0;
+			padding: 15px;
+			border-radius: 15px;
+			margin-bottom: 12px;
+			cursor: pointer;
+			color: #1e293b;
+		}
+
+		.sidebar-item:hover {
+			background: #f1f5f9;
+			border-color: var(--primary);
+		}
+
+		.hidden {
+			display: none !important;
+		}
+
+		/* Sidebar Header & Collapse */
+		.sidebar-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 25px;
+		}
+
+		.btn-collapse {
+			background: rgba(255, 255, 255, 0.1);
+			border: none;
+			color: white;
+			width: 35px;
+			height: 35px;
+			border-radius: 10px;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			transition: 0.3s;
+		}
+
+		.btn-collapse:hover {
+			background: #ef4444;
+			color: white;
+		}
+
+		.sidebar-footer {
+			margin-top: 20px;
+			padding-top: 20px;
+			border-top: 1px solid var(--glass-border);
+		}
+
+		.btn-refresh {
+			width: 100%;
+			padding: 12px;
+			background: rgba(99, 102, 241, 0.1);
+			color: var(--accent-color);
+			border: 1px solid var(--accent-color);
+			border-radius: 12px;
+			font-weight: 600;
+			cursor: pointer;
+			transition: 0.3s;
+		}
+
+		.btn-refresh:hover {
+			background: var(--accent-color);
+			color: white;
+		}
+
+		/* Tabs */
+		.sidebar-tabs {
+			display: flex;
+			background: rgba(255, 255, 255, 0.05);
+			border-radius: 8px;
+			padding: 4px;
+			margin-top: 5px;
+		}
+
+		.tab-item {
+			flex: 1;
+			text-align: center;
+			padding: 8px;
+			font-size: 0.9rem;
+			color: #aaa;
+			cursor: pointer;
+			border-radius: 6px;
+			transition: 0.3s;
+		}
+
+		.tab-item.active {
+			background: var(--primary);
+			color: #0f172a;
+			font-weight: 800;
+		}
+
+		.tab-item:hover:not(.active) {
+			background: #e2e8f0;
+			color: #0f172a;
+		}
+	</style>
+</head>
+
+<body>
+
+	<div id="loader">
+		<div class="spinner"></div>
+		<div style="font-weight: 600; letter-spacing: 1px;">ĐANG TẢI DỮ LIỆU...</div>
+	</div>
+
+	<header>
+		<div class="header-title">
+			<a href="index.html" class="btn btn-glass"
+				style="margin-right: 15px; width: 44px; height: 44px; padding: 0;" title="Trang chủ">
+				<i class="fa-solid fa-house"></i>
+			</a>
+			<i class="fas fa-shipping-fast" style="color: var(--accent-orange);"></i>
+			<span>GIAO HÀNG</span>
+		</div>
+		<div class="user-pill" id="userPill">Đang tải...</div>
+	</header>
+
+	<div id="map"></div>
+
+	<div class="list-toggle" onclick="toggleSidebar()" title="Danh sách đơn">
+		<i class="fas fa-list-ul"></i>
+	</div>
+
+	<div class="list-toggle" style="top: 145px; color: var(--accent-color);" onclick="centerOnUser()"
+		title="Vị trí của tôi">
+		<i class="fas fa-location-crosshairs"></i>
+	</div>
+
+	<div class="delivery-sidebar" id="sidebar">
+		<!-- Sidebar HEAD: Title & Tabs -->
+		<div class="sidebar-header" id="sidebarHeader"
+			style="display:flex; flex-direction: column; align-items: stretch; gap: 10px;">
+			<div style="display:flex; justify-content:space-between; align-items:center;">
+				<h3 style="font-weight: 700; font-size: 1.1rem; color: var(--accent-orange);">DANH SÁCH ĐƠN</h3>
+				<button class="btn-collapse" onclick="toggleSidebar()" title="Thu gọn">
+					<i class="fas fa-chevron-right"></i>
+				</button>
+			</div>
+
+			<div class="sidebar-tabs">
+				<div class="tab-item active" id="tabPending" onclick="switchTab('pending')">Chờ giao</div>
+				<div class="tab-item" id="tabHistory" onclick="switchTab('history')">Đã giao</div>
+			</div>
+
+			<!-- Date Filter -->
+			<div class="date-filter-group"
+				style="display: flex; gap: 8px; align-items: center; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 12px; border: 1px solid var(--glass-border);">
+				<div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+					<label style="font-size: 0.65rem; color: var(--text-muted); padding-left: 4px;">Từ ngày</label>
+					<input type="date" id="filterFromDate" onchange="renderDeliveries()"
+						style="background: transparent; border: none; color: white; font-size: 0.8rem; outline: none; width: 100%;">
+				</div>
+				<div style="width: 1px; height: 20px; background: var(--glass-border);"></div>
+				<div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+					<label style="font-size: 0.65rem; color: var(--text-muted); padding-left: 4px;">Đến ngày</label>
+					<input type="date" id="filterToDate" onchange="renderDeliveries()"
+						style="background: transparent; border: none; color: white; font-size: 0.8rem; outline: none; width: 100%;">
+				</div>
+			</div>
+		</div>
+
+		<!-- LIST View Container -->
+		<div id="sidebarListView" style="flex: 1; overflow-y: auto; display: block;">
+			<div id="sidebarList">
+				<!-- Items injected here -->
+			</div>
+			<div class="sidebar-footer">
+				<button class="btn-refresh" onclick="loadDeliveries()">
+					<i class="fas fa-sync-alt"></i> Làm mới danh sách
+				</button>
+			</div>
+		</div>
+
+		<!-- DETAIL View Container (Delivery Card integrated) -->
+		<div id="deliveryCard">
+			<div class="card-header">
+				<button class="btn-nav" onclick="closeCard()"
+					style="padding: 8px 12px; font-size: 0.8rem; margin-right: 10px;">
+					<i class="fas fa-arrow-left"></i> Quay lại
+				</button>
+				<div style="flex: 1; text-align: right;">
+					<span class="order-id" id="cardOrderId">#D001</span>
+				</div>
+			</div>
+
+			<h2 class="customer-name" id="cardCustomer" style="margin-top: 5px;">Khách Hàng A</h2>
+
+			<div class="info-item">
+				<i class="fas fa-map-marker-alt"></i>
+				<span id="cardLocation">Đang xác định...</span>
+			</div>
+			<div class="info-item">
+				<i class="fas fa-clock"></i>
+				<span id="cardTime">10:30 16/01/2026</span>
+			</div>
+
+			<div id="routingInfo"
+				style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--glass-border);">
+				<div class="info-item">
+					<i class="fas fa-route"></i>
+					<span>Cách khoảng: <span id="cardDistance"
+							style="color: var(--accent-green); font-weight: 700;">-</span> km</span>
+				</div>
+
+				<div id="extraInfoContainer"></div> <!-- Container cho SĐT và Sản phẩm -->
+			</div>
+
+			<div class="action-btns">
+				<button class="btn btn-nav" onclick="openGoogleMaps()">
+					<i class="fas fa-location-arrow"></i> Dẫn đường
+				</button>
+				<button class="btn btn-success" onclick="startDelivery()">
+					<i class="fas fa-check-circle"></i> ĐÃ GIAO
+				</button>
+			</div>
+		</div>
+
+	</div> <!-- End Sidebar -->
+
+	<div id="captureModal">
+		<video id="camera" autoplay playsinline></video>
+		<div class="camera-controls">
+			<button class="btn" onclick="cancelCapture()"
+				style="background: rgba(255,255,255,0.1); color: white;">Hủy</button>
+			<button class="btn-capture" onclick="takePhoto()"></button>
+			<div style="width: 50px;"></div> <!-- Spacer -->
+		</div>
+	</div>
+
+	<script>
+		const DRIVER_URL = 'https://script.google.com/macros/s/AKfycbxhMYa6a4mkZI657ujv-iuYbT1LNZf1eaF2MzEbidNNbTzccrZrt6tKkbU5yE_hM-sCaA/exec';
+		let map, routingControl;
+		let allDeliveries = [];
+		let markers = [];
+		let currentOrder = null;
+		let userMarker = null;
+		let userLoc = null;
+
+		window.onload = async () => {
+			if (!currentUser) {
+				window.location.href = 'auth.html';
+				return;
+			}
+			// Check permission
+			const perms = JSON.parse(localStorage.getItem('permissions')) || {};
+			if (currentUser.roleId !== 'R001' && !perms.giaoHang) {
+				alert("Bạn không có quyền truy cập trang này.");
+				window.location.href = 'index.html';
+				return;
+			}
+
+			document.getElementById('userPill').innerText = currentUser.email;
+
+			initMap();
+			await loadDeliveries();
+			startTracking();
+
+			document.getElementById('loader').classList.add('hidden');
+		};
+
+		function initMap() {
+			map = L.map('map', { zoomControl: false }).setView([10.762622, 106.660172], 13);
+			L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+				attribution: '&copy; OpenStreetMap'
+			}).addTo(map);
+
+			L.control.zoom({ position: 'topleft' }).addTo(map);
+		}
+
+		async function loadDeliveries() {
+			const list = document.getElementById('sidebarList');
+			list.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-muted);">Đang tải đơn hàng...</div>';
+
+			try {
+				const res = await fetch(DRIVER_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('get_delivery_list', {
+						adminEmail: currentUser.adminEmail || currentUser.email
+					})
+				});
+				const data = await res.json();
+				if (data.success) {
+					allDeliveries = data.deliveries;
+					renderDeliveries();
+
+					if (allDeliveries.length === 0) {
+						let msg = 'Chưa có đơn hàng nào sẵn sàng giao hoặc chưa được cập nhật tọa độ.';
+						if (data.debug) {
+							msg += `<br><br><span style="color:var(--accent-orange); font-size: 0.85rem;">DEBUG: ${data.debug}</span>`;
+						}
+						list.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--text-muted);">${msg}</div>`;
+					}
+				} else {
+					list.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--accent-red);">${data.message || 'Lỗi tải dữ liệu'}</div>`;
+				}
+			} catch (e) {
+				console.error("Load error:", e);
+				list.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--accent-red);">Lỗi kết nối Server!</div>';
+			}
+		}
+
+
+		let currentTab = 'pending'; // 'pending' | 'history'
+
+		function switchTab(tab) {
+			currentTab = tab;
+
+			// Update UI
+			document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+			document.getElementById(tab === 'pending' ? 'tabPending' : 'tabHistory').classList.add('active');
+
+			// Re-render
+			renderDeliveries();
+		}
+
+		function renderDeliveries() {
+			// Clear old markers
+			markers.forEach(m => map.removeLayer(m));
+			markers = [];
+
+			const sidebarList = document.getElementById('sidebarList');
+			sidebarList.innerHTML = '';
+
+			const fromDateVal = document.getElementById('filterFromDate').value;
+			const toDateVal = document.getElementById('filterToDate').value;
+
+			const filteredList = allDeliveries.filter(d => {
+				const status = (d.status || "").toLowerCase();
+				const isDelivered = status.includes('đã giao') || status.includes('da giao') || status.includes('hoàn thành');
+
+				// Tab filter
+				if (currentTab === 'pending' && isDelivered) return false;
+				if (currentTab === 'history' && !isDelivered) return false;
+
+				// Date filter
+				if (d.date) {
+					const orderDate = d.date.substring(0, 10); // YYYY-MM-DD
+					if (fromDateVal && orderDate < fromDateVal) return false;
+					if (toDateVal && orderDate > toDateVal) return false;
+				}
+
+				return true;
+			});
+
+			filteredList.forEach(d => {
+				// Sidebar Item
+				const status = (d.status || "").toLowerCase();
+				const isDelivered = status.includes('đã giao') || status.includes('da giao');
+
+				const div = document.createElement('div');
+				div.className = 'sidebar-item';
+				div.style.borderLeft = isDelivered ? "4px solid #10b981" : "4px solid var(--accent-orange)";
+				div.innerHTML = `
+                    <div style="font-weight: 700; display:flex; justify-content:space-between;">
+						${d.customer_name}
+						${isDelivered ? '<i class="fas fa-check-circle" style="color:#10b981;"></i>' : '<i class="fas fa-box" style="color:#f59e0b;"></i>'}
+					</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">#${d.order_id}</div>
+					${isDelivered && d.proof_image ? '<div style="font-size: 0.7rem; color: var(--accent-green); margin-top: 2px;"><i class="fas fa-image"></i> Có ảnh xác nhận</div>' : ''}
+                `;
+				div.onclick = () => selectDelivery(d);
+				sidebarList.appendChild(div);
+
+				// Only add Markers for Pending Tab (Hide location for History as requested)
+				if (currentTab === 'pending') {
+					if (!d.customer_location) return;
+					const coords = d.customer_location.split(',').map(n => parseFloat(n.trim()));
+					if (isNaN(coords[0])) return;
+
+					const marker = L.circleMarker(coords, {
+						radius: 12,
+						fillColor: "#f59e0b",
+						color: "white",
+						weight: 2,
+						opacity: 1,
+						fillOpacity: 1
+					}).addTo(map);
+
+					marker.bindPopup(`<b>${d.customer_name}</b><br>#${d.order_id}`);
+					marker.on('click', () => selectDelivery(d));
+					markers.push(marker);
+				}
+			});
+
+			if (filteredList.length === 0) {
+				sidebarList.innerHTML = `<div style="text-align:center; padding: 30px; color: var(--text-muted);">Tab trống</div>`;
+			}
+		}
+
+
+		function selectDelivery(d) {
+			currentOrder = d;
+
+			// Show Card View, Hide List View
+			document.getElementById('sidebarListView').style.display = 'none';
+			document.getElementById('deliveryCard').style.display = 'block';
+			// Hide tabs and header title briefly if needed, or keep them to allow switching tabs?
+			// User wants "integrate into sidebar", usually implies replacing the list content.
+			// Let's keep Sidebar Header visible but maybe disable tabs or just let them stay.
+			// Actually, let's hide the sidebar header items to focus on details, or keep them.
+			// Let's keep it simple: just toggle the content views.
+
+			document.getElementById('cardOrderId').innerText = `#${d.order_id}`;
+			document.getElementById('cardCustomer').innerText = d.customer_name;
+			document.getElementById('cardLocation').innerText = d.customer_location;
+			document.getElementById('cardTime').innerText = d.date; // or d.created_at
+
+			// Render items
+			let itemsHtml = '<div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:10px;">';
+
+			// Phone
+			if (d.customer_phone) {
+				itemsHtml += `
+					<div class="info-item" style="color: var(--accent-green); font-weight:bold;">
+						<i class="fas fa-phone"></i> 
+						<a href="tel:${d.customer_phone}" style="color:inherit; text-decoration:none;">${d.customer_phone}</a>
+						<span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">(Chạm để gọi)</span>
+					</div>
+				`;
+			}
+
+			// Products
+			if (d.items && d.items.length > 0) {
+				itemsHtml += '<table style="width:100%; font-size:0.85rem; margin-top:5px; border-collapse: collapse;">';
+				d.items.forEach(item => {
+					itemsHtml += `
+						<tr>
+							<td style="padding: 4px 0; color: white;">${item.product}</td>
+							<td style="padding: 4px 0; text-align:right; font-weight:bold; color:var(--accent-orange); width: 60px;">
+								${item.qty} <span style="font-size:0.7rem; color:#aaa;">${item.unit}</span>
+							</td>
+						</tr>
+					`;
+				});
+				itemsHtml += '</table></div>';
+			} else {
+				itemsHtml += '<div style="margin-top:5px; font-style:italic; font-size:0.8rem; color:#888;">Không có thông tin sản phẩm</div></div>';
+			}
+
+			// Simplified approach: Insert into a container
+			const container = document.getElementById('extraInfoContainer');
+			if (container) container.innerHTML = itemsHtml;
+
+			// Handle Button Status
+			const status = (d.status || "").toLowerCase();
+			const isDelivered = status.includes('đã giao') || status.includes('da giao');
+
+			const btnAction = document.querySelector('.btn-success'); // Class defined in HTML
+			if (btnAction) {
+				if (isDelivered) {
+					if (d.proof_image) {
+						btnAction.innerHTML = '<i class="fas fa-image"></i> XEM ẢNHTHAY ĐỔI XÁC NHẬN';
+						btnAction.style.background = '#3b82f6'; // Blue
+						btnAction.onclick = () => {
+							Swal.fire({
+								title: 'Ảnh xác nhận giao hàng',
+								imageUrl: d.proof_image,
+								imageWidth: 400,
+								imageAlt: 'Proof',
+								confirmButtonText: 'Đóng'
+							});
+						};
+					} else {
+						btnAction.innerHTML = '<i class="fas fa-history"></i> ĐÃ GIAO (Không ảnh)';
+						btnAction.style.background = '#64748b'; // Gray
+						btnAction.onclick = () => Swal.fire('Thông báo', 'Đơn hàng này đã giao thành công.', 'info');
+					}
+				} else {
+					btnAction.innerHTML = '<i class="fas fa-camera"></i> ĐÃ GIAO HÀNG';
+					btnAction.style.background = 'var(--accent-green)';
+					btnAction.onclick = () => startDelivery();
+				}
+			}
+
+			// Ensure sidebar is open
+			const sidebar = document.getElementById('sidebar');
+			if (!sidebar.classList.contains('active')) {
+				sidebar.classList.add('active');
+			}
+
+			// Only fly to location if coords exist (History items might lack coords if loaded purely from log without map match, though currently we filter by loc match)
+			if (d.customer_location) {
+				const coords = d.customer_location.split(',').map(n => parseFloat(n.trim()));
+				if (!isNaN(coords[0])) map.flyTo(coords, 16);
+			}
+
+			if (userLoc && d.customer_location) {
+				const coords = d.customer_location.split(',').map(n => parseFloat(n.trim()));
+				drawRoute(userLoc, coords);
+				const dist = calculateDistance(userLoc[0], userLoc[1], coords[0], coords[1]);
+				document.getElementById('cardDistance').innerText = dist.toFixed(2);
+			}
+
+			// toggleSidebar(false); // No longer needed as we are IN the sidebar
+		}
+
+		function closeCard() {
+			document.getElementById('deliveryCard').style.display = 'none';
+			document.getElementById('sidebarListView').style.display = 'block';
+
+			if (routingControl) map.removeControl(routingControl);
+			currentOrder = null;
+		}
+
+		function toggleSidebar(show) {
+			const sidebar = document.getElementById('sidebar');
+			if (show === undefined) sidebar.classList.toggle('active');
+			else show ? sidebar.classList.add('active') : sidebar.classList.remove('active');
+		}
+
+		// --- LOCATION & ROUTING ---
+		function startTracking() {
+			if ("geolocation" in navigator) {
+				navigator.geolocation.watchPosition(pos => {
+					userLoc = [pos.coords.latitude, pos.coords.longitude];
+
+					if (!userMarker) {
+						userMarker = L.circleMarker(userLoc, {
+							radius: 10,
+							fillColor: "#6366f1",
+							color: "white",
+							weight: 3,
+							opacity: 1,
+							fillOpacity: 1
+						}).addTo(map).bindPopup("Vị trí của bạn");
+						map.setView(userLoc, 13);
+					} else {
+						userMarker.setLatLng(userLoc);
+					}
+				}, err => console.log("Geo error", err), { enableHighAccuracy: true });
+			}
+		}
+
+		function centerOnUser() {
+			if (userLoc) {
+				map.setView(userLoc, 16);
+				if (userMarker) userMarker.openPopup();
+
+				// Tự động tìm đơn hàng gần nhất để chỉ đường
+				findNearestAndRoute();
+			} else {
+				// Thử kích hoạt lại GPS
+				startTracking();
+				Swal.fire({
+					icon: 'info',
+					title: 'Đang xác định vị trí...',
+					text: 'Vui lòng chờ GPS ổn định.',
+					timer: 2000,
+					showConfirmButton: false
+				});
+			}
+		}
+
+		function findNearestAndRoute() {
+			if (!userLoc || allDeliveries.length === 0) return;
+
+			let minDist = Infinity;
+			let nearest = null;
+
+			allDeliveries.forEach(d => {
+				if (!d.customer_location) return;
+				const coords = d.customer_location.split(',').map(n => parseFloat(n.trim()));
+				if (isNaN(coords[0])) return;
+
+				const dist = calculateDistance(userLoc[0], userLoc[1], coords[0], coords[1]);
+				if (dist < minDist) {
+					minDist = dist;
+					nearest = d;
+				}
+			});
+
+			if (nearest) {
+				const coords = nearest.customer_location.split(',').map(n => parseFloat(n.trim()));
+				drawRoute(userLoc, coords);
+
+				// Zoom to fit path
+				const bounds = L.latLngBounds([userLoc, coords]);
+				map.fitBounds(bounds, { padding: [50, 50] });
+
+				// Show Info
+				selectDelivery(nearest);
+				showToast(`Đã tìm thấy đơn gần nhất: ${nearest.customer_name} (${minDist.toFixed(1)}km)`);
+			} else {
+				showToast("Không tìm thấy đơn hàng nào có tọa độ hợp lệ.");
+			}
+		}
+
+		function drawRoute(start, end) {
+			if (routingControl) {
+				try { map.removeControl(routingControl); } catch (e) { }
+				routingControl = null;
+			}
+
+			routingControl = L.Routing.control({
+				waypoints: [L.latLng(start[0], start[1]), L.latLng(end[0], end[1])],
+				lineOptions: { styles: [{ color: '#6366f1', weight: 6 }] },
+				createMarker: () => null, // Hide markers from routing machine
+				addWaypoints: false,
+				draggableWaypoints: false,
+				fitSelectedRoutes: false,
+				show: false
+			}).addTo(map);
+		}
+
+		function calculateDistance(lat1, lon1, lat2, lon2) {
+			const R = 6371;
+			const dLat = (lat2 - lat1) * Math.PI / 180;
+			const dLon = (lon2 - lon1) * Math.PI / 180;
+			const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+				Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+				Math.sin(dLon / 2) * Math.sin(dLon / 2);
+			const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+			return R * c;
+		}
+
+		function openGoogleMaps() {
+			if (!currentOrder) return;
+			const url = `https://www.google.com/maps/dir/?api=1&destination=${currentOrder.customer_location}&travelmode=driving`;
+			window.open(url, '_blank');
+		}
+
+		// --- CAMERA & CONFIRMATION ---
+		let stream = null;
+		async function startDelivery() {
+			const { value: note } = await Swal.fire({
+				title: 'Xác nhận giao hàng',
+				input: 'textarea',
+				inputLabel: 'Ghi chú (nếu có)',
+				inputPlaceholder: 'Nhập ghi chú...',
+				showCancelButton: true,
+				confirmButtonText: 'Chụp hình & Lưu',
+				cancelButtonText: 'Hủy'
+			});
+
+			if (note !== undefined) {
+				currentOrder.deliveryNote = note;
+				openCamera();
+			}
+		}
+
+		async function openCamera() {
+			try {
+				stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+				const video = document.getElementById('camera');
+				video.srcObject = stream;
+				document.getElementById('captureModal').style.display = 'flex';
+			} catch (e) {
+				// Fallback for desktop or blocked permission
+				const { value: file } = await Swal.fire({
+					title: 'Tải ảnh bằng chứng',
+					input: 'file',
+					inputAttributes: { accept: 'image/*', capture: 'environment' }
+				});
+				if (file) {
+					const reader = new FileReader();
+					reader.onload = (e) => saveDelivery(e.target.result);
+					reader.readAsDataURL(file);
+				}
+			}
+		}
+
+		function cancelCapture() {
+			if (stream) stream.getTracks().forEach(t => t.stop());
+			document.getElementById('captureModal').style.display = 'none';
+		}
+
+		function takePhoto() {
+			const video = document.getElementById('camera');
+			const canvas = document.createElement('canvas');
+			canvas.width = video.videoWidth;
+			canvas.height = video.videoHeight;
+			canvas.getContext('2d').drawImage(video, 0, 0);
+			const base64 = canvas.toDataURL('image/jpeg', 0.8);
+			cancelCapture();
+			saveDelivery(base64);
+		}
+
+		async function saveDelivery(image) {
+			Swal.fire({ title: 'Đang lưu...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+			try {
+				const res = await fetch(DRIVER_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('save_delivery_confirm', {
+						order_id: currentOrder.order_id,
+						admin_email: currentUser.adminEmail || currentUser.email,
+						driver_email: currentUser.email,
+						proof_image: image,
+						note: currentOrder.deliveryNote || "",
+						location: userLoc ? userLoc.join(',') : ""
+					})
+				});
+
+				const data = await res.json();
+				if (data.success) {
+					Swal.fire('Thành công!', 'Đơn hàng đã được ghi nhận hoàn tất.', 'success');
+					closeCard();
+					loadDeliveries(); // Refresh list
+				} else {
+					Swal.fire('Lỗi!', data.message, 'error');
+				}
+			} catch (e) {
+				Swal.fire('Lỗi!', 'Không thể kết nối với máy chủ.', 'error');
+			}
+		}
+		function showToast(msg, type = 'success') {
+			const Toast = Swal.mixin({
+				toast: true,
+				position: 'top-end',
+				showConfirmButton: false,
+				timer: 3000,
+				timerProgressBar: true,
+				didOpen: (toast) => {
+					toast.addEventListener('mouseenter', Swal.stopTimer)
+					toast.addEventListener('mouseleave', Swal.resumeTimer)
+				}
+			});
+			Toast.fire({
+				icon: type,
+				title: msg
+			});
+		}
+	</script>
+</body>
+
+</html>

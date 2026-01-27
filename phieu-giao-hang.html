@@ -2,124 +2,137 @@
 <html lang="vi">
 
 <head>
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-QFQ2HMYTDH"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag('js', new Date());
+
+		gtag('config', 'G-QFQ2HMYTDH');
+	</script>
+
 	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 	<title>Phiếu Giao Hàng</title>
-	<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+	<link rel="icon" type="image/svg+xml"
+		href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23FACC15'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' fill='white' font-size='60' font-family='sans-serif' font-weight='800'>DV</text></svg>">
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;800&family=Roboto+Mono&display=swap"
 		rel="stylesheet">
+	<script src="security-utils.js"></script>
+	<script src="assets/theme-toggle.js"></script>
+	<script>
+		const session = SecurityProvider.validateAccess();
+		const user = session ? session.user : null;
+	</script>
+	<link rel="stylesheet" href="assets/theme.css">
 	<style>
-		/* Reset & Base Styles */
+		:root {
+			--scale-factor: 1;
+		}
+
 		* {
 			box-sizing: border-box;
 			margin: 0;
-			padding: 0;
+			-webkit-print-color-adjust: exact;
+			print-color-adjust: exact;
+			font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+			text-rendering: optimizeLegibility;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
 		}
 
 		body {
-			background: #525659;
-			/* Màu nền app PDF reader */
-			font-family: 'Times New Roman', serif;
+			background: var(--bg-body);
 			display: flex;
 			justify-content: center;
 			padding: 20px;
 			min-height: 100vh;
+			-webkit-text-size-adjust: 100%;
+			background-image: var(--bg-gradient-1), var(--bg-gradient-2);
+			background-attachment: fixed;
 		}
 
-		@media (max-width: 768px) {
+		/* Lớp bao ngoài để căn giữa và quản lý tỷ lệ */
+		.view-container {
+			width: 100%;
+			max-width: 210mm;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+		}
+
+		.sheet {
+			background: white;
+			width: 210mm;
+			/* Cố định chiều rộng chuẩn để giữ layout máy tính */
+			min-height: auto;
+			padding: 15mm 18mm;
+			position: relative;
+			box-shadow: 0 30px 60px rgba(0, 0, 0, 0.12);
+			transform-origin: top center;
+			transition: transform 0.3s ease;
+			border-radius: 4px;
+		}
+
+		/* Responsive Scaling cho màn hình nhỏ */
+		@media (max-width: 850px) {
 			body {
 				padding: 10px;
 			}
-		}
 
-		/* Paper Sheet A4 Config */
-		.sheet {
-			background: white;
-			width: 100%;
-			max-width: 210mm;
-			/* A4 Width Limit */
-			min-height: 297mm;
-			padding: 15mm 20mm;
-			position: relative;
-			box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-		}
-
-		@media (max-width: 600px) {
 			.sheet {
-				padding: 10mm;
-				min-height: auto;
+				/* Tự động co giãn theo chiều rộng màn hình (375px / 794px ~ 0.47) */
+				transform: scale(calc((100vw - 20px) / 210 * 0.264583));
+				/* Chú ý: CSS này hơi phức tạp, tôi sẽ dùng JS để tính chính xác hơn */
 			}
 		}
 
-		/* Header Layout */
 		.header {
 			text-align: center;
-			border-bottom: 3px double #000;
-			padding-bottom: 20px;
-			margin-bottom: 25px;
+			border-bottom: 2px solid #000;
+			padding-bottom: 15px;
+			margin-bottom: 20px;
 		}
 
 		.header h1 {
-			font-family: 'Plus Jakarta Sans', sans-serif;
-			font-size: 28pt;
+			font-family: 'Inter', sans-serif;
+			font-size: 26pt;
 			font-weight: 800;
 			text-transform: uppercase;
 			color: #000;
-			margin-bottom: 12px;
-			letter-spacing: 4px;
+			margin-bottom: 8px;
+			letter-spacing: 3px;
 		}
 
 		.slip-meta {
 			display: flex;
 			justify-content: center;
-			gap: 40px;
+			gap: 30px;
 			font-size: 11pt;
-			color: #444;
-			border-top: 1px solid #eee;
-			padding-top: 10px;
-			flex-wrap: wrap;
+			color: #333;
+			font-family: 'Inter', sans-serif;
 		}
 
-		.slip-meta p {
-			margin: 0;
-		}
-
-		/* Order Info Grid */
 		.info-grid {
 			display: grid;
-			grid-template-columns: 1.5fr 1fr;
+			grid-template-columns: 1fr 1fr;
 			gap: 20px;
 			margin-bottom: 15px;
 			font-size: 11pt;
-			line-height: 1.5;
-		}
-
-		@media (max-width: 600px) {
-			.info-grid {
-				grid-template-columns: 1fr;
-				gap: 5px;
-			}
-
-			.info-col.text-right {
-				text-align: left;
-				margin-top: 10px;
-			}
-		}
-
-		.info-col strong {
-			font-weight: bold;
-			display: inline-block;
-			min-width: 80px;
+			line-height: 1.4;
 		}
 
 		.note-box {
 			font-style: italic;
-			border: 1px dashed #999;
-			padding: 8px;
+			border: 1px dashed #666;
+			padding: 8px 12px;
 			margin-bottom: 20px;
-			font-size: 10pt;
+			font-size: 10.5pt;
+			background: #fafafa;
 		}
 
-		/* Product Table */
 		table {
 			width: 100%;
 			border-collapse: collapse;
@@ -128,17 +141,18 @@
 
 		th {
 			border: 1px solid #000;
-			background-color: #f0f0f0;
+			background-color: #f2f2f2;
 			font-weight: bold;
-			padding: 8px 5px;
+			padding: 8px 4px;
 			text-align: center;
 			font-size: 10pt;
-			font-family: 'Plus Jakarta Sans', sans-serif;
+			font-family: 'Inter', sans-serif;
+			text-transform: uppercase;
 		}
 
 		td {
 			border: 1px solid #000;
-			padding: 8px 5px;
+			padding: 8px 6px;
 			font-size: 11pt;
 			vertical-align: middle;
 		}
@@ -155,425 +169,349 @@
 			font-weight: bold;
 		}
 
-		/* Table Responsive */
-		@media (max-width: 500px) {
-
-			th,
-			td {
-				font-size: 9pt;
-				padding: 4px;
-			}
-
-			.col-hide-mobile {
-				display: none;
-			}
-
-			/* Có thể ẩn bớt cột STT nếu cần */
-		}
-
-		/* Summary Section */
 		.summary-section {
 			display: flex;
 			flex-direction: column;
 			align-items: flex-end;
-			margin-bottom: 30px;
-			font-size: 11pt;
+			margin-bottom: 25px;
 		}
 
 		.summary-row {
 			display: flex;
 			justify-content: flex-end;
-			gap: 20px;
-			margin-bottom: 5px;
-			text-align: right;
+			gap: 15px;
+			margin-bottom: 4px;
 			width: 100%;
+			font-size: 11pt;
 		}
 
 		.total-final {
-			font-size: 14pt;
-			font-weight: bold;
-			color: #d35400;
-			margin-top: 5px;
-			padding-top: 5px;
-			border-top: 1px solid #ccc;
+			font-size: 15pt;
+			font-weight: 800;
+			color: #c2410c;
+			margin-top: 8px;
+			padding-top: 8px;
+			border-top: 1px solid #000;
+			font-family: 'Inter', sans-serif;
 		}
 
-		/* Footer Signatures */
 		.footer-sign {
-			display: flex;
-			justify-content: space-between;
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
 			text-align: center;
-			margin-top: 30px;
+			margin-top: 20px;
 			page-break-inside: avoid;
-			gap: 10px;
-		}
-
-		@media (max-width: 600px) {
-			.footer-sign {
-				font-size: 9pt;
-			}
-		}
-
-		.sign-block {
-			width: 30%;
 		}
 
 		.sign-block h4 {
-			font-family: 'Plus Jakarta Sans', sans-serif;
+			font-family: 'Inter', sans-serif;
 			font-size: 10pt;
 			text-transform: uppercase;
 			margin-bottom: 60px;
-			/* Space for sign */
 		}
 
-		.sign-block p {
-			font-size: 10pt;
+		.sign-name {
+			font-weight: 700;
+			font-size: 11pt;
 		}
 
-		/* Utilities */
 		#loading {
-			position: absolute;
+			position: fixed;
 			top: 50%;
 			left: 50%;
 			transform: translate(-50%, -50%);
-			font-family: sans-serif;
-			font-size: 18px;
-			background: rgba(255, 255, 255, 0.9);
-			padding: 20px;
-			border-radius: 8px;
-			box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+			background: white;
+			padding: 30px;
+			border-radius: 16px;
+			box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+			z-index: 9999;
+			text-align: center;
+			font-family: 'Inter', sans-serif;
 		}
 
 		.print-btn {
 			position: fixed;
-			bottom: 20px;
-			right: 20px;
-			background: #d35400;
-			color: white;
+			bottom: 30px;
+			right: 30px;
+			background: var(--primary);
+			color: #0f172a;
 			border: none;
-			padding: 12px 24px;
+			padding: 16px 32px;
 			border-radius: 50px;
 			font-size: 16px;
-			font-weight: bold;
+			font-weight: 900;
 			cursor: pointer;
-			box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-			font-family: 'Plus Jakarta Sans', sans-serif;
 			display: flex;
 			align-items: center;
-			gap: 10px;
-			transition: transform 0.2s;
+			gap: 12px;
+			z-index: 100;
+			box-shadow: 0 10px 25px rgba(250, 204, 21, 0.4);
+			font-family: 'Inter', sans-serif;
+			transition: 0.3s;
 		}
 
 		.print-btn:hover {
-			background: #e67e22;
-			transform: translateY(-2px);
+			transform: translateY(-5px);
+			box-shadow: 0 15px 35px rgba(250, 204, 21, 0.6);
 		}
 
-		/* Print Media Query */
+
 		@media print {
 			body {
 				background: none;
-				display: block;
-				padding: 0;
-			}
-
-			.sheet {
-				width: 100%;
-				max-width: none;
-				/* Full Width for Print */
-				box-shadow: none;
 				padding: 0;
 				margin: 0;
 			}
 
-			.print-btn {
-				display: none;
+			.sheet {
+				box-shadow: none;
+				padding: 10mm;
+				margin: 0;
+				transform: none !important;
+				width: 100%;
+				max-width: none;
+			}
+
+			.print-btn,
+			#floating-menu,
+			#chatbot-widget {
+				display: none !important;
 			}
 
 			@page {
-				size: A4;
-				margin: 15mm 20mm;
+				size: A4 portrait;
+				margin: 10mm;
+			}
+
+			table {
+				width: 100% !important;
+				table-layout: auto !important;
+			}
+
+			td,
+			th {
+				word-break: break-word !important;
 			}
 		}
 	</style>
 </head>
 
 <body>
-	<div id="loading">Đang tải dữ liệu đơn hàng...</div>
-
-	<div class="sheet" id="invoiceContent" style="display: none;">
-		<!-- Header Modernized -->
-		<div class="header">
-			<h1>PHIẾU GIAO HÀNG</h1>
-			<div class="slip-meta">
-				<p>Mã đơn: <strong id="lblOrderId" style="color:#d35400">---</strong></p>
-				<p>Ngày: <span id="lblDate">---/---/----</span></p>
-				<p>Tổng kiện: <strong id="lblTotalQty">0</strong></p>
-			</div>
+	<div id="loading">
+		<div
+			style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #ea580c; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px;">
 		</div>
+		<style>
+			@keyframes spin {
+				0% {
+					transform: rotate(0deg);
+				}
 
-		<!-- Info Grid -->
-		<div class="info-grid">
-			<div class="info-col">
-				<p><strong>Khách hàng:</strong> <span id="lblCustomer">---</span></p>
-				<!-- <p><strong>Điện thoại:</strong> <span>...</span></p> -->
-				<p><strong>Địa chỉ:</strong> <span>...</span></p>
-			</div>
-			<div class="info-col text-right">
-				<p><strong>Người lập:</strong> <span id="lblStaff">---</span></p>
-				<p><strong>Trạng thái:</strong> <span id="lblStatus">---</span></p>
-			</div>
-		</div>
+				100% {
+					transform: rotate(360deg);
+				}
+			}
+		</style>
+		<p>Đang tải phiếu giao hàng...</p>
+	</div>
 
-		<!-- Note -->
-		<div class="note-box">
-			<strong>Ghi chú:</strong> <span id="lblNote">...</span>
-		</div>
+	<div class="view-container">
+		<div class="sheet" id="invoiceContent" style="display: none;">
+			<div class="header">
+				<h1>PHIẾU GIAO HÀNG</h1>
+				<div class="slip-meta">
+					<p>Đơn: <strong id="lblOrderId" style="color:var(--primary-dark)">D000</strong></p>
+					<p>Ngày: <span id="lblDate">--/--/--</span></p>
+					<p>Kiện: <strong id="lblTotalQty">0.00</strong></p>
+					<p>TL: <strong id="lblTotalWeight">0.00</strong> kg</p>
+				</div>
+			</div>
 
-		<!-- Table -->
-		<table>
-			<thead>
-				<tr>
-					<th width="40">STT</th>
-					<th>Tên Hàng Hóa</th>
-					<th width="120">Quy Cách</th>
-					<th width="60">SL</th>
-					<th width="110">Đơn Giá</th>
-					<th width="130">Thành Tiền</th>
-				</tr>
-			</thead>
-			<tbody id="tblBody">
-				<!-- Rows here -->
-			</tbody>
-		</table>
+			<div class="info-grid">
+				<div class="info-col">
+					<p><strong>Khách hàng:</strong> <span id="lblCustomer">...</span></p>
+					<p><strong>Địa chỉ:</strong> ---</p>
+				</div>
+				<div class="info-col text-right">
+					<p><strong>Người lập:</strong> <span id="lblStaff">...</span></p>
+					<p><strong>Trạng thái:</strong> <span id="lblStatus">...</span></p>
+				</div>
+			</div>
 
-		<!-- Summary -->
-		<div class="summary-section">
-			<div class="summary-row">
-				<span>Cộng tiền hàng:</span>
-				<strong id="lblSubTotal">0</strong>
+			<div class="note-box" id="noteRow">
+				<strong>Ghi chú:</strong> <span id="lblNote">...</span>
 			</div>
-			<div class="summary-row" style="color: #555;">
-				<span id="lblServiceLabel">Dịch vụ (Vận chuyển/Chiết khấu):</span>
-				<strong id="lblServiceFee">0</strong>
-			</div>
-			<div class="summary-row total-final">
-				<span>SỐ TIỀN CÒN LẠI TRONG ĐƠN:</span>
-				<span id="lblFinalTotal">0 đ</span>
-			</div>
-		</div>
 
-		<!-- Footer Signatures -->
-		<div class="footer-sign">
-			<div class="sign-block">
-				<h4>Người Lập Phiếu</h4>
-				<p id="lblStaffSign" style="margin-top: 70px; font-weight: bold;">---</p>
+			<table>
+				<thead>
+					<tr>
+						<th width="45">STT</th>
+						<th>Tên Hàng Hóa</th>
+						<th width="120">Quy Cách</th>
+						<th width="65">SL</th>
+						<th width="80">KG</th>
+						<th width="110">Đơn Giá</th>
+						<th width="130">Thành Tiền</th>
+					</tr>
+				</thead>
+				<tbody id="tblBody"></tbody>
+			</table>
+
+			<div class="summary-section">
+				<div class="summary-row">
+					<span>Tiền hàng:</span>
+					<strong id="lblSubTotal">0 đ</strong>
+				</div>
+				<div class="summary-row">
+					<span id="lblServiceLabel">Vận chuyển:</span>
+					<strong id="lblServiceFee">0 đ</strong>
+				</div>
+				<div class="summary-row total-final">
+					<span>SỐ TIỀN CÒN LẠI:</span>
+					<span id="lblFinalTotal">0 đ</span>
+				</div>
 			</div>
-			<div class="sign-block">
-				<h4>Người Giao Hàng</h4>
-				<p style="margin-top: 70px;">(Ký, họ tên)</p>
-			</div>
-			<div class="sign-block">
-				<h4>Người Nhận Hàng</h4>
-				<p style="margin-top: 70px;">(Ký, họ tên)</p>
+
+			<div class="footer-sign">
+				<div class="sign-block">
+					<h4>NGƯỜI LẬP PHIẾU</h4>
+					<p class="sign-name" id="lblStaffSign">...</p>
+				</div>
+				<div class="sign-block">
+					<h4>NGƯỜI GIAO HÀNG</h4>
+				</div>
+				<div class="sign-block">
+					<h4>NGƯỜI NHẬN HÀNG</h4>
+				</div>
 			</div>
 		</div>
 	</div>
 
 	<button class="print-btn" onclick="window.print()">
-		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-			stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+		<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+			stroke-linecap="round" stroke-linejoin="round">
 			<polyline points="6 9 6 2 18 2 18 9"></polyline>
-			<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1 2-2h-2"></path>
+			<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
 			<rect x="6" y="14" width="12" height="8"></rect>
 		</svg>
 		IN PHIẾU
 	</button>
 
 	<script>
-		const ORDER_URL = 'https://script.google.com/macros/s/AKfycby6Ys7SwFR4bwRwgqk1wiX17H6ZQzbOPt4UKLK-37OTomvTxZWiYvPSKcNTMyaOSVVH/exec';
+		const ORDER_URL = 'https://script.google.com/macros/s/AKfycby_Uduzhl4k6aVfQEcgRr7XV3Vz-xJSIHIuQ4sD50I8Y0662wEHcWHgQMGJ2IaRgeNL5w/exec';
 
-		// 1. Get Params
-		const params = new URLSearchParams(window.location.search);
-		const orderId = params.get('id');
-
-		let staffCache = null;
-
-		// 2. Fetch Data
-		async function init() {
-			// Priority: URL Param > SessionStorage
-			let currentId = params.get('id');
-			if (!currentId) {
-				currentId = sessionStorage.getItem('last_order_id');
-				console.log("Fallback to sessionStorage for ID:", currentId);
+		// Tự động scale để vừa màn hình điện thoại mà không bị vỡ layout
+		function handleScaling() {
+			const sheet = document.getElementById('invoiceContent');
+			if (!sheet || window.innerWidth > 850) {
+				if (sheet) sheet.style.transform = 'none';
+				return;
 			}
+			const containerWidth = window.innerWidth - 20;
+			const sheetWidth = 794; // 210mm ~ 794px
+			const scale = containerWidth / sheetWidth;
+			sheet.style.transform = `scale(${scale})`;
 
-			if (!currentId) {
-				document.getElementById('loading').innerHTML = 'Lỗi: Không tìm thấy mã đơn hàng! (ID missing)';
+			// Điều chỉnh chiều cao bọc ngoài cho vừa scale
+			const container = document.querySelector('.view-container');
+			container.style.height = (sheet.offsetHeight * scale + 40) + 'px';
+		}
+
+		window.addEventListener('resize', handleScaling);
+
+		async function init() {
+			const params = new URLSearchParams(window.location.search);
+			let orderId = params.get('id') || localStorage.getItem('print_order_id');
+
+			if (!orderId) {
+				document.getElementById('loading').innerHTML = '<p style="color:#ef4444">Mã đơn hàng không hợp lệ!</p>';
 				return;
 			}
 
-			const orderId = currentId; // Sử dụng biến chung
-
 			try {
-				// Determine Order Info Source
-				let orderInfo = null;
+				const [resOrders, resDetails] = await Promise.all([
+					fetch(ORDER_URL, {
+						method: 'POST',
+						body: SecurityProvider.prepareRequest('get_orders', {
+							userEmail: user.email,
+							isAdmin: user.roleId === 'R001'
+						})
+					}),
+					fetch(ORDER_URL, {
+						method: 'POST',
+						body: SecurityProvider.prepareRequest('get_order_details', {
+							order_id: orderId
+						})
+					})
+				]);
 
-				// A. Check Session Storage (Fast Path)
-				const sessionData = sessionStorage.getItem('print_order_data');
-				if (sessionData) {
-					try {
-						const parsed = JSON.parse(sessionData);
-						if (parsed.id_don_hang === orderId) {
-							orderInfo = parsed;
-							console.log("Loaded order info from SessionStorage");
-						}
-					} catch (e) { console.error("Session parse error", e); }
-				}
+				const dataOrders = await resOrders.json();
+				const dataDetails = await resDetails.json();
+				const orderInfo = dataOrders.orders.find(o => o.id_don_hang === orderId);
 
-				// Load Staff Data for Mapping
-				fetch('data/gia_khach_hang.json')
-					.then(r => r.json())
-					.then(d => { staffCache = d; if (orderInfo) updateStaffName(orderInfo); })
-					.catch(e => console.log('Staff data error', e));
-
-				// If Header loaded from session, render it immediately
-				if (orderInfo) {
-					renderHeader(orderInfo);
-				}
-
-				// Fetch Details (Always needed)
-				document.getElementById('loading').innerHTML = orderInfo ? 'Đang tải chi tiết sản phẩm...' : 'Đang tải dữ liệu...';
-
-				const detailRes = await fetch(`${ORDER_URL}?action=get_order_detail&orderId=${orderId}`);
-				const detailJson = await detailRes.json();
-
-				// B. If NO Header in Session, Fetch from Server (Slow Path)
-				if (!orderInfo) {
-					const userLocal = JSON.parse(localStorage.getItem('userLoggedIn') || '{}');
-					const username = userLocal.email || '';
-					const orderRes = await fetch(`${ORDER_URL}?action=read&username=${encodeURIComponent(username)}`);
-					const orderJson = await orderRes.json();
-
-					if (orderJson.success) {
-						orderInfo = orderJson.data.find(o => o.id_don_hang === orderId);
-					}
-				}
-
-				if (orderInfo) {
-					renderInvoice(orderInfo, detailJson.data || []);
+				if (orderInfo && dataDetails.success) {
+					renderInvoice(orderInfo, dataDetails.details);
+					setTimeout(handleScaling, 100);
 				} else {
-					document.getElementById('loading').innerHTML = 'Không tìm thấy thông tin đơn hàng!';
+					document.getElementById('loading').innerHTML = '<p>Không tìm thấy dữ liệu đơn hàng.</p>';
 				}
-
 			} catch (e) {
-				console.error(e);
-				document.getElementById('loading').innerHTML = `Lỗi kết nối: ${e.message}`;
+				document.getElementById('loading').innerHTML = `<p>Lỗi kết nối: ${e.message}</p>`;
 			}
-		}
-
-		function renderHeader(order) {
-			// Bind Header Fields only
-			document.getElementById('lblOrderId').innerText = order.id_don_hang;
-			document.getElementById('lblDate').innerText = parseDateVN(order.ngay_len_don);
-			document.getElementById('lblCustomer').innerText = order.ten_khach_hang;
-			document.getElementById('lblNote').innerText = order.ghi_chu_don_hang || '';
-			document.getElementById('lblStatus').innerText = order.trang_thai_don_hang;
-
-			// Initial staff name (raw email)
-			document.getElementById('lblStaff').innerText = (order.nguoi_len_don || '').split('@')[0];
-			document.getElementById('lblStaffSign').innerText = (order.nguoi_len_don || '').split('@')[0];
-		}
-
-		function updateStaffName(order) {
-			let staffName = (order.nguoi_len_don || '').split('@')[0];
-			if (staffCache && order.nguoi_len_don) {
-				const found = staffCache.find(u => u.mail && u.mail.toLowerCase().includes(order.nguoi_len_don.toLowerCase().replace('@gmail.com', '')));
-				if (found) staffName = found.name;
-			}
-			document.getElementById('lblStaff').innerText = staffName;
-			document.getElementById('lblStaffSign').innerText = staffName;
 		}
 
 		function renderInvoice(order, items) {
 			document.getElementById('loading').style.display = 'none';
 			document.getElementById('invoiceContent').style.display = 'block';
 
-			// Ensure header is up to date (mostly mapped staff name)
-			renderHeader(order);
-			updateStaffName(order);
+			document.getElementById('lblOrderId').innerText = order.id_don_hang;
+			document.getElementById('lblDate').innerText = order.ngay_len_don;
+			document.getElementById('lblCustomer').innerText = order.ten_khach_hang;
+			document.getElementById('lblStatus').innerText = order.trang_thai_don_hang;
 
-			// Render Items
+			const note = order.ghi_chu_don_hang || '';
+			document.getElementById('lblNote').innerText = note;
+			if (!note) document.getElementById('noteRow').style.display = 'none';
+
+			const staffName = order.nguoi_len_don ? order.nguoi_len_don.split('@')[0] : 'Admin';
+			document.getElementById('lblStaff').innerText = staffName;
+			document.getElementById('lblStaffSign').innerText = staffName;
+
 			const tbody = document.getElementById('tblBody');
-			let subTotal = 0;
-			let totalKients = 0; // Đổi từ totalQty sang totalKients
+			let totalPacking = 0;
 
-			if (items && items.length > 0) {
-				tbody.innerHTML = items.map((item, idx) => {
-					const price = parseFloat(item.gia_tien || 0);
-					const qty = parseFloat(item.so_luong || 0);
-					const amount = parseFloat(item.thanh_tien || 0);
-					// Hỗ trợ cả trường hợp tiêu đề có dấu cách dư thừa từ Google Sheet: "tinh_kien_trong _don"
-					const kienItem = parseFloat(item.tinh_kien_trong_don || item['tinh_kien_trong _don'] || 0);
+			tbody.innerHTML = items.map((item, idx) => {
+				const pack = parseFloat(item.tinh_kien_trong_don);
+				totalPacking += isFinite(pack) ? pack : 0;
+				const itemWeight = parseFloat(item.trong_luong || 0);
+				return `
+                    <tr>
+                        <td class="text-center">${idx + 1}</td>
+                        <td class="text-bold">${item.ten_san_pham}</td>
+                        <td class="text-center">${item.quy_cach_san_pham || ''}</td>
+                        <td class="text-center text-bold">${item.so_luong.toLocaleString('vi-VN')}</td>
+                        <td class="text-center">${itemWeight.toFixed(2)}</td>
+                        <td class="text-right">${item.gia_tien.toLocaleString('vi-VN')}</td>
+                        <td class="text-right text-bold">${item.thanh_tien.toLocaleString('vi-VN')}</td>
+                    </tr>
+                `;
+			}).join('');
 
-					subTotal += amount;
-					totalKients += Math.floor(kienItem); // Làm tròn xuống từng sản phẩm trước khi cộng tổng theo yêu cầu
+			document.getElementById('lblTotalWeight').innerText = parseFloat(order.tong_trong_luong || 0).toLocaleString('vi-VN', { minimumFractionDigits: 2 });
 
-					return `
-                        <tr>
-                            <td class="text-center">${idx + 1}</td>
-                            <td>${item.ten_san_pham}</td>
-                            <td class="text-center">${item.quy_cach_san_pham || ''}</td>
-                            <td class="text-center bold">${qty.toLocaleString('vi-VN')}</td>
-                            <td class="text-right">${price.toLocaleString('vi-VN')}</td>
-                            <td class="text-right bold">${amount.toLocaleString('vi-VN')}</td>
-                        </tr>
-                    `;
-				}).join('');
-			} else {
-				tbody.innerHTML = '<tr><td colspan="6" class="text-center">Không có dữ liệu sản phẩm</td></tr>';
-			}
+			document.getElementById('lblTotalQty').innerText = totalPacking.toFixed(2);
+			document.getElementById('lblSubTotal').innerText = order.tong_tien_trong_don.toLocaleString('vi-VN') + ' ₫';
 
-			// Hiển thị tổng kiện (lấy 2 chữ số thập phân nếu có số lẻ)
-			document.getElementById('lblTotalQty').innerText = totalKients % 1 === 0 ? totalKients : totalKients.toFixed(2);
-
-			// Footer Calculations
-			const serviceFee = parseFloat(order.tong_tien_dich_vu || 0);
-			const serviceType = order.loai_dich_vu || 'Phí vận chuyển';
-
-			// Set dynamic label
-			document.getElementById('lblServiceLabel').innerText = serviceType + ':';
-
-			const sheetTotal = parseFloat(order.so_tien_con_lai || order.tong_tien_trong_don || 0);
-
-			// Nếu là chiết khấu, hiển thị dấu trừ phía trước số tiền cho trực quan
-			const displayService = (serviceType.includes('Chiết khấu')) ? `-${serviceFee.toLocaleString('vi-VN')}` : serviceFee.toLocaleString('vi-VN');
-
-			document.getElementById('lblSubTotal').innerText = subTotal.toLocaleString('vi-VN') + ' ₫';
-			document.getElementById('lblServiceFee').innerText = displayService + ' ₫';
-			document.getElementById('lblFinalTotal').innerText = sheetTotal.toLocaleString('vi-VN') + ' ₫';
-		}
-
-		function parseDateVN(dateStr) {
-			if (!dateStr) return '';
-			// Try ISO first
-			let d = new Date(dateStr);
-			if (!isNaN(d.getTime())) {
-				return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
-			}
-			// Try "HH:mm:ss dd/MM/yyyy"
-			// Split by space
-			const parts = dateStr.split(' ');
-			if (parts.length > 0) {
-				// Find part with '/'
-				const datePart = parts.find(p => p.includes('/'));
-				if (datePart) return datePart;
-			}
-			return dateStr;
+			const fee = order.tong_tien_dich_vu || 0;
+			document.getElementById('lblServiceLabel').innerText = fee < 0 ? 'Chiết khấu:' : 'Vận chuyển:';
+			document.getElementById('lblServiceFee').innerText = (fee < 0 ? '- ' : '+ ') + Math.abs(fee).toLocaleString('vi-VN') + ' ₫';
+			document.getElementById('lblFinalTotal').innerText = order.so_tien_con_lai.toLocaleString('vi-VN') + ' ₫';
 		}
 
 		init();
 	</script>
+	<script src="chatbot.js"></script>
+	<script src="floating-menu.js"></script>
 </body>
 
 </html>

@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-QFQ2HMYTDH"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag('js', new Date());
+
+		gtag('config', 'G-QFQ2HMYTDH');
+	</script>
+
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Tổng Hợp Check-in | Dunvex Admin</title>
+	<link rel="icon" type="image/svg+xml"
+		href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23FACC15'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' fill='white' font-size='60' font-family='sans-serif' font-weight='800'>DV</text></svg>">
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;800&display=swap"
+		rel="stylesheet">
+	<script src="security-utils.js"></script>
+	<script>
+		const session = SecurityProvider.validateAccess();
+		const currentUser = session ? session.user : null;
+	</script>
+
+	<!-- Leaflet Map -->
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+			text-rendering: optimizeLegibility;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+		}
+
+		body {
+			background-color: #f8fafc;
+			color: #1e293b;
+			min-height: 100vh;
+			padding: 40px 20px;
+			-webkit-text-size-adjust: 100%;
+		}
+
+		.container {
+			max-width: 1400px;
+			margin: 0 auto;
+		}
+
+		/* Top Bar */
+		.top-bar {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 24px;
+		}
+
+		.top-bar h1 {
+			font-size: 1.5rem;
+			font-weight: 800;
+			color: #0f172a;
+			font-family: 'Outfit', sans-serif;
+		}
+
+		.user-info {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			background: white;
+			padding: 8px 16px;
+			border-radius: 99px;
+			border: 1px solid #e2e8f0;
+			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+		}
+
+		.avatar {
+			width: 32px;
+			height: 32px;
+			background: var(--primary);
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-weight: 800;
+			font-size: 0.8rem;
+			color: #0f172a;
+		}
+
+		.btn-back {
+			background: white;
+			border: 1px solid #e2e8f0;
+			color: #475569;
+			padding: 8px 16px;
+			border-radius: 12px;
+			cursor: pointer;
+			transition: all 0.3s ease;
+			text-decoration: none;
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			font-size: 0.9rem;
+			font-weight: 600;
+		}
+
+		.btn-back:hover {
+			background: rgba(255, 255, 255, 0.05);
+			color: white;
+		}
+
+		/* Dashboard Layout */
+		.dashboard-grid {
+			display: grid;
+			grid-template-columns: 1fr 400px;
+			gap: 20px;
+			height: calc(100vh - 120px);
+		}
+
+		@media (max-width: 1100px) {
+			.dashboard-grid {
+				grid-template-columns: 1fr;
+				height: auto;
+			}
+		}
+
+		/* Sidebar Section */
+		.sidebar {
+			display: flex;
+			flex-direction: column;
+			gap: 20px;
+			height: 100%;
+			overflow: hidden;
+		}
+
+		/* Filters Section */
+		.filter-card {
+			background: white;
+			border: 1px solid #e2e8f0;
+			border-radius: 20px;
+			padding: 20px;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+		}
+
+		.filter-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 12px;
+		}
+
+		.form-group label {
+			display: block;
+			font-size: 0.75rem;
+			color: #475569;
+			margin-bottom: 6px;
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			font-weight: 800;
+		}
+
+		input,
+		select {
+			width: 100%;
+			background: white !important;
+			border: 1.5px solid #cbd5e1 !important;
+			border-radius: 10px;
+			padding: 10px 12px;
+			color: #0f172a !important;
+			outline: none;
+			font-size: 0.9rem;
+			font-weight: 600;
+		}
+
+		input:focus,
+		select:focus {
+			border-color: var(--primary);
+		}
+
+		/* List Section */
+		.list-card {
+			background: white;
+			border: 1px solid #e2e8f0;
+			border-radius: 20px;
+			padding: 20px;
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			overflow: hidden;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+		}
+
+		.list-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 15px;
+		}
+
+		.list-container {
+			overflow-y: auto;
+			flex: 1;
+		}
+
+		.checkin-item {
+			background: #f8fafc;
+			border: 1px solid #e2e8f0;
+			border-radius: 12px;
+			padding: 12px;
+			margin-bottom: 10px;
+			cursor: pointer;
+			transition: 0.3s;
+			display: flex;
+			gap: 12px;
+			align-items: center;
+			color: #1e293b;
+		}
+
+		.checkin-item:hover {
+			background: rgba(255, 255, 255, 0.08);
+			transform: translateX(5px);
+		}
+
+		.checkin-item.active {
+			border-color: var(--primary);
+			background: white;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+		}
+
+		.sales-indicator {
+			width: 4px;
+			height: 40px;
+			border-radius: 4px;
+			flex-shrink: 0;
+		}
+
+		.item-info {
+			flex: 1;
+			overflow: hidden;
+		}
+
+		.item-name {
+			font-weight: 600;
+			font-size: 0.9rem;
+			margin-bottom: 2px;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		.item-meta {
+			font-size: 0.75rem;
+			color: #64748b;
+			display: flex;
+			justify-content: space-between;
+			font-weight: 600;
+		}
+
+		/* Map Section */
+		.map-section {
+			background: var(--card-bg);
+			border: 1px solid var(--glass-border);
+			border-radius: 24px;
+			position: relative;
+			overflow: hidden;
+		}
+
+		#map {
+			width: 100%;
+			height: 100%;
+			z-index: 1;
+		}
+
+		/* Detail Overlay */
+		.detail-card {
+			position: absolute;
+			bottom: 20px;
+			left: 20px;
+			right: 20px;
+			background: white;
+			border: 1px solid #e2e8f0;
+			border-radius: 20px;
+			padding: 20px;
+			z-index: 1000;
+			display: none;
+			animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+			color: #1e293b;
+		}
+
+		@keyframes slideUp {
+			from {
+				transform: translateY(100%);
+				opacity: 0;
+			}
+
+			to {
+				transform: translateY(0);
+				opacity: 1;
+			}
+		}
+
+		.detail-grid {
+			display: grid;
+			grid-template-columns: 120px 1fr 1fr;
+			gap: 20px;
+		}
+
+		.detail-img {
+			width: 120px;
+			height: 120px;
+			object-fit: cover;
+			border-radius: 12px;
+			background: rgba(0, 0, 0, 0.2);
+			cursor: pointer;
+		}
+
+		.detail-close {
+			position: absolute;
+			top: 15px;
+			right: 15px;
+			cursor: pointer;
+			opacity: 0.6;
+		}
+
+		.detail-close:hover {
+			opacity: 1;
+		}
+
+		.stat-val {
+			font-weight: 700;
+			color: var(--primary);
+		}
+
+		/* Legend */
+		.map-legend {
+			position: absolute;
+			top: 20px;
+			right: 20px;
+			background: white;
+			border: 1px solid #e2e8f0;
+			padding: 12px;
+			border-radius: 12px;
+			z-index: 1000;
+			max-height: 200px;
+			overflow-y: auto;
+			width: 180px;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+			color: #1e293b;
+		}
+
+		.legend-item {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			font-size: 0.75rem;
+			margin-bottom: 6px;
+		}
+
+		.color-dot {
+			width: 10px;
+			height: 10px;
+			border-radius: 50%;
+			flex-shrink: 0;
+		}
+
+		/* Loading */
+		.loading-overlay {
+			position: fixed;
+			inset: 0;
+			background: rgba(15, 23, 42, 0.8);
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			z-index: 9999;
+			visibility: hidden;
+			opacity: 0;
+			transition: 0.3s;
+		}
+
+		.loading-overlay.active {
+			visibility: visible;
+			opacity: 1;
+		}
+
+		.loader {
+			width: 40px;
+			height: 40px;
+			border: 4px solid var(--glass-border);
+			border-top-color: var(--primary);
+			border-radius: 50%;
+			animation: spin 1s linear infinite;
+		}
+
+		@keyframes spin {
+			to {
+				transform: rotate(360deg);
+			}
+		}
+
+		/* Custom Marker */
+		.custom-marker {
+			background: none !important;
+			border: none !important;
+		}
+
+		.marker-pin {
+			width: 24px;
+			height: 24px;
+			border-radius: 50% 50% 50% 0;
+			transform: rotate(-45deg);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			border: 2px solid white;
+			box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+		}
+
+		.marker-inner {
+			transform: rotate(45deg);
+			font-size: 10px;
+			color: white;
+			font-weight: 800;
+		}
+
+		/* Fullscreen Map Toggle */
+		.btn-fullscreen {
+			position: absolute;
+			top: 20px;
+			left: 55px;
+			/* Stay away from leaflet home/zoom buttons which are on the left */
+			z-index: 1000;
+			background: white;
+			border: 1px solid #e2e8f0;
+			padding: 8px;
+			border-radius: 8px;
+			color: #1e293b;
+			cursor: pointer;
+			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+			font-weight: 600;
+			font-size: 0.8rem;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="loading-overlay" id="loader">
+		<div class="loader"></div>
+	</div>
+
+	<div class="container">
+		<div class="top-bar">
+			<div style="display: flex; align-items: center; gap: 15px;">
+				<a href="admin-users.html" class="btn-back">← Quay lại Admin</a>
+				<h1>Tổng Hợp Check-in Nhân Viên</h1>
+			</div>
+			<div style="display: flex; align-items: center; gap: 20px;">
+				<div id="superAdminToggle"
+					style="display: none; align-items: center; gap: 10px; background: rgba(239, 68, 68, 0.1); padding: 8px 15px; border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.2);">
+					<span style="font-size: 0.8rem; font-weight: 700; color: #ef4444;">🛡️ MASTER VIEW:</span>
+					<label class="switch" style="width: 40px; height: 20px;">
+						<input type="checkbox" id="viewAllSuper" onchange="fetchData()">
+						<span class="slider" style="border-radius: 20px;"></span>
+					</label>
+				</div>
+				<div class="user-info">
+					<div class="avatar" id="avatarLetter">A</div>
+					<span id="adminName">Admin</span>
+				</div>
+			</div>
+		</div>
+
+		<div class="dashboard-grid">
+			<!-- LEFT: MAP -->
+			<div class="map-section">
+				<div id="map"></div>
+
+				<button class="btn-fullscreen" onclick="toggleMapHeight()">↕️ Thu phóng bản đồ</button>
+
+				<div class="map-legend" id="mapLegend">
+					<p style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 700;">NHÂN
+						VIÊN</p>
+					<div id="legendItems">
+						<!-- Legend items injected here -->
+					</div>
+				</div>
+
+				<!-- Detail Overlay -->
+				<div class="detail-card" id="detailCard">
+					<div class="detail-close" onclick="closeDetail()">✖️</div>
+					<div class="detail-grid">
+						<img src="" id="detImg" class="detail-img" alt="Checkin" onclick="zoomImage(this.src)">
+						<div>
+							<p class="detail-label" style="font-size: 0.75rem; color: var(--text-muted);">KHÁCH HÀNG</p>
+							<h2 id="detCustomer" style="font-size: 1.1rem; margin-bottom: 10px;">-</h2>
+							<p style="font-size: 0.85rem;"><span style="color:var(--text-muted)">Nhân viên:</span> <span
+									id="detSales" class="stat-val">-</span></p>
+							<p style="font-size: 0.85rem;"><span style="color:var(--text-muted)">Mục đích:</span> <span
+									id="detPurpose" class="stat-val">-</span></p>
+							<p id="detAdminArea" style="font-size: 0.75rem; margin-top: 5px;"></p>
+						</div>
+						<div>
+							<p class="detail-label" style="font-size: 0.75rem; color: var(--text-muted);">THỜI GIAN & VỊ
+								TRÍ</p>
+							<p style="font-size: 0.85rem; margin-top: 5px;">🕒 <span id="detTime">-</span></p>
+							<p style="font-size: 0.85rem; margin-top: 5px;">📍 <span id="detLocation">-</span></p>
+							<p style="font-size: 0.85rem; margin-top: 5px;">📏 Khoảng cách: <span id="detDistance"
+									class="stat-val">0</span> m</p>
+						</div>
+					</div>
+					<div
+						style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 10px; font-size: 0.85rem; line-height: 1.4;">
+						<span style="color: var(--text-muted); font-weight: 600;">Ghi chú:</span> <span
+							id="detNote">-</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- RIGHT: SIDEBAR -->
+			<div class="sidebar">
+				<!-- Filters -->
+				<div class="filter-card">
+					<div class="filter-grid">
+						<div class="form-group">
+							<label>Từ ngày</label>
+							<input type="date" id="filterStart">
+						</div>
+						<div class="form-group">
+							<label>Đến ngày</label>
+							<input type="date" id="filterEnd">
+						</div>
+					</div>
+					<div class="form-group" style="margin-top: 15px;">
+						<label>Lọc theo nhân viên</label>
+						<select id="filterSales">
+							<option value="ALL">Tất cả nhân viên</option>
+						</select>
+					</div>
+				</div>
+
+				<!-- List -->
+				<div class="list-card">
+					<div class="list-header">
+						<h2 style="font-size: 1rem;">Lịch sử Check-in</h2>
+						<span id="recordCount"
+							style="font-size: 0.8rem; background: var(--primary); color: white; padding: 2px 8px; border-radius: 6px;">0
+							bản ghi</span>
+					</div>
+					<div class="list-container" id="checkinList">
+						<!-- Items injected here -->
+						<p style="text-align: center; color: var(--text-muted); margin-top: 40px;">Đang tải dữ liệu...
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Image Zoom Modal -->
+	<div id="zoomModal"
+		style="position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:9999; display:none; justify-content:center; align-items:center; cursor:zoom-out;"
+		onclick="this.style.display='none'">
+		<img id="zoomImg" style="max-width:90%; max-height:90%; border-radius:8px;">
+	</div>
+
+	<script>
+		const CRM_URL = 'https://script.google.com/macros/s/AKfycbymqtjIrsThq1lxSbY5TwjxCBvAzNhEP9su2BfJIvE-DV55CnDXiSg7GwrBTaoae3Pg/exec';
+		let map = null;
+		let allHistory = [];
+		let markers = [];
+		let salesColors = {};
+		let isSuperAdmin = false;
+
+		window.onload = function () {
+			if (!currentUser) {
+				window.location.href = 'auth.html';
+				return;
+			}
+			document.getElementById('adminName').innerText = currentUser.fullName;
+			document.getElementById('avatarLetter').innerText = currentUser.fullName.charAt(0).toUpperCase();
+
+			isSuperAdmin = (currentUser.email === 'dunvex.green@gmail.com');
+			if (isSuperAdmin) {
+				document.getElementById('superAdminToggle').style.display = 'flex';
+			}
+
+			// Set default dates (Today)
+			const today = new Date().toISOString().split('T')[0];
+			document.getElementById('filterStart').value = today;
+			document.getElementById('filterEnd').value = today;
+
+			initMap();
+			fetchData();
+
+			// Listeners
+			document.getElementById('filterStart').onchange = applyFilters;
+			document.getElementById('filterEnd').onchange = applyFilters;
+			document.getElementById('filterSales').onchange = applyFilters;
+		};
+
+		function initMap() {
+			map = L.map('map', {
+				zoomControl: true,
+				tap: false
+			}).setView([10.8231, 106.6297], 13);
+
+			L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+				attribution: '&copy; OpenStreetMap contributors'
+			}).addTo(map);
+
+			// Give it a moment to fix layout if nested
+			setTimeout(() => map.invalidateSize(), 500);
+		}
+
+		async function fetchData() {
+			setLoading(true);
+			try {
+				const res = await fetch(CRM_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('getCheckinHistory', {
+						salesId: currentUser.email,
+						adminEmail: currentUser.adminEmail,
+						isAdmin: true,
+						viewAll: true,
+						viewAllSuper: isSuperAdmin ? document.getElementById('viewAllSuper').checked : false
+					})
+				});
+				const data = await res.json();
+				if (data.success) {
+					allHistory = data.history || [];
+
+					// Identify all unique sales
+					const salesList = [...new Set(allHistory.map(h => h.salesId))].sort();
+					populateSalesFilter(salesList);
+
+					// Generate colors for each sales
+					salesList.forEach(s => {
+						salesColors[s] = getColorForSales(s);
+					});
+
+					renderLegend(salesList);
+					applyFilters();
+				}
+			} catch (e) {
+				console.error("Fetch error", e);
+				alert("Không thể tải dữ liệu check-in.");
+			}
+			setLoading(false);
+		}
+
+		function populateSalesFilter(list) {
+			const select = document.getElementById('filterSales');
+			list.forEach(s => {
+				const opt = document.createElement('option');
+				opt.value = s;
+				opt.innerText = s;
+				select.appendChild(opt);
+			});
+		}
+
+		function renderLegend(list) {
+			const container = document.getElementById('legendItems');
+			container.innerHTML = list.map(s => `
+                <div class="legend-item">
+                    <span class="color-dot" style="background: ${salesColors[s]}"></span>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${s.split('@')[0]}</span>
+                </div>
+            `).join('');
+		}
+
+		function applyFilters() {
+			const startVal = document.getElementById('filterStart').value;
+			const endVal = document.getElementById('filterEnd').value;
+			const salesVal = document.getElementById('filterSales').value;
+
+			const start = startVal ? new Date(startVal + 'T00:00:00') : null;
+			const end = endVal ? new Date(endVal + 'T23:59:59') : null;
+
+			const filtered = allHistory.filter(h => {
+				const hDate = new Date(h.time);
+				if (start && hDate < start) return false;
+				if (end && hDate > end) return false;
+				if (salesVal !== 'ALL' && h.salesId !== salesVal) return false;
+				return true;
+			});
+
+			document.getElementById('recordCount').innerText = `${filtered.length} bản ghi`;
+			renderList(filtered);
+			updateMarkers(filtered);
+		}
+
+		function renderList(list) {
+			const container = document.getElementById('checkinList');
+			if (list.length === 0) {
+				container.innerHTML = '<p style="text-align: center; color: var(--text-muted); margin-top: 40px;">Không có dữ liệu trong khoảng thời gian này.</p>';
+				return;
+			}
+
+			container.innerHTML = list.map(h => {
+				const color = salesColors[h.salesId] || '#6366f1';
+				return `
+                    <div class="checkin-item" onclick="selectCheckin('${h.id}')" id="item-${h.id}">
+                        <div class="sales-indicator" style="background: ${color}"></div>
+                        <div class="item-info">
+                            <div class="item-name">${h.customerName}</div>
+                            <div class="item-meta">
+                                <span>🕒 ${formatTime(h.time)}</span>
+                                <span style="font-weight:700">📏 ${h.distance}m</span>
+                            </div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">👤 ${h.salesId.split('@')[0]}</div>
+                        </div>
+                    </div>
+                `;
+			}).join('');
+		}
+
+		function updateMarkers(list) {
+			// Clear old markers
+			markers.forEach(m => map.removeLayer(m));
+			markers = [];
+
+			const markerGroup = [];
+			list.forEach(h => {
+				if (h.location && h.location.includes(',')) {
+					const coords = h.location.split(',').map(n => parseFloat(n.trim()));
+					if (!isNaN(coords[0])) {
+						const color = salesColors[h.salesId] || '#6366f1';
+
+						// Custom Marker Icon
+						const customIcon = L.divIcon({
+							className: 'custom-marker',
+							html: `<div class="marker-pin" style="background: ${color}">
+                                    <div class="marker-inner">📍</div>
+                                   </div>`,
+							iconSize: [24, 24],
+							iconAnchor: [12, 24]
+						});
+
+						const marker = L.marker(coords, { icon: customIcon }).addTo(map);
+						marker.on('click', () => selectCheckin(h.id));
+						markers.push(marker);
+						markerGroup.push(marker);
+					}
+				}
+			});
+
+			if (markerGroup.length > 0) {
+				const group = L.featureGroup(markerGroup);
+				map.fitBounds(group.getBounds().pad(0.2));
+			}
+		}
+
+		function selectCheckin(id) {
+			const h = allHistory.find(x => x.id === id);
+			if (!h) return;
+
+			// Highlight in list
+			document.querySelectorAll('.checkin-item').forEach(el => el.classList.remove('active'));
+			const listEl = document.getElementById('item-' + id);
+			if (listEl) {
+				listEl.classList.add('active');
+				listEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+			}
+
+			// Fly map
+			if (h.location) {
+				const coords = h.location.split(',').map(n => parseFloat(n.trim()));
+				map.flyTo(coords, 17);
+			}
+
+			// Show detail
+			document.getElementById('detCustomer').innerText = h.customerName;
+			document.getElementById('detSales').innerText = h.salesId;
+			document.getElementById('detPurpose').innerText = h.purpose || 'Check-in';
+			document.getElementById('detTime').innerText = formatTime(h.time);
+			document.getElementById('detLocation').innerText = h.location;
+			document.getElementById('detDistance').innerText = h.distance;
+			document.getElementById('detNote').innerText = h.note || '(Không có ghi chú)';
+
+			// Show Managing Admin if exists (NEW)
+			const adminArea = document.getElementById('detAdminArea');
+			if (adminArea) {
+				adminArea.innerHTML = h.adminId ? `<span style="color: var(--text-muted)">Quản lý bởi:</span> <span class="stat-val">${h.adminId}</span>` : '';
+			}
+
+			document.getElementById('detImg').src = convertDriveLink(h.image || 'https://placehold.co/120x120/1e293b/white?text=No+Photo');
+
+			document.getElementById('detailCard').style.display = 'block';
+		}
+
+		function closeDetail() {
+			document.getElementById('detailCard').style.display = 'none';
+			document.querySelectorAll('.checkin-item').forEach(el => el.classList.remove('active'));
+		}
+
+		// --- Helpers ---
+		function getColorForSales(salesId) {
+			if (!salesId) return '#6366f1';
+			let hash = 0;
+			for (let i = 0; i < salesId.length; i++) {
+				hash = salesId.charCodeAt(i) + ((hash << 5) - hash);
+			}
+			// Use HSL for distinct but harmonious colors
+			const h = Math.abs(hash) % 360;
+			return `hsl(${h}, 75%, 60%)`;
+		}
+
+		function formatTime(iso) {
+			try {
+				const d = new Date(iso);
+				return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + d.toLocaleDateString('vi-VN');
+			} catch (e) { return iso; }
+		}
+
+		function convertDriveLink(url) {
+			if (!url || typeof url !== 'string') return url;
+			if (url.includes('drive.google.com')) {
+				const idMatch = url.match(/[-\w]{25,}/);
+				if (idMatch && idMatch[0]) return `https://lh3.googleusercontent.com/d/${idMatch[0]}=s600`;
+			}
+			return url;
+		}
+
+		function zoomImage(src) {
+			const modal = document.getElementById('zoomModal');
+			const img = document.getElementById('zoomImg');
+			img.src = src;
+			modal.style.display = 'flex';
+		}
+
+		function setLoading(active) {
+			document.getElementById('loader').classList.toggle('active', active);
+		}
+
+		let isMapExpanded = false;
+		function toggleMapHeight() {
+			const grid = document.querySelector('.dashboard-grid');
+			const sidebar = document.querySelector('.sidebar');
+			if (!isMapExpanded) {
+				grid.style.gridTemplateColumns = '1fr';
+				sidebar.style.display = 'none';
+			} else {
+				grid.style.gridTemplateColumns = '1fr 400px';
+				sidebar.style.display = 'flex';
+			}
+			isMapExpanded = !isMapExpanded;
+			setTimeout(() => map.invalidateSize(), 300);
+		}
+
+	</script>
+</body>
+
+</html>

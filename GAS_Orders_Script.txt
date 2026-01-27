@@ -1,0 +1,289 @@
+const API_SECRET = 'dv_api_secret_2025_prod_v2';
+const ORDER_HEADER_FILE = 'order.json';
+const ORDER_DETAIL_FILE = 'order_chi_tiet.json';
+const CUSTOMER_SHEET_NAME = 'data_khach_hang'; 
+const DATA_FOLDER_ID = '1_LT4rzVui2E3BgfcwUSfMsUGQMN9NRTs'; 
+const CRM_SS_ID = '15niaoQ7FozkRCushPGNtq4zj6pwA0UQ5Wel61ksv8L8'; 
+const AUTH_SS_ID = '1rhP1UCiMLi8yNVvcd56SsZIJAm09Yxu6WpjxuHKYKb0'; 
+const APP_NAME = "Dunvex Digital";
+
+// --- SECURITY CONFIG ---
+const XOR_SECRET = 'dunvex_secure_key_2025_custom';
+const AES_KEY = Utilities.newBlob('dunvex_secure_16').getBytes();
+
+const SafeStore = {
+  read: function(filename) {
+    try {
+      const folder = DriveApp.getFolderById(DATA_FOLDER_ID);
+      const fileIterator = folder.getFilesByName(filename);
+      if (!fileIterator.hasNext()) return [];
+      
+      // Chọn file mới nhất nếu có trường hợp trùng tên (đặc thù Drive)
+      let bestFile = fileIterator.next();
+      while (fileIterator.hasNext()) {
+        let f = fileIterator.next();
+        if (f.getLastUpdated() > bestFile.getLastUpdated()) bestFile = f;
+      }
+
+      const content = bestFile.getBlob().getDataAsString().trim();
+      if (!content) return [];
+      
+      if (content.startsWith('[')) {
+        return JSON.parse(content);
+      } else {
+        return content.split('\n')
+          .filter(line => line.trim())
+          .map(line => {
+            try { return JSON.parse(line); } catch(e) { return null; }
+          })
+          .filter(item => item !== null);
+      }
+    } catch (e) { return []; }
+  },
+  write: function(filename, newData, action = 'APPEND') {
+    const lock = LockService.getScriptLock();
+    try {
+      lock.waitLock(30000);
+      const folder = DriveApp.getFolderById(DATA_FOLDER_ID);
+      let file, files = folder.getFilesByName(filename);
+      if (files.hasNext()) file = files.next();
+      else file = folder.createFile(filename, '', MimeType.PLAIN_TEXT);
+
+      if (action === 'APPEND') {
+        const currentContent = file.getBlob().getDataAsString();
+        const separator = (currentContent && !currentContent.endsWith('\n')) ? '\n' : '';
+        const itemsToAppend = Array.isArray(newData) ? newData : [newData];
+        file.setContent(currentContent + separator + itemsToAppend.map(item => JSON.stringify(item)).join('\n'));
+      } else {
+        let data = (action === 'REPLACE_ALL') ? newData : this.read(filename);
+        if (action === 'UPDATE') {
+          const id = newData.id_don_hang || newData.id;
+          const idx = data.findIndex(item => (item.id_don_hang === id || item.id === id));
+          if (idx !== -1) data[idx] = Object.assign({}, data[idx], newData);
+          else data.push(newData);
+        } else if (action === 'DELETE') {
+          const id = typeof newData === 'string' ? newData : (newData.id_don_hang || newData.id);
+          data = data.filter(item => (item.id_don_hang !== id && item.id !== id));
+        }
+        file.setContent(data.map(item => JSON.stringify(item)).join('\n'));
+      }
+      return { success: true };
+    } catch (e) { return { success: false, message: e.toString() }; }
+    finally { lock.releaseLock(); }
+  }
+};
+
+function encryptXOR(text) {
+  if (!text) return "";
+  try {
+    const inputBytes = Utilities.newBlob(text.toString()).getBytes();
+    const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+    const outputBytes = [];
+    for (let i = 0; i < inputBytes.length; i++) {
+        outputBytes.push(inputBytes[i] ^ keyBytes[i % keyBytes.length]);
+    }
+    return Utilities.base64Encode(outputBytes);
+  } catch (e) { return "ENC_ERR: " + e.toString(); }
+}
+
+function encryptAES(text) {
+  try {
+    const blob = Utilities.newBlob(text.toString().trim()); 
+    const encrypted = Utilities.encrypt(Utilities.CipherAlgorithm.AES_128, AES_KEY, blob);
+    return Utilities.base64Encode(encrypted);
+  } catch (e) { return text; }
+}
+
+function decryptXOR(base64Text) {
+  if (!base64Text || base64Text.length < 5) return base64Text;
+  try {
+    const inputBytes = Utilities.base64Decode(base64Text);
+    const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+    const outputBytes = [];
+    for (let i = 0; i < inputBytes.length; i++) {
+        outputBytes.push(inputBytes[i] ^ keyBytes[i % keyBytes.length]);
+    }
+    return Utilities.newBlob(outputBytes).getDataAsString();
+  } catch (e) { return base64Text; }
+}
+
+function decryptAES(base64Text) {
+  if (!base64Text || base64Text.length < 10) return base64Text;
+  try {
+    const decoded = Utilities.base64Decode(base64Text);
+    const decrypted = Utilities.decrypt(Utilities.CipherAlgorithm.AES_128, AES_KEY, decoded);
+    return decrypted.getDataAsString();
+  } catch (e) { return base64Text; }
+}
+
+function decryptData(base64Text) {
+  if (!base64Text || typeof base64Text !== 'string') return base64Text;
+  let dec = decryptXOR(base64Text);
+  if ((!dec || !dec.includes('@')) && base64Text.length > 5) {
+     const aes = decryptAES(base64Text);
+     if (aes && aes.includes('@')) return aes;
+  }
+  return dec || base64Text;
+}
+
+function doPost(e) {
+  let result;
+  try {
+    const contents = e.postData ? e.postData.contents : "";
+    if (!contents) return ContentService.createTextOutput(JSON.stringify({ success: false, message: 'Data empty' })).setMimeType(ContentService.MimeType.JSON);
+    const data = JSON.parse(contents);
+
+    // --- API SECURITY CHECK ---
+    if (data.apiKey !== API_SECRET) {
+      return ContentService.createTextOutput(JSON.stringify({ 
+        success: false, 
+        message: 'Unauthorized Orders Access' 
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const action = (data.action || "").toString().trim();
+    switch (action) {
+      case 'get_orders': result = getOrders(data.userEmail, data.isAdmin, data.adminEmail); break;
+      case 'get_order_details': result = getOrderDetails(data.order_id || data.orderId); break;
+      case 'save_order': result = saveOrder(data.header, data.items); break;
+      case 'delete_order': result = deleteOrder(data.orderId || data.order_id); break;
+      case 'get_initial_data': result = getInitialData(data.salesId, data.adminEmail); break;
+      default: result = { success: false, message: 'Invalid action: ' + action };
+    }
+  } catch (error) { result = { success: false, message: error.toString() }; }
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function getOrders(userEmail, isAdmin, adminEmail) {
+  const headers = SafeStore.read(ORDER_HEADER_FILE);
+  const details = SafeStore.read(ORDER_DETAIL_FILE);
+  let filteredHeaders = headers;
+  
+  const userEmailNorm = (userEmail || "").toString().toLowerCase().trim();
+  const adminEmailNorm = (adminEmail || "").toString().toLowerCase().trim();
+
+  // Multi-tenant filtering
+  if (isAdmin) {
+    // Admin sees everything in their org
+    filteredHeaders = headers.filter(o => {
+      const mgr = (decryptData(o.manager_email || "") || "").toLowerCase().trim();
+      const creator = (decryptData(o.nguoi_len_don || "") || "").toLowerCase().trim();
+      
+      // Check if adminEmailNorm or userEmailNorm is one of the managers or creators
+      const isManager = mgr.split(',').map(m => m.trim()).some(m => m === adminEmailNorm || m === userEmailNorm);
+      const isCreator = creator === adminEmailNorm || creator === userEmailNorm;
+      
+      return isManager || isCreator;
+    });
+  } else {
+    // Staff sees only their own orders
+    filteredHeaders = headers.filter(o => {
+      const creator = (decryptData(o.nguoi_len_don || "") || "").toLowerCase().trim();
+      return creator === userEmailNorm;
+    });
+  }
+
+  const displayHeaders = filteredHeaders.map(h => {
+    const copy = Object.assign({}, h);
+    copy.nguoi_len_don = decryptData(h.nguoi_len_don);
+    if (h.customer_email) copy.customer_email = decryptData(h.customer_email);
+    if (h.manager_email) copy.manager_email = decryptData(h.manager_email);
+    return copy;
+  });
+
+  return { 
+    success: true, 
+    orders: displayHeaders, 
+    details: details.filter(d => filteredHeaders.some(h => h.id_don_hang === d.id_don_hang)) 
+  };
+}
+
+function getOrderDetails(orderId) {
+  const allDetails = SafeStore.read(ORDER_DETAIL_FILE);
+  return { success: true, details: allDetails.filter(d => d.id_don_hang === orderId) };
+}
+
+function saveOrder(header, items) {
+  try {
+    const isNew = !header.id_don_hang;
+    if (isNew) {
+      const orders = SafeStore.read(ORDER_HEADER_FILE);
+      const lastId = orders.reduce((max, o) => {
+        const idNum = parseInt((o.id_don_hang || "D0").replace('D', ''));
+        return idNum > max ? idNum : max;
+      }, 0);
+      header.id_don_hang = "D" + (lastId + 1).toString().padStart(3, '0');
+    }
+    header.ngay_len_don = Utilities.formatDate(new Date(), "GMT+7", "HH:mm:ss dd/MM/yyyy");
+
+    if (header.nguoi_len_don) header.nguoi_len_don = encryptXOR(decryptData(header.nguoi_len_don));
+    if (header.manager_email) header.manager_email = encryptXOR(decryptData(header.manager_email));
+    if (header.customer_email) header.customer_email = encryptXOR(header.customer_email);
+
+    if (isNew) {
+      // NEW ORDER: APPEND both header and details (SUPER FAST)
+      SafeStore.write(ORDER_HEADER_FILE, header, 'APPEND');
+      items.forEach(item => item.id_don_hang = header.id_don_hang);
+      SafeStore.write(ORDER_DETAIL_FILE, items, 'APPEND');
+    } else {
+      // UPDATE ORDER: Need to replace
+      SafeStore.write(ORDER_HEADER_FILE, header, 'UPDATE');
+      let allDetails = SafeStore.read(ORDER_DETAIL_FILE);
+      allDetails = allDetails.filter(d => d.id_don_hang !== header.id_don_hang);
+      items.forEach(item => item.id_don_hang = header.id_don_hang);
+      allDetails.push(...items);
+      SafeStore.write(ORDER_DETAIL_FILE, allDetails, 'REPLACE_ALL');
+    }
+
+    return { success: true, order_id: header.id_don_hang };
+  } catch (e) { return { success: false, message: e.toString() }; }
+}
+
+function deleteOrder(orderId) {
+  try {
+    SafeStore.write(ORDER_HEADER_FILE, orderId, 'DELETE');
+    SafeStore.write(ORDER_DETAIL_FILE, orderId, 'DELETE');
+    return { success: true };
+  } catch (e) { return { success: false, message: e.toString() }; }
+}
+
+function getInitialData(salesId, adminEmail) {
+  try {
+    const results = { products: [], customers: [] };
+    const allProducts = SafeStore.read('tao_san_pham.json');
+    const targetAdmin = (adminEmail || salesId || "").toString().toLowerCase().trim();
+    const xorAdmin = encryptXOR(targetAdmin);
+    const aesAdmin = encryptAES(targetAdmin);
+
+    results.products = allProducts.filter(p => {
+      const pAdmin = (p.adminEmail || p.ten_dang_nhap || "").toString();
+      // Lọc theo Admin (Chủ tổ chức) để đồng bộ toàn công ty
+      return pAdmin === xorAdmin || pAdmin === aesAdmin || pAdmin === targetAdmin;
+    }).map(p => { 
+      p.ten_nghanh_hang = p.ten_nghanh_hang || "Khác"; 
+      return p; 
+    });
+
+    try {
+      const ss = SpreadsheetApp.openById(CRM_SS_ID);
+      const custSheet = ss.getSheetByName(CUSTOMER_SHEET_NAME);
+      if (custSheet) {
+        const data = custSheet.getDataRange().getValues();
+        const salesIdEnc = encryptXOR(salesId);
+        const allEnc = encryptXOR('all');
+        for (let i = 1; i < data.length; i++) {
+          const assignedEnc = (data[i][7] || "").toString();
+          if (!salesIdEnc || assignedEnc === allEnc || assignedEnc === salesIdEnc) {
+            results.customers.push({ 
+              id: data[i][0], 
+              name: data[i][1],
+              email: data[i][2],
+              phone: data[i][3]
+            });
+          }
+        }
+      }
+    } catch (e) {}
+    return { success: true, products: results.products, customers: results.customers };
+  } catch (e) { return { success: false, message: e.toString() }; }
+}

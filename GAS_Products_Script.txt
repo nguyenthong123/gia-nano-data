@@ -1,0 +1,238 @@
+const API_SECRET = 'dv_api_secret_2025_prod_v2';
+const PRODUCT_JSON_FILENAME = 'tao_san_pham.json';
+const PURCHASE_PRODUCT_JSON_FILENAME = 'san_pham_mua_vao.json';
+const IMAGE_FOLDER_ID = '1dGFgw96a6gWVdHMq6rkk4fFRpDJqi5cG';
+const DATA_FOLDER_ID = '1_LT4rzVui2E3BgfcwUSfMsUGQMN9NRTs';
+
+// --- SECURITY CONFIG (XOR ENCRYPTION) ---
+const XOR_SECRET = 'dunvex_secure_key_2025_custom';
+const AES_KEY = Utilities.newBlob('dunvex_secure_16').getBytes();
+
+const SafeStore = {
+  read: function(filename) {
+    try {
+      const folder = DriveApp.getFolderById(DATA_FOLDER_ID);
+      const files = folder.getFilesByName(filename);
+      if (!files.hasNext()) return [];
+      const content = files.next().getBlob().getDataAsString().trim();
+      if (!content) return [];
+      if (content.startsWith('[')) return JSON.parse(content);
+      return content.split('\n').filter(l => l.trim()).map(l => JSON.parse(l));
+    } catch (e) { return []; }
+  },
+  write: function(filename, newData, action = 'APPEND') {
+    const lock = LockService.getScriptLock();
+    try {
+      lock.waitLock(30000);
+      const folder = DriveApp.getFolderById(DATA_FOLDER_ID);
+      let file, files = folder.getFilesByName(filename);
+      if (files.hasNext()) file = files.next();
+      else file = folder.createFile(filename, '', MimeType.PLAIN_TEXT);
+
+      let data = this.read(filename);
+      if (action === 'APPEND') data.push(newData);
+      else if (action === 'UPDATE') {
+        const id = newData.id_san_pham || newData.id;
+        const idx = data.findIndex(item => (item.id_san_pham === id || item.id === id));
+        if (idx !== -1) data[idx] = Object.assign({}, data[idx], newData);
+        else data.push(newData);
+      } else if (action === 'DELETE') {
+        const id = typeof newData === 'string' ? newData : (newData.id_san_pham || newData.id);
+        data = data.filter(item => (item.id_san_pham !== id && item.id !== id));
+      } else if (action === 'REPLACE_ALL') data = newData;
+
+      file.setContent(data.map(item => JSON.stringify(item)).join('\n'));
+      return { success: true };
+    } catch (e) { return { success: false, message: e.toString() }; }
+    finally { lock.releaseLock(); }
+  }
+};
+
+function encryptXOR(text) {
+  if (!text) return "";
+  try {
+    const inputBytes = Utilities.newBlob(text.toString()).getBytes();
+    const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+    const outputBytes = [];
+    for (let i = 0; i < inputBytes.length; i++) {
+        outputBytes.push(inputBytes[i] ^ keyBytes[i % keyBytes.length]);
+    }
+    return Utilities.base64Encode(outputBytes);
+  } catch (e) { return "ENC_ERR: " + e.toString(); }
+}
+
+function encryptAES(text) {
+  try {
+    const blob = Utilities.newBlob(text.toString().trim()); 
+    const encrypted = Utilities.encrypt(Utilities.CipherAlgorithm.AES_128, AES_KEY, blob);
+    return Utilities.base64Encode(encrypted);
+  } catch (e) { return text; }
+}
+
+function decryptXOR(base64Text) {
+  if (!base64Text || base64Text.length < 5 || base64Text.startsWith("ENC_ERR")) return base64Text;
+  try {
+    const inputBytes = Utilities.base64Decode(base64Text);
+    const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+    const outputBytes = [];
+    for (let i = 0; i < inputBytes.length; i++) {
+        outputBytes.push(inputBytes[i] ^ keyBytes[i % keyBytes.length]);
+    }
+    return Utilities.newBlob(outputBytes).getDataAsString();
+  } catch (e) { return base64Text; }
+}
+
+function decryptAES(base64Text) {
+  if (!base64Text || base64Text.length < 10) return base64Text;
+  try {
+    const decoded = Utilities.base64Decode(base64Text);
+    const decrypted = Utilities.decrypt(Utilities.CipherAlgorithm.AES_128, AES_KEY, decoded);
+    return decrypted.getDataAsString();
+  } catch (e) { return null; }
+}
+
+function doGet(e) {
+  const action = e.parameter.action;
+  const userEmail = e.parameter.userEmail || e.parameter.username || e.parameter.mail;
+  const isAdmin = e.parameter.isAdmin === 'true';
+  const adminEmail = e.parameter.adminEmail;
+  
+  let result;
+  if (action === 'get_products' || action === 'read') {
+    result = getProducts(userEmail, isAdmin, adminEmail);
+  } else {
+    result = { success: false, message: 'Invalid GET action' };
+  }
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  let result;
+  try {
+    const contents = e.postData ? e.postData.contents : "";
+    if (!contents) return ContentService.createTextOutput(JSON.stringify({ success: false, message: 'Data empty' })).setMimeType(ContentService.MimeType.JSON);
+    const data = JSON.parse(contents);
+
+    // --- API SECURITY CHECK ---
+    if (data.apiKey !== API_SECRET) {
+      return ContentService.createTextOutput(JSON.stringify({ 
+        success: false, 
+        message: 'Unauthorized Product Access' 
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const action = (data.action || "").toString().trim();
+    switch (action) {
+      case 'get_products': result = getProducts(data.userEmail, data.isAdmin, data.adminEmail); break;
+      case 'save_product': result = saveProduct(data.product, data.image_data); break;
+      case 'delete_product': result = deleteProduct(data.id_san_pham); break;
+      case 'get_purchase_products': result = getPurchaseProducts(data.userEmail, data.isAdmin, data.adminEmail); break;
+      case 'save_purchase_product': result = savePurchaseProduct(data.product, data.image_data); break;
+      case 'delete_purchase_product': result = deletePurchaseProduct(data.id_san_pham); break;
+      case 'upload_image': result = handleImageUpload(data.filename, data.base64, data.mimetype); break;
+      case 'migrate_products': result = migrateProductsToXOR(); break;
+      default: result = { success: false, message: 'Invalid action' };
+    }
+  } catch (error) { result = { success: false, message: error.toString() }; }
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function getGenericProducts(filename, userEmail, isAdmin, adminEmail) {
+  try {
+    const list = SafeStore.read(filename);
+    const targetAdmin = (adminEmail || userEmail || "").toLowerCase().trim();
+    const xorAdmin = encryptXOR(targetAdmin);
+    const aesAdmin = encryptAES(targetAdmin);
+    
+    const filtered = list.filter(p => {
+      const pAdmin = (p.adminEmail || "").toString();
+      return pAdmin === xorAdmin || pAdmin === aesAdmin || pAdmin === targetAdmin;
+    }).map(p => {
+      const copy = Object.assign({}, p);
+      let decUser = decryptXOR(p.ten_dang_nhap);
+      if ((!decUser || !decUser.includes('@')) && p.ten_dang_nhap) {
+         const aesDec = decryptAES(p.ten_dang_nhap);
+         if (aesDec && aesDec.includes('@')) decUser = aesDec;
+      }
+      copy.ten_dang_nhap = decUser;
+      let decAdmin = decryptXOR(p.adminEmail);
+      if ((!decAdmin || !decAdmin.includes('@')) && p.adminEmail) {
+         const aesDecAdmin = decryptAES(p.adminEmail);
+         if (aesDecAdmin && aesDecAdmin.includes('@')) decAdmin = aesDecAdmin;
+      }
+      copy.adminEmail = decAdmin;
+      return copy;
+    });
+    return { success: true, products: filtered };
+  } catch (e) { return { success: false, message: e.toString() }; }
+}
+
+function getProducts(userEmail, isAdmin, adminEmail) {
+  return getGenericProducts(PRODUCT_JSON_FILENAME, userEmail, isAdmin, adminEmail);
+}
+
+function getPurchaseProducts(userEmail, isAdmin, adminEmail) {
+  return getGenericProducts(PURCHASE_PRODUCT_JSON_FILENAME, userEmail, isAdmin, adminEmail);
+}
+
+function saveGenericProduct(filename, productDict, imageData) {
+  try {
+    if (!productDict.id_san_pham) {
+      const products = SafeStore.read(filename);
+      const nextId = products.length > 0 ? "S" + (Math.max(...products.map(p => parseInt(p.id_san_pham.replace('S', '')))) + 1).toString().padStart(3, '0') : "S001";
+      productDict.id_san_pham = nextId;
+    }
+    if (imageData && imageData.base64) {
+      const uploadRes = handleImageUpload(imageData.filename, imageData.base64, imageData.mimetype);
+      if (uploadRes.success) productDict.image_san_pham = uploadRes.url;
+    }
+    if (productDict.ten_dang_nhap) productDict.ten_dang_nhap = encryptXOR(productDict.ten_dang_nhap);
+    if (productDict.adminEmail) productDict.adminEmail = encryptXOR(productDict.adminEmail);
+    const res = SafeStore.write(filename, productDict, 'UPDATE');
+    const resultDict = Object.assign({}, productDict);
+    resultDict.ten_dang_nhap = decryptXOR(productDict.ten_dang_nhap);
+    return { success: true, product: resultDict };
+  } catch (e) { return { success: false, message: e.toString() }; }
+}
+
+function saveProduct(productDict, imageData) {
+  return saveGenericProduct(PRODUCT_JSON_FILENAME, productDict, imageData);
+}
+
+function savePurchaseProduct(productDict, imageData) {
+  return saveGenericProduct(PURCHASE_PRODUCT_JSON_FILENAME, productDict, imageData);
+}
+
+function deleteProduct(id) {
+  try { return SafeStore.write(PRODUCT_JSON_FILENAME, id, 'DELETE'); }
+  catch (e) { return { success: false, message: e.toString() }; }
+}
+
+function deletePurchaseProduct(id) {
+  try { return SafeStore.write(PURCHASE_PRODUCT_JSON_FILENAME, id, 'DELETE'); }
+  catch (e) { return { success: false, message: e.toString() }; }
+}
+
+
+function handleImageUpload(filename, base64, mimetype) {
+  try {
+    const folder = DriveApp.getFolderById(IMAGE_FOLDER_ID);
+    const file = folder.createFile(Utilities.newBlob(Utilities.base64Decode(base64), mimetype, filename));
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    return { success: true, url: "https://lh3.googleusercontent.com/d/" + file.getId() };
+  } catch (e) { return { success: false, message: e.toString() }; }
+}
+
+function migrateProductsToXOR() {
+  try {
+    let products = SafeStore.read(PRODUCT_JSON_FILENAME);
+    let count = 0;
+    products = products.map(p => {
+      const aesDec = decryptAES(p.ten_dang_nhap);
+      if (aesDec) { p.ten_dang_nhap = encryptXOR(aesDec); count++; }
+      return p;
+    });
+    if (count > 0) SafeStore.write(PRODUCT_JSON_FILENAME, products, 'REPLACE_ALL');
+    return { success: true, message: `Migrated ${count} products.` };
+  } catch(e) { return { success: false, message: e.toString() }; }
+}

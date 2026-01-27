@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-QFQ2HMYTDH"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag('js', new Date());
+
+		gtag('config', 'G-QFQ2HMYTDH');
+	</script>
+
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Báo Giá Chuyên Nghiệp | Dunvex Digital</title>
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;800&display=swap"
+		rel="stylesheet">
+	<link rel="icon" type="image/svg+xml"
+		href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23FACC15'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' fill='white' font-size='60' font-family='sans-serif' font-weight='800'>DV</text></svg>">
+	<script src="security-utils.js"></script>
+	<script>
+		const session = SecurityProvider.validateAccess();
+		const currentUser = session ? session.user : null;
+	</script>
+	<style>
+		:root {
+			--primary: #facc15;
+			--primary-dark: #eab308;
+			--bg-light: #f8fafc;
+			--text-main: #0f172a;
+			--text-muted: #64748b;
+			--border: #cbd5e1;
+		}
+
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+			text-rendering: optimizeLegibility;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+		}
+
+		body {
+			background-color: #cbd5e1;
+			min-height: 100vh;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			padding: 40px 20px;
+			-webkit-text-size-adjust: 100%;
+		}
+
+		/* Lớp bao ngoài để căn giữa và quản lý tỷ lệ */
+		.view-container {
+			width: 100%;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			position: relative;
+		}
+
+		/* Trang A4 Preview */
+		/* Trang A4 Preview */
+		.a4-page {
+			background: white;
+			width: 210mm;
+			min-height: 1100px;
+			/* Chiều cao tối thiểu của A4 */
+			height: auto;
+			/* Tự động giãn theo nội dung */
+			display: flex;
+			flex-direction: column;
+			padding: 50px 60px 100px 60px;
+			box-shadow: 0 40px 100px rgba(0, 0, 0, 0.2);
+			border-radius: 8px;
+			position: relative;
+			display: none;
+			/* Hidden until loaded */
+			transform-origin: top center;
+			transition: transform 0.3s ease;
+		}
+
+		/* Header Design */
+		.doc-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: flex-start;
+			margin-bottom: 60px;
+			border-bottom: 3px solid var(--primary);
+			padding-bottom: 30px;
+		}
+
+		.brand-side {
+			max-width: 350px;
+		}
+
+		.company-logo {
+			max-width: 180px;
+			max-height: 80px;
+			object-fit: contain;
+			margin-bottom: 15px;
+		}
+
+		.doc-info {
+			text-align: right;
+		}
+
+		.doc-title {
+			font-size: 2.2rem;
+			font-weight: 800;
+			color: var(--primary);
+			text-transform: uppercase;
+			letter-spacing: -1px;
+			margin-bottom: 5px;
+		}
+
+		.doc-meta {
+			color: var(--text-muted);
+			font-size: 0.95rem;
+			font-weight: 600;
+		}
+
+		/* Customer Info */
+		.customer-card {
+			margin-bottom: 40px;
+		}
+
+		.label-small {
+			font-size: 0.75rem;
+			font-weight: 800;
+			color: var(--primary);
+			text-transform: uppercase;
+			letter-spacing: 1.5px;
+			margin-bottom: 12px;
+			display: block;
+		}
+
+		.customer-name {
+			font-size: 1.6rem;
+			font-weight: 800;
+			color: var(--text-main);
+			margin-bottom: 5px;
+		}
+
+		/* Table System */
+		.table-container {
+			margin-bottom: 50px;
+			border-radius: 12px;
+			overflow: hidden;
+			border: 1px solid var(--border);
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+		}
+
+		th {
+			background: #f8fafc;
+			color: #0f172a;
+			font-weight: 800;
+			text-transform: uppercase;
+			font-size: 0.8rem;
+			letter-spacing: 0.05em;
+			padding: 16px;
+			text-align: left;
+			border-bottom: 3px solid #e2e8f0;
+		}
+
+		td {
+			padding: 14px 16px;
+			border-bottom: 1.5px solid #f1f5f9;
+			color: #1e293b;
+			font-size: 0.95rem;
+			line-height: 1.5;
+			font-weight: 600;
+		}
+
+		tr:last-child td {
+			border-bottom: none;
+		}
+
+		tr:nth-child(even) {
+			background: #fcfdfe;
+		}
+
+		/* Footer & Notes */
+		.doc-footer {
+			margin-top: auto;
+		}
+
+		.notes-box {
+			background: #f8fafc;
+			padding: 25px;
+			border-radius: 12px;
+			margin-bottom: 50px;
+			border-left: 5px solid var(--primary);
+		}
+
+		.notes-box strong {
+			display: block;
+			margin-bottom: 10px;
+			color: var(--primary);
+			font-weight: 800;
+		}
+
+		.signature-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 40px;
+			margin-top: 60px;
+			text-align: center;
+		}
+
+		.sig-block p {
+			font-weight: 800;
+			font-size: 1.1rem;
+		}
+
+		.sig-space {
+			height: 100px;
+		}
+
+		/* Actions Bar */
+		.actions-bar {
+			position: fixed;
+			bottom: 30px;
+			display: flex;
+			gap: 15px;
+			z-index: 100;
+			background: rgba(15, 23, 42, 0.4);
+			padding: 10px 20px;
+			border-radius: 60px;
+			backdrop-filter: blur(20px);
+			border: 1px solid var(--border);
+		}
+
+		.btn {
+			padding: 12px 24px;
+			border-radius: 50px;
+			font-weight: 800;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			border: none;
+			transition: 0.3s;
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+			text-decoration: none;
+			font-size: 0.9rem;
+			white-space: nowrap;
+		}
+
+		.btn-primary {
+			background: var(--primary);
+			color: white;
+		}
+
+		.btn-glass {
+			background: white;
+			color: var(--text-main);
+			border: 1px solid var(--border);
+		}
+
+		.btn-toggle {
+			background: #1e293b;
+			color: white;
+		}
+
+		.btn:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 15px 35px rgba(99, 102, 241, 0.4);
+		}
+
+		@media (max-width: 600px) {
+			.actions-bar {
+				bottom: 20px;
+				left: 50%;
+				transform: translateX(-50%);
+				width: 95%;
+				justify-content: space-between;
+				padding: 8px;
+				gap: 8px;
+				border-radius: 16px;
+			}
+
+			.btn {
+				padding: 10px 12px;
+				font-size: 0.8rem;
+				gap: 6px;
+				flex: 1;
+				justify-content: center;
+				border-radius: 12px;
+			}
+
+			/* Shorten text on mobile if needed or rely on flex fit */
+			#btnOverview span {
+				display: none;
+			}
+
+			#btnOverview::after {
+				content: 'Zoom';
+			}
+		}
+
+		.btn:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 15px 35px rgba(99, 102, 241, 0.4);
+		}
+
+		/* Loader */
+		.loader-wrap {
+			text-align: center;
+			margin-top: 100px;
+		}
+
+		.spinner {
+			width: 60px;
+			height: 60px;
+			border: 6px solid rgba(0, 0, 0, 0.1);
+			border-top-color: var(--primary);
+			border-radius: 50%;
+			animation: spin 1s infinite linear;
+			margin: 0 auto 20px;
+		}
+
+		@keyframes spin {
+			to {
+				transform: rotate(360deg);
+			}
+		}
+
+
+		@media print {
+			@page {
+				size: A4 portrait;
+				margin: 10mm;
+			}
+
+			body {
+				background: white !important;
+				padding: 0 !important;
+				margin: 0 !important;
+			}
+
+			.view-container {
+				width: 100% !important;
+				padding: 0 !important;
+				margin: 0 !important;
+				display: block !important;
+			}
+
+			.a4-page {
+				box-shadow: none !important;
+				margin: 0 !important;
+				width: 100% !important;
+				max-width: none !important;
+				min-height: auto !important;
+				padding: 5mm !important;
+				border-radius: 0 !important;
+				transform: none !important;
+				display: block !important;
+			}
+
+
+			.table-container {
+				margin-bottom: 20px !important;
+				border: 1px solid #000 !important;
+				overflow: visible !important;
+			}
+
+			table {
+				width: 100% !important;
+				table-layout: auto !important;
+				border-collapse: collapse !important;
+				font-size: 8.5pt !important;
+			}
+
+			th,
+			td {
+				padding: 6px 4px !important;
+				border: 1px solid #ccc !important;
+				word-wrap: break-word !important;
+				overflow-wrap: break-word !important;
+				word-break: break-all !important;
+				/* Force wrap long identifiers */
+			}
+
+			/* Specific adjustments for known columns */
+			th:nth-child(1),
+			td:nth-child(1) {
+				width: 30px !important;
+				text-align: center !important;
+			}
+
+			/* STT */
+
+			.signature-grid {
+				margin-top: 30px !important;
+				page-break-inside: avoid !important;
+			}
+
+			.doc-header {
+				border-bottom: 2px solid var(--primary) !important;
+				-webkit-print-color-adjust: exact;
+				print-color-adjust: exact;
+			}
+
+			.actions-bar,
+			.loader-wrap,
+			#floating-menu,
+			#chatbot-widget {
+				display: none !important;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<!-- Loader -->
+	<div class="loader-wrap" id="loader">
+		<div class="spinner"></div>
+		<p style="color: white; font-weight: 600; font-size: 1.2rem;">Đang tải bảng giá kỹ thuật số...</p>
+	</div>
+
+	<!-- Main Document -->
+	<div class="view-container">
+		<div class="a4-page" id="docContent">
+			<header class="doc-header" style="margin-bottom: 30px; padding-bottom: 20px;">
+				<div class="brand-side">
+					<img id="viewLogo" class="company-logo" src="" alt="Brand Logo">
+					<p
+						style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">
+						Digital Price List System
+					</p>
+				</div>
+				<div class="doc-info">
+					<h1 class="doc-title" id="viewTitle" style="font-size: 1.8rem;">Báo Giá</h1>
+					<p class="doc-meta" id="viewId">Số: --</p>
+					<p class="doc-meta" id="viewDate">Ngày: --/--/----</p>
+				</div>
+			</header>
+
+			<section class="customer-card" style="margin-bottom: 20px;">
+				<span class="label-small">Kính gửi đối tác:</span>
+				<h2 class="customer-name" id="viewCustomer" style="font-size: 1.4rem;">-- Đang tải --</h2>
+				<p style="color: var(--text-muted); font-size: 0.85rem; font-weight: 500;">Bảng báo giá các hạng mục vật
+					liệu Dunvex.</p>
+			</section>
+
+			<div class="table-container" style="margin-bottom: 30px;">
+				<table>
+					<thead id="viewHead">
+						<!-- Dynamic headers -->
+					</thead>
+					<tbody id="viewBody">
+						<!-- Dynamic rows -->
+					</tbody>
+				</table>
+			</div>
+
+			<div class="notes-box" id="notesContainer" style="display: none; padding: 15px; margin-bottom: 30px;">
+				<strong style="font-size: 0.8rem;">Điều khoản & Ghi chú:</strong>
+				<p id="viewNotes" style="white-space: pre-line; color: var(--text-main); font-size: 0.8rem;"></p>
+			</div>
+
+			<footer class="doc-footer">
+				<div class="signature-grid" style="margin-top: 30px;">
+					<div class="sig-block">
+						<p style="font-size: 0.9rem;">ĐẠI DIỆN KHÁCH HÀNG</p>
+						<div class="sig-space" style="height: 70px;"></div>
+					</div>
+					<div class="sig-block">
+						<p style="font-size: 0.9rem;">ĐẠI DIỆN CÔNG TY</p>
+						<div class="sig-space" style="height: 70px;"></div>
+					</div>
+				</div>
+				<p
+					style="text-align: center; margin-top: 40px; font-size: 0.65rem; color: var(--text-muted); font-weight: 600;">
+					Tài liệu được tạo tự động bởi hệ thống Dunvex Digital.
+				</p>
+			</footer>
+		</div>
+	</div>
+
+	<!-- Floating Controls -->
+	<div class="actions-bar" id="actionsBar" style="display: none;">
+		<a href="danh-sach-bang-gia.html" class="btn btn-glass">
+			<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+				<line x1="19" y1="12" x2="5" y2="12"></line>
+				<polyline points="12 19 5 12 12 5"></polyline>
+			</svg>
+			Danh sách
+		</a>
+
+		<!-- Nút Scale mới -->
+		<button class="btn btn-toggle" onclick="toggleOverview()" id="btnOverview">
+			<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+				<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+			</svg>
+			<span>Vừa màn hình</span>
+		</button>
+
+		<button class="btn btn-primary" onclick="window.print()">
+			<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+				<polyline points="6 9 6 2 18 2 18 9"></polyline>
+				<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+				<rect x="6" y="14" width="12" height="8"></rect>
+			</svg>
+			PDF / In
+		</button>
+	</div>
+
+	<script>
+		const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxJAbSw_qt8cYDU6DD0eOUL0cL_UHsSEWFNE59WO32JTvySnOHztKnAULpXTi8gkiEl/exec';
+		let isOverviewMode = localStorage.getItem('pl_overview') === 'true';
+
+		function toggleOverview() {
+			isOverviewMode = !isOverviewMode;
+			localStorage.setItem('pl_overview', isOverviewMode);
+			handleScaling();
+			updateOverviewBtn();
+		}
+
+		function updateOverviewBtn() {
+			const btn = document.getElementById('btnOverview');
+			if (!btn) return;
+			btn.querySelector('span').innerText = isOverviewMode ? 'Kích thước chuẩn' : 'Vừa màn hình';
+		}
+
+		// Tự động scale để vừa màn hình
+		function handleScaling() {
+			const sheet = document.getElementById('docContent');
+			if (!sheet) return;
+
+			const container = document.querySelector('.view-container');
+			const padding = 40;
+			const sheetWidth = 794; // 210mm ~ 794px
+			const winW = window.innerWidth;
+			const winH = window.innerHeight;
+
+			let scale = 1;
+
+			// Nếu là thiết bị di động (< 850px) hoặc ở chế độ Overview (trên desktop)
+			if (winW < 850 || isOverviewMode) {
+				const scaleW = (winW - padding) / sheetWidth;
+				const scaleH = (winH - padding - 100) / sheet.scrollHeight; // Trừa chỗ cho thanh công cụ
+
+				// Nếu di động: ưu tiên vừa chiều rộng. Nếu overview desktop: ưu tiên thấy hết toàn bộ
+				scale = (winW < 850) ? scaleW : Math.min(scaleW, scaleH);
+				if (scale > 1) scale = 1; // Không zoom quá 100%
+			}
+
+			sheet.style.transform = `scale(${scale})`;
+			container.style.height = (sheet.scrollHeight * scale + 100) + 'px';
+		}
+
+		window.addEventListener('resize', handleScaling);
+
+		async function init() {
+			const urlParams = new URLSearchParams(window.location.search);
+			let id = urlParams.get('id');
+
+			// Dự phòng (Bridge ID): Lấy từ localStorage nếu URL bị thiếu
+			if (!id) {
+				id = localStorage.getItem('last_view_pl_id');
+			}
+
+			if (!id) {
+				document.getElementById('loader').innerHTML = `
+					<p style="color: #ef4444; font-weight: 800; font-size: 1.4rem;">LỖI: KHÔNG TÌM THẤY ID!</p>
+					<a href="danh-sach-bang-gia.html" class="btn btn-glass" style="margin: 20px auto;">Quay lại danh sách</a>
+				`;
+				return;
+			}
+
+			// Lưu lại ID dự phòng cho lần sau
+			localStorage.setItem('last_view_pl_id', id);
+
+			try {
+				const response = await fetch(SCRIPT_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('get_price_list_detail', { fileId: id })
+				});
+				const result = await response.json();
+
+				if (result.success) {
+					renderPriceList(result.data);
+				} else {
+					throw new Error(result.message);
+				}
+			} catch (e) {
+				document.getElementById('loader').innerHTML = `
+					<p style="color: #ef4444; font-weight: 800; font-size: 1.4rem;">LỖI KẾT NỐI DATA!</p>
+					<p style="color: white; margin-top: 10px;">${e.message}</p>
+					<a href="danh-sach-bang-gia.html" class="btn btn-glass" style="margin: 20px auto;">Quay lại danh sách</a>
+				`;
+			}
+		}
+
+		function renderPriceList(pl) {
+			// Ẩn loader, hiện nội dung
+			document.getElementById('loader').style.display = 'none';
+			document.getElementById('docContent').style.display = 'block';
+			document.getElementById('actionsBar').style.display = 'flex';
+
+			setTimeout(handleScaling, 150);
+
+			// Meta Info
+			document.title = "Báo Giá Dunvex - " + pl.customerName;
+			document.getElementById('viewTitle').innerText = pl.title || "Báo Giá Chi Tiết";
+			document.getElementById('viewId').innerText = "Số: " + pl.id;
+			document.getElementById('viewDate').innerText = "Ngày: " + new Date(pl.createdAt).toLocaleDateString('vi-VN');
+			document.getElementById('viewCustomer').innerText = pl.customerName;
+			document.getElementById('viewLogo').src = pl.logoUrl || "https://lh3.googleusercontent.com/d/1vk_zb_HemLtOyZdU_d_AYByPCcYYEwLm"; // Default if missing
+
+			// Ghi chú
+			if (pl.notes) {
+				document.getElementById('notesContainer').style.display = 'block';
+				document.getElementById('viewNotes').innerText = pl.notes;
+			}
+
+			// Rendering Table (Linh hoạt theo bất kỳ số cột nào)
+			const head = document.getElementById('viewHead');
+			const body = document.getElementById('viewBody');
+
+			// Headers
+			let headHtml = '<tr><th style="width: 60px; text-align: center;">STT</th>';
+			pl.columns.forEach(col => {
+				headHtml += `<th>${col}</th>`;
+			});
+			headHtml += '</tr>';
+			head.innerHTML = headHtml;
+
+			// Rows
+			let bodyHtml = '';
+			pl.rows.forEach((row, idx) => {
+				bodyHtml += `<tr><td style="text-align: center; color: var(--text-muted); font-weight: 600;">${idx + 1}</td>`;
+				pl.columns.forEach(col => {
+					bodyHtml += `<td>${row[col] || '-'}</td>`;
+				});
+				bodyHtml += '</tr>';
+			});
+			body.innerHTML = bodyHtml;
+		}
+
+		init();
+	</script>
+	<script src="floating-menu.js"></script>
+	<script src="chatbot.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,781 @@
+const API_SECRET = 'dv_api_secret_2025_prod_v2';
+/**
+ * GAS_MonthlyReport_Utility.txt
+ * HỆ THỐNG TỔNG HỢP BÁO CÁO DOANH THU THEO KHOẢNG THỜI GIAN
+ * (Updated: Date Range Support + XOR Encryption Compatibility)
+ */
+
+const REPORT_CRM_SS_ID = '15niaoQ7FozkRCushPGNtq4zj6pwA0UQ5Wel61ksv8L8';
+const REPORT_AUTH_SS_ID = '1rhP1UCiMLi8yNVvcd56SsZIJAm09Yxu6WpjxuHKYKb0';
+const REPORT_DATA_FOLDER_ID = '1_LT4rzVui2E3BgfcwUSfMsUGQMN9NRTs';
+const REPORT_ORDER_HEADER_FILE = 'order.json';
+const REPORT_ORDER_DETAIL_FILE = 'order_chi_tiet.json';
+const MASTER_SPREADSHEET_ID = '1SiB4k-T7HoT9cNv-Q8KPIS3AnA6C_8HAX0hFyR3ZWOc';
+const MASTER_SHEET_NAME = 'menu';
+
+// --- ENCRYPTION HELPERS (COPIED FOR STANDALONE LOGIC) ---
+const XOR_SECRET = 'dunvex_secure_key_2025_custom';
+const AES_KEY = Utilities.newBlob('dunvex_secure_16').getBytes();
+
+function decryptXOR(base64Text) {
+  if (!base64Text || base64Text.length < 5 || base64Text.startsWith("ENC_ERR")) return base64Text;
+  try {
+    const inputBytes = Utilities.base64Decode(base64Text);
+    const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+    const outputBytes = [];
+    for (let i = 0; i < inputBytes.length; i++) {
+        outputBytes.push(inputBytes[i] ^ keyBytes[i % keyBytes.length]);
+    }
+    return Utilities.newBlob(outputBytes).getDataAsString();
+  } catch (e) { return base64Text; }
+}
+
+function decryptAES(base64Text) {
+  if (!base64Text || base64Text.length < 10) return base64Text;
+  try {
+    const decoded = Utilities.base64Decode(base64Text);
+    const decrypted = Utilities.decrypt(Utilities.CipherAlgorithm.AES_128, AES_KEY, decoded);
+    return decrypted.getDataAsString();
+  } catch (e) { return null; }
+}
+
+// --- SAFE STORAGE HELPERS ---
+const SafeStore = {
+  read: function(filename) {
+    try {
+      const folder = DriveApp.getFolderById(REPORT_DATA_FOLDER_ID);
+      const files = folder.getFilesByName(filename);
+      if (!files.hasNext()) return [];
+      const content = files.next().getBlob().getDataAsString().trim();
+      if (!content) return [];
+      
+      // Kiểm tra định dạng: Nếu bắt đầu bằng [ là mảng JSON cũ, ngược lại là JSON Lines mới
+      if (content.startsWith('[')) {
+        return JSON.parse(content);
+      } else {
+        return content.split('\n')
+          .filter(line => line.trim())
+          .map(line => {
+            try { return JSON.parse(line); } catch(e) { return null; }
+          })
+          .filter(item => item !== null);
+      }
+    } catch (e) {
+      console.error("SafeStore.read error (" + filename + "): " + e.toString());
+      return [];
+    }
+  }
+};
+
+function decryptData(text) {
+  if (!text) return "";
+  let cleanText = text.toString().trim();
+  
+  // 1. Loại bỏ các chuỗi báo lỗi hoặc format lạ (ví dụ ERROR_ENC: ...)
+  if (cleanText.includes(":")) {
+    cleanText = cleanText.split(":").pop().trim();
+  }
+  
+  // 2. Nếu đã là email/số điện thoại thuần (không mã hóa), trả về luôn
+  if (cleanText.includes("@") && cleanText.includes(".")) return cleanText;
+  if (/^\+?[0-9\s.-]{9,15}$/.test(cleanText)) return cleanText; // Nếu là số điện thoại thuần
+  if (cleanText.length < 4) return cleanText;
+
+  // 3. Giải mã XOR
+  try {
+    let xor = decryptXOR(cleanText);
+    // Regex hỗ trợ chữ cái, số, ký tự đặc biệt cơ bản và toàn bộ dấu Tiếng Việt
+    const printableRegex = /^[A-Za-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđĐ\s@.,+()À-ỹ-]+$/i;
+    
+    if (xor && printableRegex.test(xor)) {
+      return xor.trim();
+    }
+  } catch(e){}
+  
+  // 4. Giải mã AES fallback
+  try {
+    let aes = decryptAES(cleanText);
+    const printableRegex = /^[A-Za-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđĐ\s@.,+()À-ỹ-]+$/i;
+    if (aes && printableRegex.test(aes)) {
+      return aes.trim();
+    }
+  } catch(e){}
+  
+  return cleanText;
+}
+
+function getUserPackage(email) {
+  try {
+    const ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(MASTER_SHEET_NAME);
+    if (!sheet) return { package: 'Free', expiry: '' };
+    const rows = sheet.getDataRange().getValues();
+    const config = rows.find(r => r[0].toString().toLowerCase() === email.toLowerCase());
+    return config ? { package: config[1], expiry: config[3] } : { package: 'Free', expiry: '' };
+  } catch (e) { return { package: 'Free', expiry: '' }; }
+}
+
+/**
+ * NEW: Kiểm tra xem email có quyền Admin (R001) hay không
+ */
+function isUserAdmin(email) {
+  if (!email) return false;
+  const emailNorm = email.toLowerCase().trim();
+  try {
+    const ss = SpreadsheetApp.openById(REPORT_AUTH_SS_ID);
+    const adminSheet = ss.getSheetByName('admin');
+    if (adminSheet) {
+      const adminData = adminSheet.getDataRange().getValues();
+      for (let i = 1; i < adminData.length; i++) {
+        if (decryptData(adminData[i][1]).toLowerCase().trim() === emailNorm) return true;
+      }
+    }
+    const useSheet = ss.getSheetByName('use');
+    if (useSheet) {
+      const useData = useSheet.getDataRange().getValues();
+      for (let i = 1; i < useData.length; i++) {
+        const uEmail = decryptData(useData[i][1]).toLowerCase().trim();
+        const role = useData[i][4]; // Role ID (Column E)
+        if (uEmail === emailNorm && role === 'R001') return true;
+      }
+    }
+  } catch (e) {}
+  return false;
+}
+
+/**
+ * NEW: Wrapper cho getRootOwner để tương thích với các code cũ
+ */
+function getRootOwner(email) {
+  try {
+    const ss = SpreadsheetApp.openById(REPORT_AUTH_SS_ID);
+    const adminSheet = ss.getSheetByName('admin');
+    const useSheet = ss.getSheetByName('use');
+    const adminEmails = adminSheet ? adminSheet.getDataRange().getValues().slice(1).map(r => decryptData(r[1]).toLowerCase().trim()) : [];
+    const useRows = useSheet ? useSheet.getDataRange().getValues().slice(1) : [];
+    return getRootOwnerInternal(email, adminEmails, useRows);
+  } catch (e) { return email; }
+}
+
+/**
+ * MODIFIED: Tìm "Chủ sở hữu" gốc (Top-level Admin) của một tài khoản - Tối ưu hóa bộ nhớ
+ */
+function getRootOwnerInternal(email, adminEmails, useRows, depth = 0) {
+  if (!email || depth > 5) return email;
+  const emailNorm = email.toLowerCase().trim();
+
+  if (adminEmails && adminEmails.includes(emailNorm)) return emailNorm;
+
+  if (useRows) {
+    const row = useRows.find(r => decryptData(r[1]).toLowerCase().trim() === emailNorm);
+    if (row) {
+      const owner = (decryptData(row[5]) || "").toLowerCase().trim();
+      if (owner && owner !== 'n/a' && owner !== emailNorm) {
+        return getRootOwnerInternal(owner, adminEmails, useRows, depth + 1);
+      }
+      return emailNorm;
+    }
+  }
+  return emailNorm;
+}
+
+/**
+ * MODIFIED: Lấy toàn bộ email trong cùng một công ty - Tối ưu hóa tốc độ
+ */
+function getAllSystemEmails(rootOwner) {
+  const emails = new Set();
+  if (!rootOwner) return [];
+  const rootLower = rootOwner.toLowerCase().trim();
+  emails.add(rootLower);
+
+  try {
+    const ss = SpreadsheetApp.openById(REPORT_AUTH_SS_ID);
+    const adminSheet = ss.getSheetByName('admin');
+    const useSheet = ss.getSheetByName('use');
+    
+    let adminEmails = [];
+    if (adminSheet) {
+      adminEmails = adminSheet.getDataRange().getValues().slice(1).map(r => decryptData(r[1]).toLowerCase().trim());
+    }
+    
+    let useRows = [];
+    if (useSheet) {
+      useRows = useSheet.getDataRange().getValues();
+      const rowsData = useRows.slice(1);
+      
+      // Duyệt qua từng người và xem họ có thuộc về rootLower không
+      rowsData.forEach(r => {
+        const uEmail = decryptData(r[1]).toLowerCase().trim();
+        const uName = (r[3] || "").toString().toLowerCase().trim();
+        if (getRootOwnerInternal(uEmail, adminEmails, rowsData) === rootLower) {
+          emails.add(uEmail);
+          if (uName) emails.add(uName); // Hỗ trợ khớp theo tên nếu cần
+        }
+      });
+    }
+  } catch (e) {
+    console.error("Error in getAllSystemEmails: " + e.toString());
+  }
+  return Array.from(emails);
+}
+
+/**
+ * MODIFIED: Lấy danh sách Admin trong cùng một Group
+ */
+function getGroupAdmins(rootOwner) {
+  const admins = new Set();
+  if (!rootOwner) return [];
+  const rootLower = rootOwner.toLowerCase().trim();
+  
+  try {
+    const ss = SpreadsheetApp.openById(REPORT_AUTH_SS_ID);
+    const useSheet = ss.getSheetByName('use');
+    const useData = useSheet ? useSheet.getDataRange().getValues() : [];
+    
+    const allEmails = getAllSystemEmails(rootLower);
+    admins.add(rootLower);
+
+    allEmails.forEach(e => {
+      const row = useData.find(r => decryptData(r[1]).toLowerCase().trim() === e);
+      if (row && row[4] === 'R001') { 
+        admins.add(e);
+      }
+    });
+  } catch (e) {}
+  return Array.from(admins);
+}
+// ------------------------------------------------------------
+
+function doPost(e) {
+  let result;
+  try {
+    const contents = e.postData ? e.postData.contents : "";
+    if (!contents) return ContentService.createTextOutput(JSON.stringify({ success: false, message: 'No Data' })).setMimeType(ContentService.MimeType.JSON);
+    
+    const data = JSON.parse(contents);
+
+    // --- API SECURITY CHECK ---
+    if (data.apiKey !== API_SECRET) {
+      return ContentService.createTextOutput(JSON.stringify({ 
+        success: false, 
+        message: 'Unauthorized Report Access' 
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const cache = CacheService.getScriptCache();
+    const lockKey = 'REPORT_GENERATING_LOCK';
+    const requester = (data.requesterEmail || "").toLowerCase().trim();
+    
+    // Kiểm tra Premium để bỏ qua giới hạn 5 phút
+    const pkgInfo = getUserPackage(requester);
+    const isPremium = pkgInfo.package === 'Premium';
+
+    if (cache.get(lockKey) && !isPremium) {
+      return ContentService.createTextOutput(JSON.stringify({ 
+        success: false, 
+        message: 'Hệ thống đang xử lý báo cáo khác. Vui lòng đợi 5 phút (Hoặc nâng cấp Premium để dùng ngay).' 
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    cache.put(lockKey, 'TRUE', 300); // Lock 5 mins
+
+    const action = (data.action || "").toString().trim();
+    
+    if (action === 'sendReportByDate') {
+      result = sendAdminReportByDate(data.startDate, data.endDate, data.requesterEmail);
+      cache.remove(lockKey); 
+    } else if (action === 'getRevenueData') {
+      result = getRevenueData(data);
+      cache.remove(lockKey);
+    } else if (action === 'setupTrigger') {
+      result = { success: true, message: initMonthlyTrigger() };
+    } else {
+      return ContentService.createTextOutput(JSON.stringify({ 
+        success: false, 
+        message: 'Hành động [' + action + '] không hợp lệ tại Report Script. Vui lòng kiểm tra SCRIPT_URL.' 
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+  } catch (error) {
+    result = { success: false, message: 'Err: ' + error.toString() };
+    CacheService.getScriptCache().remove('REPORT_GENERATING_LOCK');
+  }
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function sendAdminReportByDate(startStr, endStr, requester) {
+  // Parse Dates
+  let startDate, endDate;
+  const now = new Date();
+  
+  if (startStr && endStr) {
+      // Expect YYYY-MM-DD
+      const s = startStr.split('-');
+      const e = endStr.split('-');
+      startDate = new Date(s[0], s[1]-1, s[2], 0, 0, 0);
+      endDate = new Date(e[0], e[1]-1, e[2], 23, 59, 59);
+  } else {
+      // Default: Last month
+      startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+  }
+
+  const reportFolder = getOrCreateReportFolder();
+  const hierarchy = getAdminSalesHierarchy();
+  const allCustomers = getCustomersByDateRange(startDate, endDate);
+  const allOrders = getOrdersByDateRange(startDate, endDate);
+  const allOrderDetails = getMonthlyOrderDetails(allOrders.map(o => o.id_don_hang));
+
+  let targetAdmins = [];
+  let companionAdmins = [];
+
+  if (requester) {
+    const root = getRootOwner(requester);
+    targetAdmins = [requester.toLowerCase().trim()];
+    // Tìm các Admin khác cùng group để gửi báo cáo song song (Cách B + A phối hợp)
+    companionAdmins = getGroupAdmins(root).filter(a => a !== targetAdmins[0]);
+  } else {
+    // Tự động hàng tháng: Gửi cho tất cả Admins trong hệ thống
+    targetAdmins = Object.keys(hierarchy);
+    // Bổ sung các Admin trong sheet 'admin'
+    const ss = SpreadsheetApp.openById(REPORT_AUTH_SS_ID);
+    const adSheet = ss.getSheetByName('admin');
+    if (adSheet) {
+      const adData = adSheet.getDataRange().getValues();
+      for (let i = 1; i < adData.length; i++) {
+        const e = decryptData(adData[i][1]).toLowerCase().trim();
+        if (!targetAdmins.includes(e)) targetAdmins.push(e);
+      }
+    }
+  }
+
+  let sentCount = 0;
+  // Gom tất cả những người cần nhận báo cáo
+  const recipients = [...new Set([...targetAdmins, ...companionAdmins])];
+
+  for (let adminEmail of recipients) {
+    const root = getRootOwner(adminEmail);
+    const subordinates = getAllSystemEmails(root); 
+    
+    const staffReports = [];
+    let adminTotalRevenue = 0;
+
+    // Filter Data for this Admin's team/domain
+    const adminCustomersRaw = allCustomers.filter(c => subordinates.includes(c.salesId));
+    const adminOrdersRaw = allOrders.filter(o => subordinates.includes(o.salesId));
+    const adminOrderIds = adminOrdersRaw.map(o => o.id_don_hang);
+    const adminDetailsRaw = allOrderDetails.filter(d => adminOrderIds.includes(d.id_don_hang));
+
+    subordinates.forEach(staffEmail => {
+      const emailLower = staffEmail.toLowerCase();
+      const staffCustomers = adminCustomersRaw.filter(c => c.salesId === emailLower);
+      const staffOrders = adminOrdersRaw.filter(o => o.salesId === emailLower);
+      const staffRevenue = staffOrders.reduce((sum, o) => sum + (o.value || 0), 0);
+      
+      // Only include if they have data OR if we want full roster
+      if (staffCustomers.length > 0 || staffOrders.length > 0) {
+        staffReports.push({
+            email: staffEmail,
+            name: getStaffName(staffEmail),
+            customerCount: staffCustomers.length,
+            orderCount: staffOrders.length,
+            revenue: staffRevenue
+        });
+        adminTotalRevenue += staffRevenue;
+      }
+    });
+
+    if (staffReports.length > 0) {
+      const dateLabel = `${Utilities.formatDate(startDate, "GMT+7", "dd/MM")} - ${Utilities.formatDate(endDate, "GMT+7", "dd/MM/yyyy")}`;
+      const sheetUrl = generateDataSheet(adminCustomersRaw, adminOrdersRaw, adminDetailsRaw, dateLabel, adminEmail, reportFolder);
+      sendEmailToAdmin(adminEmail, staffReports, adminTotalRevenue, dateLabel, sheetUrl);
+      sentCount++;
+    }
+  }
+
+  return { success: true, message: `Đã gửi báo cáo (${sentCount} quản lý)` };
+}
+
+function getOrCreateReportFolder() {
+  const folders = DriveApp.getFoldersByName("Bao_Cao_Doanh_Thu");
+  if (folders.hasNext()) return folders.next();
+  return DriveApp.createFolder("Bao_Cao_Doanh_Thu");
+}
+
+function generateDataSheet(customers, orders, details, dateLabel, adminEmail, folder) {
+  // CHỈ DÙNG DUY NHẤT 1 FILE CHO TẤT CẢ ADMIN ĐỂ TRIỆT TIÊU RÁC DRIVE
+  const globalBufferName = "DUNVEX_GLOBAL_REPORT_BUFFER";
+  let ss;
+  const files = folder.getFilesByName(globalBufferName);
+  
+  if (files.hasNext()) {
+    // Nếu đã có file buffer, mở và reset hoàn toàn
+    const file = files.next();
+    ss = SpreadsheetApp.openById(file.getId());
+    
+    // Đổi tên "tạm" để khi Admin bấm /copy, họ thấy tên báo cáo chính xác của họ
+    file.setName(`[TEMP] Báo Cáo ${dateLabel} - ${adminEmail}`);
+    
+    // Reset cấu trúc sheet
+    const existingSheets = ss.getSheets();
+    for (let i = 1; i < existingSheets.length; i++) {
+        try { ss.deleteSheet(existingSheets[i]); } catch(e) {}
+    }
+    existingSheets[0].clear().setName("KH Mới");
+  } else {
+    // Nếu chưa từng có (lần đầu chạy), tạo file buffer duy nhất
+    ss = SpreadsheetApp.create(`[TEMP] Báo Cáo ${dateLabel} - ${adminEmail}`);
+    const file = DriveApp.getFileById(ss.getId());
+    file.moveTo(folder);
+    file.setName(globalBufferName); // Đặt tên buffer gốc
+    try { 
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); 
+    } catch (e) {}
+    // Sau khi tạo xong, đổi tên thành tên báo cáo để sẵn sàng cho /copy
+    file.setName(`[TEMP] Báo Cáo ${dateLabel} - ${adminEmail}`);
+  }
+
+  // Đổ dữ liệu vào sheet 1
+  const sheetKH = ss.getSheets()[0];
+  const khHeaders = ['ID', 'Tên Khách', 'Người liên hệ', 'SĐT', 'Địa chỉ', 'Khu vực', 'Sale phụ trách', 'Ngày tạo'];
+  const khData = [khHeaders];
+  customers.forEach(c => {
+    khData.push([c.id, c.name, c.contact, c.phone, c.address, c.area, getStaffName(c.salesId), c.dateStr]);
+  });
+  sheetKH.getRange(1, 1, khData.length, khHeaders.length).setValues(khData);
+  sheetKH.getRange(1, 1, 1, khHeaders.length).setBackground('#f1f5f9').setFontWeight('bold');
+
+  // Thêm Sheet 2
+  const sheetOrder = ss.insertSheet("Đơn hàng");
+  const orderHeaders = ['ID Đơn', 'Khách hàng', 'Sale', 'Ngày đơn', 'Trạng thái', 'Tổng tiền', 'Phí dịch vụ', 'Còn lại'];
+  const orderData = [orderHeaders];
+  orders.forEach(o => {
+    orderData.push([
+      o.id_don_hang, 
+      o.ten_khach_hang, 
+      o.nguoi_len_don, 
+      o.ngay_len_don, 
+      o.trang_thai_don_hang, 
+      (o.tong_tien_trong_don || 0), 
+      (o.tong_tien_dich_vu || 0), 
+      (o.so_tien_con_lai || 0)
+    ]);
+  });
+  sheetOrder.getRange(1, 1, orderData.length, orderHeaders.length).setValues(orderData);
+  sheetOrder.getRange(1, 1, 1, orderHeaders.length).setBackground('#f1f5f9').setFontWeight('bold');
+
+  // Thêm Sheet 3
+  const sheetDetail = ss.insertSheet("Chi tiết");
+  const detailHeaders = ['ID Đơn', 'Tên sản phẩm', 'Đơn giá', 'Số lượng', 'Thành tiền'];
+  const detailData = [detailHeaders];
+  details.forEach(d => {
+    detailData.push([d.id_don_hang, d.ten_san_pham, d.gia_tien, d.so_luong, d.thanh_tien]);
+  });
+  sheetDetail.getRange(1, 1, detailData.length, detailHeaders.length).setValues(detailData);
+  sheetDetail.getRange(1, 1, 1, detailHeaders.length).setBackground('#f1f5f9').setFontWeight('bold');
+
+  ss.getSheets().forEach(s => { if (s.getLastColumn() > 0) s.autoResizeColumns(1, s.getLastColumn()); });
+
+  // Cuối cùng đổi tên file buffer về lại tên gốc để lần sau tìm thấy dễ dàng (Google Drive lưu tên ngay lập tức)
+  // Thực tế: do code chạy tuần tự, Admin nhấn link /copy sẽ lấy đúng cái tên vừa đổi ở đầu hàm.
+  
+  return ss.getUrl().replace(/\/edit.*$/, '/copy');
+}
+
+function getAdminSalesHierarchy() {
+  const ss = SpreadsheetApp.openById(REPORT_AUTH_SS_ID);
+  const useSheet = ss.getSheetByName('use');
+  const data = useSheet.getDataRange().getValues();
+  const hierarchy = {};
+  for (let i = 1; i < data.length; i++) {
+    // Decrypt Admin Email
+    const adminEmail = (decryptData(data[i][5]) || "").toLowerCase();
+    // Decrypt User Email
+    const userEmail = (decryptData(data[i][1]) || "").toLowerCase();
+    
+    if (adminEmail && adminEmail !== 'n/a' && userEmail) {
+      if (!hierarchy[adminEmail]) hierarchy[adminEmail] = [];
+      hierarchy[adminEmail].push(userEmail);
+    }
+  }
+  return hierarchy;
+}
+
+function getStaffName(email) {
+  if (!email) return "N/A";
+  const eLower = email.toLowerCase().trim();
+  try {
+    const ss = SpreadsheetApp.openById(REPORT_AUTH_SS_ID);
+    for (let sName of ['admin', 'use']) {
+      const sh = ss.getSheetByName(sName);
+      if (!sh) continue;
+      const data = sh.getDataRange().getValues();
+      const found = data.find((r, i) => i > 0 && decryptData(r[1]).toLowerCase().trim() === eLower);
+      if (found) return found[3]; // Column D (Index 3)
+    }
+  } catch (e) {}
+  return email; 
+}
+
+function getCustomersByDateRange(start, end) {
+  try {
+    const ss = SpreadsheetApp.openById(REPORT_CRM_SS_ID);
+    const sheet = ss.getSheetByName('data_khach_hang');
+    if (!sheet) return [];
+    const data = sheet.getDataRange().getValues();
+    if (data.length < 2) return [];
+    
+    const headers = data[0].map(h => h.toString().toLowerCase().trim());
+    const idxId = headers.indexOf('customer_id');
+    const idxName = headers.indexOf('ten_khach_hang');
+    const idxContact = headers.indexOf('nguoi_lien_he_chinh');
+    const idxPhone = headers.indexOf('so_dien_thoai');
+    const idxEmail = headers.indexOf('email');
+    const idxAddress = headers.indexOf('dia_chi_kho_cua_hang');
+    const idxSales = headers.indexOf('ma_sales_phu_trach');
+    const idxArea = headers.indexOf('khu_vuc_thi_truong');
+    const idxDate = headers.indexOf('ngay_tao');
+
+    const results = [];
+    for (let i = 1; i < data.length; i++) {
+      const rawDate = data[i][idxDate !== -1 ? idxDate : 10];
+      const d = rawDate instanceof Date ? rawDate : new Date(rawDate);
+      
+      if (d >= start && d <= end) {
+        const rawSalesId = (data[i][idxSales !== -1 ? idxSales : 7] || "").toString().trim();
+        const safeSalesId = decryptData(rawSalesId).toLowerCase().trim(); 
+
+        results.push({
+          id: data[i][idxId !== -1 ? idxId : 0], 
+          name: data[i][idxName !== -1 ? idxName : 1], 
+          contact: decryptData(data[i][idxContact !== -1 ? idxContact : 2]), 
+          phone: decryptData(data[i][idxPhone !== -1 ? idxPhone : 3]),
+          email: decryptData(data[i][idxEmail !== -1 ? idxEmail : 4]),
+          address: decryptData(data[i][idxAddress !== -1 ? idxAddress : 5]), 
+          salesId: safeSalesId, 
+          area: data[i][idxArea !== -1 ? idxArea : 8],
+          dateStr: Utilities.formatDate(d, "GMT+7", "dd/MM/yyyy")
+        });
+      }
+    }
+    return results;
+  } catch (e) {
+    console.error("Error in getCustomersByDateRange: " + e.toString());
+    return [];
+  }
+}
+
+function getOrdersByDateRange(start, end) {
+  const content = SafeStore.read(REPORT_ORDER_HEADER_FILE);
+  const results = [];
+  const finalizedStatuses = ['đơn chốt', 'hoàn thành', 'đã giao'];
+  
+  content.forEach(o => {
+    const status = (o.trang_thai_don_hang || "").toLowerCase();
+    if (!finalizedStatuses.includes(status)) return;
+    
+    // Parse Date "HH:mm dd/MM/YYYY"
+    const parts = o.ngay_len_don.split(' ');
+    if (parts.length < 2) return;
+    const dateParts = parts[1].split('/');
+    // Check parts validity
+    if(dateParts.length < 3) return;
+    
+    const d = new Date(parseInt(dateParts[2]), parseInt(dateParts[1])-1, parseInt(dateParts[0]), 0, 0, 0); // Start of that day
+    
+    // Check range (inclusive)
+    if (d >= start && d <= end) { 
+      o.value = parseMoney(o.so_tien_con_lai || o.tong_gia_tri || 0);
+      
+      const rawSalesEmail = decryptData(o.nguoi_len_don);
+      o.salesId = (rawSalesEmail || "").toLowerCase().trim();
+      o.ten_khach_hang = decryptData(o.ten_khach_hang); // Đảm bảo tên khách luôn đọc được
+      o.nguoi_len_don = getStaffName(rawSalesEmail); // Chuyển email -> Tên nhân viên để báo cáo đẹp hơn
+      
+      results.push(o);
+    }
+  });
+  return results;
+}
+
+function getMonthlyOrderDetails(orderIds) {
+  if (orderIds.length === 0) return [];
+  const allDetails = SafeStore.read(REPORT_ORDER_DETAIL_FILE);
+  
+  // Tối ưu hóa: Sử dụng Set để tra cứu ID đơn hàng nhanh hơn O(1)
+  const orderIdSet = new Set(orderIds);
+  return allDetails.filter(d => orderIdSet.has(d.id_don_hang));
+}
+
+function parseMoney(val) {
+  if (typeof val === 'number') return val;
+  return parseFloat(val ? val.toString().replace(/[^\d]/g, '') : 0);
+}
+
+function sendEmailToAdmin(adminEmail, staffReports, totalRevenue, dateLabel, sheetUrl) {
+  const fmt = (num) => num.toLocaleString('vi-VN') + " đ";
+  let rowsHtml = staffReports.map(s => `
+    <tr>
+      <td style="padding:10px; border-bottom:1px solid #eee;"><b>${s.name}</b><br><small>${s.email}</small></td>
+      <td style="padding:10px; border-bottom:1px solid #eee; text-align:center;">${s.customerCount}</td>
+      <td style="padding:10px; border-bottom:1px solid #eee; text-align:center;">${s.orderCount}</td>
+      <td style="padding:10px; border-bottom:1px solid #eee; text-align:right; font-weight:bold; color:#6366f1;">${fmt(s.revenue)}</td>
+    </tr>`).join('');
+
+  const htmlBody = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+      <div style="background: #1e1b4b; color: white; padding: 25px; text-align: center;">
+        <h2 style="margin:0; text-transform: uppercase;">BÁO CÁO DOANH THU</h2>
+        <p style="margin:5px 0 0; opacity: 0.8;">Khoảng thời gian: ${dateLabel}</p>
+      </div>
+      <div style="padding: 20px;">
+        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #6366f1;">
+          <div style="font-size: 13px; color: #64748b; font-weight: bold;">TỔNG DOANH THU (ĐƠN CHỐT)</div>
+          <div style="font-size: 26px; font-weight: 800; color: #1e1b4b;">${fmt(totalRevenue)}</div>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
+          <thead>
+            <tr style="background: #f1f5f9; text-align: left; font-size: 11px; color: #64748b;">
+              <th style="padding: 10px;">NHÂN VIÊN (Trực thuộc)</th>
+              <th style="padding: 10px; text-align: center;">KH MỚI</th>
+              <th style="padding: 10px; text-align: center;">ĐƠN</th>
+              <th style="padding: 10px; text-align: right;">DOANH SỐ</th>
+            </tr>
+          </thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+        <div style="text-align: center; margin-top: 20px;">
+          <p style="font-size: 13px; color: #64748b; margin-bottom: 10px;">Để lưu trữ dữ liệu, vui lòng nhấn nút bên dưới để tạo bản sao:</p>
+          <a href="${sheetUrl.replace(/\/edit.*$/, '/copy')}" target="_blank" style="display: inline-block; padding: 14px 28px; background: #22c55e; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; box-shadow: 0 4px 6px rgba(34, 197, 94, 0.2);">
+            📂 TẠO BẢN SAO VÀ LƯU LẠI
+          </a>
+          <div style="margin-top: 15px; font-size: 11px; color: #94a3b8; word-break: break-all;">
+            <b>Link trực tiếp:</b><br>
+            <a href="${sheetUrl}" style="color: #6366f1;">${sheetUrl}</a>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  MailApp.sendEmail({
+    to: adminEmail,
+    subject: `[BÁO CÁO] Doanh thu từ ${dateLabel} - Dunvex Admin`,
+    htmlBody: htmlBody
+  });
+}
+
+function initMonthlyTrigger() {
+  const triggers = ScriptApp.getProjectTriggers();
+  triggers.forEach(t => { if (t.getHandlerFunction() === 'sendReportForPreviousMonth') ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('sendReportForPreviousMonth').timeBased().onMonthDay(1).atHour(8).create();
+  return "Auto trigger set.";
+}
+function sendReportForPreviousMonth() {
+  // Logic default: previous month
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const end = new Date(now.getFullYear(), now.getMonth(), 0);
+  const sStr = Utilities.formatDate(start, "GMT+7", "yyyy-MM-dd");
+  const eStr = Utilities.formatDate(end, "GMT+7", "yyyy-MM-dd");
+  sendAdminReportByDate(sStr, eStr, null);
+}
+
+/**
+ * NEW: getRevenueData for Frontend Tab
+ */
+function getRevenueData(d) {
+  const s = d.startDate.split('-');
+  const e = d.endDate.split('-');
+  const start = new Date(s[0], s[1]-1, s[2], 0,0,0);
+  const end = new Date(e[0], e[1]-1, e[2], 23,59,59);
+  
+  const staffFilter = (d.staffEmail || "ALL").toLowerCase();
+  const statusFilter = (d.status || "ALL").toLowerCase();
+  const requester = (d.requesterEmail || "").toLowerCase().trim();
+
+  const isAdmin = isUserAdmin(requester);
+  const root = getRootOwner(requester);
+  const companyEmails = getAllSystemEmails(root);
+
+  // Get Managed Emails (Team Filter)
+  const hierarchy = getAdminSalesHierarchy();
+  const managedEmails = isAdmin ? companyEmails : [requester];
+  if (!isAdmin && hierarchy[requester]) {
+    hierarchy[requester].forEach(email => {
+      if (!managedEmails.includes(email)) managedEmails.push(email);
+    });
+  }
+
+  // 1. Get All Orders
+  const allOrdersHeader = SafeStore.read(REPORT_ORDER_HEADER_FILE);
+  if (allOrdersHeader.length === 0) return { success: true, orders: [], summary: { orderCount: 0, totalRevenue: 0, newCustomers: 0 } };
+  
+  const filteredOrders = [];
+  let totalRev = 0;
+
+  allOrdersHeader.forEach(o => {
+    // a. Date Filter Support both "ngay_len_don" and "ngày tạo"
+    const rawDate = o.ngay_len_don || o['ngày tạo'];
+    if (!rawDate || typeof rawDate !== 'string') return;
+
+    const parts = rawDate.split(' ');
+    if (parts.length < 2) return;
+    const dateParts = parts[1].split('/');
+    if (dateParts.length < 3) return;
+    
+    const dObj = new Date(parseInt(dateParts[2]), parseInt(dateParts[1])-1, parseInt(dateParts[0]));
+    if (dObj < start || dObj > end) return;
+
+    // b. Staff Filter
+    const staffKey = o.nguoi_len_don || o['mail đăng nhập'];
+    const orderStaff = (decryptData(staffKey) || "").toLowerCase().trim();
+    
+    if (staffFilter !== "all") {
+      if (orderStaff !== staffFilter) return;
+    } else {
+      // Logic Domain Isolation: Chỉ xem những người trong cùng group Root Owner
+      if (!managedEmails.includes(orderStaff)) return;
+    }
+
+    // c. Status Filter
+    const orderStatus = (o.trang_thai_don_hang || o['trạng thái lên đơn'] || "").toLowerCase();
+    if (statusFilter !== "all" && orderStatus !== statusFilter) return;
+
+    // Passed filters
+    const val = parseMoney(o.so_tien_con_lai || o.tong_gia_tri || o['tổng tiền trong đơn'] || 0);
+    totalRev += val;
+    
+    filteredOrders.push({
+      date: rawDate,
+      customerName: o.ten_khach_hang || o['tên khách hàng'],
+      staffName: getStaffName(orderStaff),
+      total: val,
+      status: o.trang_thai_don_hang || o['trạng thái lên đơn'] || "N/A"
+    });
+  });
+
+  // 2. Get New Customers
+  const allNewCustomers = getCustomersByDateRange(start, end);
+  let filteredNewCustomers = [];
+  
+  if (staffFilter !== "all") {
+    filteredNewCustomers = allNewCustomers.filter(c => c.salesId === staffFilter);
+  } else {
+    filteredNewCustomers = allNewCustomers.filter(c => managedEmails.includes(c.salesId));
+  }
+
+  // Attach Staff Names for UI
+  filteredNewCustomers.forEach(c => {
+    c.staffName = getStaffName(c.salesId);
+  });
+
+  return {
+    success: true,
+    orders: filteredOrders,
+    customers: filteredNewCustomers,
+    summary: {
+      orderCount: filteredOrders.length,
+      totalRevenue: totalRev,
+      newCustomers: filteredNewCustomers.length
+    }
+  };
+}

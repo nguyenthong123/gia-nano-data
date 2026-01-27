@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-QFQ2HMYTDH"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag('js', new Date());
+
+		gtag('config', 'G-QFQ2HMYTDH');
+	</script>
+
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Sửa Đơn Hàng | Dunvex Digital</title>
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;800&display=swap"
+		rel="stylesheet">
+	<script src="security-utils.js"></script>
+	<script>
+		const session = SecurityProvider.validateAccess();
+		const currentUser = session ? session.user : null;
+	</script>
+	<link rel="stylesheet" href="assets/theme.css">
+	<link rel="icon" type="image/svg+xml"
+		href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23FACC15'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' fill='white' font-size='60' font-family='sans-serif' font-weight='800'>DV</text></svg>">
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+			text-rendering: optimizeLegibility;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+			font-weight: 500;
+		}
+
+		body {
+			background-color: var(--bg-body);
+			color: var(--text-main);
+			min-height: 100vh;
+			padding: 20px;
+			-webkit-text-size-adjust: 100%;
+			background-image: var(--bg-gradient-1), var(--bg-gradient-2);
+			background-attachment: fixed;
+		}
+
+		.container {
+			max-width: 1000px;
+			margin: 40px auto;
+		}
+
+		.header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 30px;
+		}
+
+		.header h1 {
+			font-size: 2rem;
+			font-weight: 800;
+			color: #0f172a;
+			margin: 0;
+		}
+
+		.card {
+			background: white;
+			border: 1px solid var(--glass-border);
+			border-radius: 24px;
+			padding: 30px;
+			margin-bottom: 25px;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+		}
+
+		.form-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 20px;
+		}
+
+		.form-group {
+			margin-bottom: 20px;
+		}
+
+		label {
+			display: block;
+			font-size: 0.85rem;
+			color: #475569;
+			margin-bottom: 8px;
+			text-transform: uppercase;
+			letter-spacing: 1px;
+			font-weight: 800;
+		}
+
+		input,
+		select,
+		textarea {
+			width: 100%;
+			padding: 12px 16px;
+			background: white !important;
+			border: 1.5px solid #cbd5e1 !important;
+			border-radius: 12px;
+			color: #0f172a !important;
+			font-size: 1rem;
+			outline: none;
+			transition: 0.3s;
+			font-weight: 600;
+		}
+
+		input:focus,
+		select:focus {
+			border-color: var(--primary) !important;
+			box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.2);
+		}
+
+		/* Item Table */
+		table {
+			width: 100%;
+			border-collapse: collapse;
+			margin-top: 20px;
+		}
+
+		th {
+			text-align: left;
+			font-size: 0.75rem;
+			color: #64748b;
+			padding: 12px 10px;
+			border-bottom: 2px solid #f1f5f9;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+			font-weight: 800;
+		}
+
+		td {
+			padding: 12px 10px;
+			border-bottom: 1px solid #f1f5f9;
+			color: #1e293b;
+		}
+
+		.btn {
+			padding: 12px 24px;
+			border-radius: 12px;
+			font-weight: 800;
+			cursor: pointer;
+			transition: 0.3s;
+			border: none;
+			font-size: 0.95rem;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+		}
+
+		.btn-primary {
+			background: var(--primary);
+			color: #0f172a;
+			box-shadow: 0 4px 12px rgba(250, 204, 21, 0.3);
+		}
+
+		.btn-primary:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 8px 20px rgba(250, 204, 21, 0.4);
+		}
+
+		.btn-add {
+			background: rgba(250, 204, 21, 0.05);
+			color: #854d0e;
+			border: 2px dashed var(--primary);
+			width: 100%;
+			margin-top: 15px;
+		}
+
+		.btn-add:hover {
+			background: rgba(250, 204, 21, 0.1);
+		}
+
+		.btn-remove {
+			background: rgba(239, 68, 68, 0.1);
+			color: #ef4444;
+			border: 1px solid #ef4444;
+		}
+
+		/* Summary */
+		.summary-card {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-end;
+			gap: 10px;
+			margin-top: 20px;
+		}
+
+		.summary-row {
+			display: flex;
+			justify-content: space-between;
+			width: 300px;
+			font-size: 1rem;
+		}
+
+		.total-large {
+			font-size: 2.5rem;
+			font-weight: 900;
+			color: #15803d;
+			margin-top: 10px;
+			letter-spacing: -1.5px;
+		}
+
+		#toast {
+			position: fixed;
+			top: 20px;
+			right: 20px;
+			padding: 16px 24px;
+			border-radius: 12px;
+			background: var(--success);
+			color: white;
+			font-weight: 600;
+			transform: translateX(200%);
+			transition: 0.4s;
+			z-index: 3000;
+		}
+
+		#toast.active {
+			transform: translateX(0);
+		}
+
+		.back-btn {
+			text-decoration: none;
+			color: var(--text-muted);
+			font-size: 0.9rem;
+			transition: 0.3s;
+		}
+
+		.back-btn:hover {
+			color: white;
+		}
+
+
+
+		.status-badge {
+			padding: 4px 12px;
+			border-radius: 20px;
+			font-size: 0.75rem;
+			font-weight: 700;
+			background: rgba(99, 102, 241, 0.2);
+			color: var(--primary);
+		}
+
+		/* Toggle Adjustment */
+		.adjustment-toggle {
+			display: flex;
+			background: #f1f5f9;
+			padding: 4px;
+			border-radius: 12px;
+			border: 1px solid #e2e8f0;
+			margin-bottom: 12px;
+		}
+
+		.adj-btn {
+			flex: 1;
+			padding: 8px;
+			border: none;
+			background: transparent;
+			color: #64748b;
+			font-size: 0.8rem;
+			font-weight: 600;
+			cursor: pointer;
+			border-radius: 8px;
+			transition: 0.3s;
+		}
+
+		.adj-btn.active {
+			background: var(--primary);
+			color: #0f172a;
+			box-shadow: 0 4px 10px rgba(250, 204, 21, 0.2);
+		}
+
+		#loadingOverlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: #0f172a;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			z-index: 9999;
+			flex-direction: column;
+			gap: 20px;
+		}
+
+		.spinner {
+			width: 50px;
+			height: 50px;
+			border: 5px solid rgba(255, 255, 255, 0.1);
+			border-top-color: var(--primary);
+			border-radius: 50%;
+			animation: spin 1s linear infinite;
+		}
+
+		@keyframes spin {
+			to {
+				transform: rotate(360deg);
+			}
+		}
+
+		/* Responsive Adjustments */
+		@media (max-width: 768px) {
+			body {
+				padding: 10px;
+			}
+
+			.container {
+				margin: 10px auto;
+			}
+
+			.header {
+				flex-direction: column;
+				align-items: flex-start;
+				gap: 15px;
+			}
+
+			.header h1 {
+				font-size: 1.5rem;
+			}
+
+			.form-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.card {
+				padding: 20px 15px;
+				border-radius: 16px;
+			}
+
+			/* Table to Card Transformation */
+			table thead {
+				display: none;
+			}
+
+			table,
+			tbody,
+			tr,
+			td {
+				display: block;
+				width: 100%;
+			}
+
+			tr {
+				margin-bottom: 25px;
+				padding-bottom: 20px;
+				border-bottom: 2px solid var(--glass-border);
+				position: relative;
+			}
+
+			td {
+				border: none;
+				padding: 8px 0;
+				display: flex;
+				flex-direction: column;
+				gap: 5px;
+			}
+
+			td:before {
+				content: attr(data-label);
+				font-size: 0.7rem;
+				color: var(--text-muted);
+				text-transform: uppercase;
+				font-weight: 700;
+			}
+
+			.item-total {
+				font-size: 1.1rem;
+				text-align: right;
+			}
+
+			.btn-remove {
+				position: absolute;
+				top: 0;
+				right: 0;
+				border-radius: 50%;
+				width: 30px;
+				height: 30px;
+				padding: 0;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+
+			/* Summary Section */
+			.summary-section-grid {
+				grid-template-columns: 1fr !important;
+				gap: 20px !important;
+			}
+
+			.summary-card {
+				align-items: center;
+				border-top: 1px solid var(--glass-border);
+				padding-top: 20px;
+			}
+
+			.summary-row {
+				width: 100%;
+			}
+
+			.total-large {
+				font-size: 2rem;
+			}
+		}
+
+		/* Searchable Suggestions */
+		.suggestions-list {
+			position: absolute;
+			top: 100%;
+			left: 0;
+			right: 0;
+			background: white;
+			border: 1px solid #e2e8f0;
+			border-radius: 12px;
+			margin-top: 5px;
+			max-height: 250px;
+			overflow-y: auto;
+			z-index: 1000;
+			display: none;
+			box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+		}
+
+		.suggestion-item {
+			padding: 12px 16px;
+			cursor: pointer;
+			transition: 0.2s;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+		}
+
+		.suggestion-item:last-child {
+			border-bottom: none;
+		}
+
+		.suggestion-item:hover {
+			background: var(--primary);
+			color: white;
+		}
+
+		.suggestion-item .sub-info {
+			display: block;
+			font-size: 0.75rem;
+			color: var(--text-muted);
+			margin-top: 2px;
+		}
+
+		.suggestion-item:hover .sub-info {
+			color: rgba(255, 255, 255, 0.8);
+		}
+
+		/* Toggle Switch */
+		.toggle-switch {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			cursor: pointer;
+		}
+
+		.switch {
+			position: relative;
+			display: inline-block;
+			width: 44px;
+			height: 24px;
+		}
+
+		.switch input {
+			opacity: 0;
+			width: 0;
+			height: 0;
+		}
+
+		.slider {
+			position: absolute;
+			cursor: pointer;
+			inset: 0;
+			background-color: #e2e8f0;
+			transition: .4s;
+			border-radius: 24px;
+		}
+
+		.slider:before {
+			position: absolute;
+			content: "";
+			height: 18px;
+			width: 18px;
+			left: 3px;
+			bottom: 3px;
+			background-color: white;
+			transition: .4s;
+			border-radius: 50%;
+		}
+
+		input:checked+.slider {
+			background-color: var(--primary);
+		}
+
+		input:checked+.slider:before {
+			transform: translateX(20px);
+		}
+	</style>
+</head>
+
+<body>
+
+	<div id="loadingOverlay">
+		<div class="spinner"></div>
+		<p>Đang chuẩn bị dữ liệu chỉnh sửa...</p>
+	</div>
+
+	<div id="toast">Thông báo!</div>
+
+	<div class="container">
+		<div class="header">
+			<div>
+				<h1 id="pageTitle" style="font-size: 1.5rem; margin-top: 5px;">📝 Chỉnh Sửa Đơn Hàng</h1>
+				<p style="color: var(--text-muted); font-size: 0.9rem;" id="orderIdDisplay">Đang tải...</p>
+			</div>
+			<div style="display: flex; align-items: center; gap: 20px;">
+				<label class="toggle-switch">
+					<span style="font-size: 0.85rem; color: #64748b; font-weight: 600;">Gửi Email báo:</span>
+					<div class="switch">
+						<input type="checkbox" id="notifyToggle" checked>
+						<span class="slider"></span>
+					</div>
+				</label>
+				<a href="danh-sach-don-hang.html" class="back-btn">← Quay lại danh sách</a>
+			</div>
+		</div>
+
+		<form id="orderForm">
+			<!-- PHẦN 1: THÔNG TIN CHUNG -->
+			<div class="card">
+				<div class="form-grid">
+					<div class="form-group" style="position: relative;">
+						<label>Khách hàng *</label>
+						<input type="text" id="customerSearch" placeholder="🔍 Nhập tên hoặc tìm khách hàng..."
+							autocomplete="off" oninput="filterCustomers()" onfocus="filterCustomers()" required>
+						<input type="hidden" id="ten_khach_hang" required>
+						<input type="hidden" id="customerId" required>
+						<input type="hidden" id="customerEmail">
+						<div id="customerSuggestions" class="suggestions-list"></div>
+					</div>
+					<div class="form-group">
+						<label>Trạng thái đơn</label>
+						<select id="trang_thai_don_hang">
+							<option value="Đơn chốt">Đơn chốt</option>
+							<option value="Đang xử lý">Đang xử lý</option>
+							<option value="Đơn nháp">Đơn nháp</option>
+							<option value="Đã hủy">Đã hủy</option>
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<label>Ghi chú đơn hàng</label>
+					<textarea id="ghi_chu_don_hang" rows="2" placeholder="Yêu cầu giao hàng sớm..."></textarea>
+				</div>
+			</div>
+
+			<!-- PHẦN 2: CHI TIẾT SẢN PHẨM -->
+			<div class="card">
+				<label>Danh sách sản phẩm</label>
+				<table>
+					<thead>
+						<tr>
+							<th style="width: 25%;">Ngành hàng</th>
+							<th style="width: 30%;">Sản phẩm</th>
+							<th style="width: 10%;">Số lượng</th>
+							<th style="width: 15%;">Đơn giá</th>
+							<th style="width: 5%;">Kiện</th>
+							<th style="width: 10%;">Thành tiền</th>
+							<th style="width: 5%;"></th>
+						</tr>
+					</thead>
+					<tbody id="itemsBody">
+						<!-- Rows added here -->
+					</tbody>
+				</table>
+				<button type="button" class="btn btn-add" onclick="addItemRow()">+ Thêm sản phẩm</button>
+			</div>
+
+			<!-- PHẦN 3: TỔNG HỢP & THANH TOÁN -->
+			<div class="card">
+				<div class="summary-section-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+					<div class="form-group">
+						<label>Điều chỉnh đơn hàng</label>
+						<div class="adjustment-toggle">
+							<button type="button" class="adj-btn active" onclick="setAdjustment('add', this)">+ VẬN
+								CHUYỂN</button>
+							<button type="button" class="adj-btn" onclick="setAdjustment('sub', this)">- CHIẾT
+								KHẤU</button>
+						</div>
+						<input type="hidden" id="adj_type" value="add">
+						<input type="number" id="tong_tien_dich_vu" value="0" placeholder="Số tiền..."
+							oninput="calculateTotal()">
+					</div>
+					<div class="summary-card">
+						<div class="summary-row">
+							<span>Tiền hàng:</span>
+							<span id="label_tien_hang">0 đ</span>
+						</div>
+						<div class="summary-row">
+							<span id="label_adj_name">Phí vận chuyển:</span>
+							<span id="label_phi_dv">0 đ</span>
+						</div>
+						<div class="total-large" id="label_tong_cong">0 đ</div>
+						<button type="submit" class="btn btn-primary" id="btnSubmit"
+							style="width: 100%; margin-top: 20px; padding: 15px;">LƯU CHỈNH SỬA</button>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+
+	<script>
+		const ORDER_URL = 'https://script.google.com/macros/s/AKfycby_Uduzhl4k6aVfQEcgRr7XV3Vz-xJSIHIuQ4sD50I8Y0662wEHcWHgQMGJ2IaRgeNL5w/exec';
+		const SYNC_DEBT_URL = 'https://script.google.com/macros/s/AKfycbz6PRwKYaCcIEXcEHiFnWz9JFMeJ2aZZ8H8tJZMSTdDdca2cgG8ztuxAcLjHCdhWccU/exec';
+
+		let productsLookup = [];
+		let customersList = [];
+		// currentUser is already defined in the head script
+
+		// Initialize Notify Toggle
+		const savedNotify = localStorage.getItem('debt_notify_pref');
+		const notifyToggle = document.getElementById('notifyToggle');
+		if (notifyToggle) {
+			notifyToggle.checked = (savedNotify !== 'false');
+			notifyToggle.onchange = (e) => localStorage.setItem('debt_notify_pref', e.target.checked);
+		}
+
+		async function initPage() {
+			try {
+				// 1. Tải khách hàng & sản phẩm trước
+				const resInitial = await fetch(ORDER_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('get_initial_data', { salesId: currentUser.email, adminEmail: currentUser.adminEmail })
+				});
+				const dataInitial = await resInitial.json();
+
+				if (!dataInitial.success) {
+					alert("Lỗi tải dữ liệu cơ bản: " + dataInitial.message);
+					return;
+				}
+
+				productsLookup = dataInitial.products || [];
+				customersList = dataInitial.customers || [];
+
+				// 2. Xác định ID đơn hàng cần sửa
+				const params = new URLSearchParams(window.location.search);
+				let orderId = params.get('id') || localStorage.getItem('edit_order_id');
+
+				if (!orderId) {
+					alert("Không tìm thấy mã đơn hàng để sửa!");
+					window.location.href = 'danh-sach-don-hang.html';
+					return;
+				}
+
+				// 3. Tải thông tin đơn hàng
+				await loadOrderData(orderId);
+
+				// Tắt overlay sau khi xong
+				document.getElementById('loadingOverlay').style.display = 'none';
+				localStorage.removeItem('edit_order_id');
+
+			} catch (e) {
+				console.error(e);
+				alert("Lỗi khởi tạo trang sửa đơn: " + e.message);
+			}
+		}
+
+		async function loadOrderData(orderId) {
+			document.getElementById('orderIdDisplay').innerText = "Đang tải dữ liệu đơn: " + orderId;
+
+			const [resOrders, resDetails] = await Promise.all([
+				fetch(ORDER_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('get_orders', {
+						userEmail: currentUser.email,
+						isAdmin: currentUser.roleId === 'R001',
+						adminEmail: currentUser.adminEmail || currentUser.email
+					})
+				}),
+				fetch(ORDER_URL, { method: 'POST', body: SecurityProvider.prepareRequest('get_order_details', { order_id: orderId }) })
+			]);
+
+			const dataOrders = await resOrders.json();
+			const dataDetails = await resDetails.json();
+			const header = dataOrders.orders.find(o => o.id_don_hang === orderId);
+
+			if (!header || !dataDetails.success) {
+				alert("Không tìm thấy đơn hàng mã: " + orderId);
+				window.location.href = 'danh-sach-don-hang.html';
+				return;
+			}
+
+			// Đổ dữ liệu Header
+			const cust = customersList.find(c => c.id === header.customerId);
+			document.getElementById('ten_khach_hang').value = header.ten_khach_hang;
+			document.getElementById('customerSearch').value = header.ten_khach_hang;
+			document.getElementById('customerId').value = header.customerId || "";
+			document.getElementById('customerEmail').value = header.customer_email || (cust ? (cust.email || "") : "");
+
+			document.getElementById('trang_thai_don_hang').value = header.trang_thai_don_hang;
+			document.getElementById('ghi_chu_don_hang').value = header.ghi_chu_don_hang || '';
+			document.getElementById('orderForm').setAttribute('data-id', orderId);
+			document.getElementById('orderIdDisplay').innerText = "Sửa Đơn: " + orderId + " (" + header.ngay_len_don + ")";
+
+			// Xử lý Phí/Chiết khấu
+			const fee = parseFloat(header.tong_tien_dich_vu) || 0;
+			if (fee < 0) {
+				document.getElementById('tong_tien_dich_vu').value = Math.abs(fee);
+				setAdjustment('sub', document.querySelectorAll('.adj-btn')[1]);
+			} else {
+				document.getElementById('tong_tien_dich_vu').value = fee;
+				setAdjustment('add', document.querySelectorAll('.adj-btn')[0]);
+			}
+
+			// Đổ dữ liệu Items
+			const tbody = document.getElementById('itemsBody');
+			tbody.innerHTML = '';
+
+			if (dataDetails.details && dataDetails.details.length > 0) {
+				dataDetails.details.forEach(item => {
+					addItemRow(item);
+				});
+			} else {
+				addItemRow();
+			}
+
+			calculateTotal();
+		}
+
+
+		// CUSTOMER SEARCH LOGIC
+		function filterCustomers() {
+			const input = document.getElementById('customerSearch');
+			const val = input.value.toLowerCase().trim();
+			const suggestions = document.getElementById('customerSuggestions');
+			const hiddenInput = document.getElementById('ten_khach_hang');
+
+			if (!val) hiddenInput.value = "";
+
+			const filtered = customersList.filter(c =>
+				c.name.toLowerCase().includes(val) ||
+				(c.phone && c.phone.includes(val))
+			).slice(0, 15);
+
+			if (filtered.length > 0) {
+				suggestions.innerHTML = filtered.map(c => `
+                    <div class="suggestion-item" onclick="selectCustomer('${c.name.replace(/'/g, "\\'")}', '${c.id}')">
+                        <span style="font-weight: 600;">${c.name}</span>
+                        <span class="sub-info">${c.area || 'Chưa rõ khu vực'} ${c.phone ? ' - ' + c.phone : ''}</span>
+                    </div>
+                `).join('');
+				suggestions.style.display = 'block';
+			} else {
+				suggestions.style.display = 'none';
+			}
+		}
+
+		function selectCustomer(name, id) {
+			const cust = customersList.find(c => c.id === id);
+			document.getElementById('customerSearch').value = name;
+			document.getElementById('ten_khach_hang').value = name;
+			document.getElementById('customerId').value = id;
+			document.getElementById('customerEmail').value = cust ? (cust.email || "") : "";
+			document.getElementById('customerSuggestions').style.display = 'none';
+		}
+
+		document.addEventListener('click', (e) => {
+			if (!e.target.closest('.form-group')) {
+				document.getElementById('customerSuggestions').style.display = 'none';
+			}
+		});
+
+		function addItemRow(itemData = null) {
+			const tbody = document.getElementById('itemsBody');
+			const rowId = 'row_' + Date.now() + Math.random().toString(36).substr(2, 5);
+			const tr = document.createElement('tr');
+			tr.id = rowId;
+
+			const categoriesCached = productsLookup.map(p => getCategoryName(p));
+			const categories = [...new Set(categoriesCached)].sort();
+
+			tr.innerHTML = `
+                <td data-label="Ngành hàng">
+                    <select class="cat-select" onchange="onCategoryChange('${rowId}', this.value)" required>
+                        <option value="">-- Ngành --</option>
+                        ${categories.map(c => `<option value="${c}">${c}</option>`).join('')}
+                    </select>
+                </td>
+                <td data-label="Sản phẩm">
+                    <select class="item-select" onchange="onProductChange('${rowId}', this.value)" required disabled>
+                        <option value="">-- Chọn SP --</option>
+                    </select>
+                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 5px;" class="item-spec">${itemData ? itemData.quy_cach_san_pham : ''}</div>
+                </td>
+                <td data-label="Số lượng"><input type="number" class="item-qty" value="${itemData ? itemData.so_luong : '1'}" min="1" oninput="onQtyChange('${rowId}')" required></td>
+                <td data-label="Đơn giá"><input type="number" class="item-price" value="${itemData ? itemData.gia_tien : ''}" oninput="calculateTotal()" required></td>
+                <td data-label="Số kiện" class="item-pack" style="font-size: 0.8rem; font-weight: 600;">${itemData ? itemData.tinh_kien_trong_don : '0'}</td>
+                <td data-label="Thành tiền" class="item-total" style="font-weight: 700; color: var(--primary);">0 đ</td>
+                <td><button type="button" class="btn-remove" onclick="removeRow('${rowId}')">×</button></td>
+            `;
+
+			tbody.appendChild(tr);
+
+			if (itemData) {
+				const p = productsLookup.find(x => x.id_san_pham === itemData.id_san_pham);
+				if (p) {
+					tr.setAttribute('data-packing', p.dong_kien || 0);
+					const catSel = tr.querySelector('.cat-select');
+					catSel.value = getCategoryName(p);
+					onCategoryChange(rowId, catSel.value, itemData.id_san_pham);
+				}
+			}
+			return rowId;
+		}
+
+		function onCategoryChange(rowId, catName, selectedItemId = null) {
+			const row = document.getElementById(rowId);
+			const itemSel = row.querySelector('.item-select');
+
+			if (!catName) {
+				itemSel.innerHTML = '<option value="">-- Chọn SP --</option>';
+				itemSel.disabled = true;
+				return;
+			}
+
+			const filtered = productsLookup.filter(p => getCategoryName(p) === catName).sort((a, b) => a.ten_san_pham.localeCompare(b.ten_san_pham));
+			itemSel.innerHTML = '<option value="">-- Chọn SP --</option>' +
+				filtered.map(p => `<option value="${p.id_san_pham}" ${selectedItemId === p.id_san_pham ? 'selected' : ''}>${p.ten_san_pham}</option>`).join('');
+			itemSel.disabled = false;
+		}
+
+		function onProductChange(rowId, prodId) {
+			const p = productsLookup.find(x => x.id_san_pham === prodId);
+			const row = document.getElementById(rowId);
+			if (p) {
+				row.querySelector('.item-price').value = p.gia_san_pham;
+				row.querySelector('.item-spec').innerText = p.quy_cach;
+				row.setAttribute('data-packing', p.dong_kien || 0);
+				onQtyChange(rowId);
+			}
+		}
+
+		function onQtyChange(rowId) {
+			const row = document.getElementById(rowId);
+			const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+			const packing = parseFloat(row.getAttribute('data-packing')) || 0;
+			const packingVal = packing > 0 ? (qty / packing) : 0;
+			row.querySelector('.item-pack').innerText = packingVal.toFixed(2);
+			calculateTotal();
+		}
+
+		function removeRow(id) {
+			const row = document.getElementById(id);
+			if (document.querySelectorAll('#itemsBody tr').length > 1) {
+				row.remove();
+				calculateTotal();
+			}
+		}
+
+		function setAdjustment(type, btn) {
+			document.getElementById('adj_type').value = type;
+			document.querySelectorAll('.adj-btn').forEach(b => b.classList.remove('active'));
+			btn.classList.add('active');
+			document.getElementById('label_adj_name').innerText = type === 'add' ? 'Phí vận chuyển:' : 'Chiết khấu:';
+			calculateTotal();
+		}
+
+		function calculateTotal() {
+			let subtotal = 0;
+			document.querySelectorAll('#itemsBody tr').forEach(row => {
+				const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+				const price = parseFloat(row.querySelector('.item-price').value) || 0;
+				const total = qty * price;
+				subtotal += total;
+				row.querySelector('.item-total').innerText = formatCurrency(total);
+			});
+
+			const adjType = document.getElementById('adj_type').value;
+			const serviceFee = parseFloat(document.getElementById('tong_tien_dich_vu').value) || 0;
+			const grandTotal = adjType === 'add' ? (subtotal + serviceFee) : (subtotal - serviceFee);
+
+			document.getElementById('label_tien_hang').innerText = formatCurrency(subtotal);
+			document.getElementById('label_phi_dv').innerText = (adjType === 'sub' ? '- ' : '+ ') + formatCurrency(serviceFee);
+			document.getElementById('label_tong_cong').innerText = formatCurrency(grandTotal);
+
+			return { subtotal, serviceFee, grandTotal, adjType };
+		}
+
+		document.getElementById('orderForm').onsubmit = async (e) => {
+			e.preventDefault();
+			const btn = document.getElementById('btnSubmit');
+			btn.disabled = true;
+			btn.innerText = "ĐANG LƯU CHỈNH SỬA...";
+
+			const totals = calculateTotal();
+			const items = [];
+			document.querySelectorAll('#itemsBody tr').forEach(row => {
+				const pId = row.querySelector('.item-select').value;
+				const p = productsLookup.find(x => x.id_san_pham === pId);
+				const qty = parseFloat(row.querySelector('.item-qty').value);
+				const price = parseFloat(row.querySelector('.item-price').value);
+
+				if (pId) {
+					items.push({
+						id_san_pham: pId,
+						ten_san_pham: p.ten_san_pham,
+						quy_cach_san_pham: p.quy_cach,
+						gia_tien: price,
+						so_luong: qty,
+						thanh_tien: qty * price,
+						trong_luong: (qty * parseFloat(p.trong_luong_rieng || 0)).toFixed(2),
+						tinh_kien_trong_don: (parseFloat(p.dong_kien) > 0 ? (qty / parseFloat(p.dong_kien)) : 0).toFixed(2)
+					});
+				}
+			});
+
+			const header = {
+				id_don_hang: document.getElementById('orderForm').getAttribute('data-id'),
+				ten_khach_hang: document.getElementById('ten_khach_hang').value,
+				customerId: document.getElementById('customerId').value,
+				trang_thai_don_hang: document.getElementById('trang_thai_don_hang').value,
+				tong_tien_trong_don: totals.subtotal,
+				tong_tien_dich_vu: totals.adjType === 'sub' ? -totals.serviceFee : totals.serviceFee,
+				so_tien_con_lai: totals.grandTotal,
+				tong_trong_luong: items.reduce((sum, item) => sum + parseFloat(item.trong_luong || 0), 0).toFixed(2),
+				nguoi_len_don: currentUser.email,
+				manager_email: currentUser.orgAdmins || currentUser.adminEmail || currentUser.email,
+				customer_email: document.getElementById('customerEmail').value,
+				ghi_chu_don_hang: document.getElementById('ghi_chu_don_hang').value
+			};
+
+			try {
+				const res = await fetch(ORDER_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('save_order', { header, items })
+				});
+				const data = await res.json();
+				if (data.success) {
+					// --- CHẠY ĐỒNG BỘ SONG SONG ---
+					const syncPromises = [];
+					const notifyPref = localStorage.getItem('debt_notify_pref') !== 'false';
+					const SYNC_INV_URL = 'https://script.google.com/macros/s/AKfycbxhXNBpF0lgvQg-EQ-Y5GpBIfGl7orPeIZdkVIOo3BoJmvJpdqHvSnvrMQOtOzGZh_u/exec';
+
+					syncPromises.push(fetch(SYNC_INV_URL, {
+						method: 'POST',
+						body: SecurityProvider.prepareRequest('sync_order_to_inventory', {
+							orderId: header.id_don_hang,
+							userEmail: currentUser.email,
+							adminEmail: (currentUser.roleId === 'R005' ? currentUser.adminEmail : currentUser.email), // Sử dụng đúng email admin của nhân viên
+							status: header.trang_thai_don_hang
+						})
+					}).catch(e => console.error("Lỗi đồng bộ kho", e)));
+
+					syncPromises.push(fetch(SYNC_DEBT_URL, {
+						method: 'POST',
+						body: SecurityProvider.prepareRequest('sync_order_to_debt', {
+							orderId: header.id_don_hang,
+							adminEmail: (currentUser.roleId === 'R005' ? currentUser.adminEmail : currentUser.email), // Đồng bộ công nợ cho đúng Admin
+							sendEmail: document.getElementById('notifyToggle').checked
+						})
+					}).catch(e => console.error("Lỗi đồng bộ nợ", e)));
+
+					Promise.all(syncPromises).then(async (results) => {
+						let emailInfo = '';
+						try {
+							const dRes = await results[1].json();
+							emailInfo = (dRes.emailSentTo && dRes.emailSentTo.includes('@'))
+								? ` (Mail: ${dRes.emailSentTo})`
+								: ' (Không tìm thấy mail khách)';
+						} catch (e) { emailInfo = ' (Đã gửi yêu cầu đồng bộ)'; }
+						showToast("Cập nhật đơn hàng thành công!" + emailInfo);
+					});
+					// ---------------------------
+
+					setTimeout(() => window.location.href = 'danh-sach-don-hang.html', 5000);
+				} else {
+					showToast("Lỗi: " + data.message, true);
+					btn.disabled = false;
+				}
+			} catch (e) {
+				showToast("Lỗi kết nối", true);
+				btn.disabled = false;
+			}
+		};
+
+		function getCategoryName(p) {
+			if (!p) return 'Sản phẩm khác';
+			return (p.ten_nghanh_hang || p.ten_nghanh || p.loai_san_pham || p.nhom_hang || 'Sản phẩm khác').toString().trim();
+		}
+		function formatCurrency(val) { return new Intl.NumberFormat('vi-VN').format(val) + ' đ'; }
+		function showToast(msg, isError = false) {
+			const t = document.getElementById('toast');
+			t.innerText = msg;
+			t.style.background = isError ? 'var(--danger)' : 'var(--success)';
+			t.classList.add('active');
+			setTimeout(() => t.classList.remove('active'), 5000);
+		}
+
+		window.onload = initPage;
+	</script>
+	<script src="chatbot.js"></script>
+	<script src="floating-menu.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,1849 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-QFQ2HMYTDH"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag('js', new Date());
+
+		gtag('config', 'G-QFQ2HMYTDH');
+	</script>
+
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Quản Trị Hệ Thống | Dunvex Global</title>
+	<link rel="icon" type="image/svg+xml"
+		href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23FACC15'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' fill='white' font-size='60' font-family='sans-serif' font-weight='800'>DV</text></svg>">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;800&display=swap"
+		rel="stylesheet">
+	<script src="security-utils.js"></script>
+	<script src="assets/theme-toggle.js"></script>
+	<link rel="stylesheet" href="assets/theme.css">
+	<style>
+		/* Variables handled in theme.css */
+		/* Overrides for Super Admin specific look if needed, or rely on theme.css */
+
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			font-family: 'Inter', -apple-system, sans-serif;
+			-webkit-font-smoothing: antialiased;
+		}
+
+		body {
+			/* Background handled by theme.css */
+			line-height: 1.5;
+			min-height: 100vh;
+		}
+
+		#app {
+			display: none;
+			padding: 25px 20px;
+			max-width: 1200px;
+			margin: 0 auto;
+			animation: fadeIn 0.8s ease;
+		}
+
+		@keyframes fadeIn {
+			from {
+				opacity: 0;
+				transform: translateY(10px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		/* Header & Stat Cards */
+		header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 40px;
+			flex-wrap: wrap;
+			gap: 20px;
+		}
+
+		.logo-area h1 {
+			font-family: 'Outfit', sans-serif;
+			font-size: 2.2rem;
+			color: #0f172a;
+			font-weight: 800;
+		}
+
+		.stats-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+			gap: 15px;
+			margin-bottom: 30px;
+		}
+
+		.stat-card {
+			background: white;
+			border: 1px solid #e2e8f0;
+			border-radius: 16px;
+			padding: 20px;
+			display: flex;
+			align-items: center;
+			gap: 15px;
+			transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+		}
+
+		.stat-card:hover {
+			transform: translateY(-8px);
+			border-color: var(--primary);
+			box-shadow: 0 20px 40px -20px var(--primary-glow);
+		}
+
+		.stat-icon {
+			width: 60px;
+			height: 60px;
+			border-radius: 12px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 1.5rem;
+			background: rgba(255, 255, 255, 0.05);
+		}
+
+		/* Tables & Cards */
+		.main-card {
+			background: white;
+			border: 1px solid #e2e8f0;
+			border-radius: 24px;
+			overflow: hidden;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+		}
+
+		.card-header {
+			padding: 20px 25px;
+			border-bottom: 1px solid var(--glass-border);
+		}
+
+		th {
+			padding: 15px 20px;
+			text-align: left;
+			background: #f8fafc;
+			font-size: 0.75rem;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+			color: #64748b;
+			font-weight: 800;
+			border-bottom: 2px solid #f1f5f9;
+		}
+
+		td {
+			padding: 12px 20px;
+			border-bottom: 1px solid #f1f5f9;
+			color: #1e293b;
+			font-size: 0.85rem;
+			font-weight: 600;
+		}
+
+		tr:hover td {
+			background: rgba(var(--primary), 0.05);
+		}
+
+		.table-container {
+			width: 100%;
+			overflow-x: auto;
+			-webkit-overflow-scrolling: touch;
+			border-radius: 0 0 24px 24px;
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+			min-width: 1800px;
+		}
+
+		/* Forms & Inputs */
+		.search-box input {
+			width: 100%;
+			padding: 14px 20px 14px 45px;
+			background: white !important;
+			border: 1.5px solid #cbd5e1 !important;
+			border-radius: 12px;
+			color: #0f172a !important;
+			transition: 0.3s;
+			font-weight: 600;
+		}
+
+		input,
+		select,
+		textarea {
+			width: 100%;
+			padding: 12px 18px;
+			border-radius: 12px;
+			background: white !important;
+			border: 1.5px solid #cbd5e1 !important;
+			color: #0f172a !important;
+			transition: 0.3s;
+			font-weight: 600;
+		}
+
+		input:focus,
+		select:focus,
+		textarea:focus {
+			border-color: var(--primary);
+			outline: none;
+			box-shadow: 0 0 0 4px var(--primary-glow);
+		}
+
+		/* Buttons standardized */
+		.btn {
+			padding: 12px 24px;
+			border-radius: 12px;
+			font-weight: 700;
+			cursor: pointer;
+			transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+			border: 1px solid transparent;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 10px;
+			font-size: 0.95rem;
+		}
+
+		.btn-primary {
+			background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+			color: #0f172a;
+			box-shadow: 0 10px 20px -10px var(--primary-glow);
+		}
+
+		.btn-primary:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 15px 30px -12px var(--primary-glow);
+		}
+
+		.btn-secondary {
+			background: white;
+			color: #334155;
+			border: 1.5px solid #cbd5e1;
+		}
+
+		.btn-secondary:hover {
+			background: #f8fafc;
+			border-color: var(--primary);
+		}
+
+		.btn-danger {
+			background: rgba(239, 68, 68, 0.1);
+			color: var(--danger);
+			border-color: rgba(239, 68, 68, 0.2);
+		}
+
+		.btn-danger:hover {
+			background: var(--danger);
+			color: white;
+		}
+
+		.tab-btn-master {
+			background: rgba(255, 255, 255, 0.05);
+			border: 1px solid var(--border);
+			color: var(--text-muted);
+			padding: 12px 24px;
+			border-radius: 14px;
+			cursor: pointer;
+			font-weight: 600;
+			transition: 0.3s;
+		}
+
+		.tab-btn-master.active {
+			background: var(--primary);
+			color: #0f172a;
+			border-color: var(--primary);
+			box-shadow: 0 8px 20px -8px rgba(250, 204, 21, 0.4);
+		}
+
+		.btn-action {
+			width: 40px;
+			height: 40px;
+			border-radius: 10px;
+			border: 1px solid var(--border);
+			background: rgba(255, 255, 255, 0.05);
+			color: white;
+			cursor: pointer;
+			transition: 0.3s;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.btn-action:hover {
+			background: var(--primary);
+			border-color: var(--primary);
+			transform: rotate(15deg);
+		}
+
+		/* Modals Enhanced */
+		.modal {
+			position: fixed;
+			inset: 0;
+			background: rgba(2, 6, 23, 0.85);
+			display: none;
+			align-items: center;
+			justify-content: center;
+			z-index: 1000;
+			padding: 20px;
+			backdrop-filter: blur(12px);
+		}
+
+		.modal.active {
+			display: flex;
+			animation: modalIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+		}
+
+		@keyframes modalIn {
+			from {
+				opacity: 0;
+				transform: translateY(20px) scale(0.95);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0) scale(1);
+			}
+		}
+
+		.modal-content {
+			background: white;
+			border: 1px solid #e2e8f0;
+			width: 100%;
+			max-width: 650px;
+			border-radius: 28px;
+			padding: 45px;
+			position: relative;
+			max-height: 90vh;
+			overflow-y: auto;
+			box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+		}
+
+		.master-tab-content {
+			display: none;
+			animation: fadeIn 0.5s ease;
+		}
+
+		.master-tab-content.active {
+			display: block;
+		}
+
+		.modal h2 {
+			font-family: 'Outfit', sans-serif;
+			margin-bottom: 20px;
+			font-size: 1.8rem;
+			color: #0f172a;
+			font-weight: 800;
+		}
+
+		.form-group {
+			margin-bottom: 20px;
+		}
+
+		.form-group label {
+			display: block;
+			font-size: 0.85rem;
+			font-weight: 800;
+			color: #475569;
+			margin-bottom: 8px;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+		}
+
+		.ad-form-grid {
+			display: grid;
+			grid-template-columns: 1.2fr 1fr;
+			gap: 30px;
+		}
+
+		textarea {
+			min-height: 120px;
+			resize: vertical;
+		}
+
+		/* Custom Scrollbar */
+		::-webkit-scrollbar {
+			width: 8px;
+		}
+
+		::-webkit-scrollbar-track {
+			background: rgba(0, 0, 0, 0.1);
+		}
+
+		::-webkit-scrollbar-thumb {
+			background: rgba(255, 255, 255, 0.1);
+			border-radius: 10px;
+			border: 2px solid transparent;
+			background-clip: content-box;
+		}
+
+		::-webkit-scrollbar-thumb:hover {
+			background: rgba(255, 255, 255, 0.2);
+			border: 2px solid transparent;
+			background-clip: content-box;
+		}
+
+		/* Chat System overhaul */
+		.chat-master-container {
+			display: flex;
+			height: 650px;
+			margin: 0 auto;
+			max-width: 1200px;
+		}
+
+		.chat-sidebar {
+			border-right: 1px solid var(--border);
+			background: rgba(0, 0, 0, 0.2);
+		}
+
+		.convo-item {
+			padding: 15px 20px;
+			margin: 8px 15px;
+			border-radius: 12px;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			gap: 15px;
+			transition: 0.2s;
+			border: 1px solid transparent;
+		}
+
+		.convo-item:hover {
+			background: rgba(255, 255, 255, 0.05);
+		}
+
+		.convo-item.active {
+			background: rgba(139, 92, 246, 0.1);
+			border-color: rgba(139, 92, 246, 0.3);
+		}
+
+		.msg-bubble {
+			padding: 10px 16px;
+			border-radius: 18px;
+			font-size: 0.9rem;
+			max-width: 80%;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+			position: relative;
+			line-height: 1.4;
+		}
+
+		.msg-bubble.user {
+			background: #334155;
+			align-self: flex-start;
+			border-bottom-left-radius: 4px;
+			border: 1px solid rgba(255, 255, 255, 0.05);
+			color: #f1f5f9;
+		}
+
+		.msg-bubble.admin {
+			background: linear-gradient(135deg, #7c3aed, #6366f1);
+			align-self: flex-end;
+			border-bottom-right-radius: 4px;
+			color: white;
+		}
+
+		.msg-bubble img {
+			max-width: 100%;
+			border-radius: 10px;
+			margin-bottom: 8px;
+			cursor: pointer;
+			display: block;
+			max-height: 250px;
+			object-fit: cover;
+			background: #000;
+		}
+
+		.msg-bubble .msg-time {
+			font-size: 0.65rem;
+			opacity: 0.6;
+			margin-top: 5px;
+		}
+
+		.msg-actions {
+			display: none;
+			position: absolute;
+			top: 0;
+			left: -45px;
+			gap: 5px;
+		}
+
+		.msg-bubble.admin:hover .msg-actions {
+			display: flex;
+		}
+
+		.btn-msg-sub {
+			width: 32px;
+			height: 32px;
+			border-radius: 50%;
+			background: #1e293b;
+			border: 1px solid var(--border);
+			color: white;
+			cursor: pointer;
+			font-size: 0.75rem;
+			transition: 0.2s;
+		}
+
+		.btn-msg-sub:hover {
+			background: var(--primary);
+			transform: scale(1.1);
+		}
+
+		.chat-footer {
+			padding: 25px;
+			border-top: 1px solid var(--border);
+			background: rgba(15, 23, 42, 0.4);
+			backdrop-filter: blur(10px);
+		}
+
+		.chat-input-row {
+			display: flex;
+			gap: 12px;
+			align-items: center;
+			background: rgba(0, 0, 0, 0.3);
+			padding: 8px 15px;
+			border-radius: 15px;
+			border: 1px solid var(--border);
+		}
+
+		.chat-input-row input {
+			background: transparent;
+			border: none;
+			padding: 10px 0;
+			border-radius: 0;
+		}
+
+		.chat-input-row input:focus {
+			box-shadow: none;
+		}
+
+		/* Mobile adjustments */
+		@media (max-width: 1024px) {
+			.chat-sidebar {
+				width: 300px !important;
+			}
+		}
+
+		@media (max-width: 768px) {
+			#app {
+				padding: 15px 10px;
+			}
+
+			header {
+				flex-direction: column;
+				text-align: center;
+			}
+
+			.tabs-header {
+				width: 100%;
+				justify-content: center;
+			}
+
+			.stats-grid {
+				grid-template-columns: repeat(2, 1fr);
+				gap: 10px;
+			}
+
+			.stat-card {
+				padding: 15px;
+				flex-direction: column;
+				text-align: center;
+				gap: 5px;
+			}
+
+			.stat-icon {
+				width: 45px;
+				height: 45px;
+				font-size: 1.2rem;
+			}
+
+			.stat-info h3 {
+				font-size: 0.75rem;
+			}
+
+			.stat-info p {
+				font-size: 1.1rem !important;
+			}
+
+			.chat-master-container {
+				height: calc(100vh - 120px) !important;
+				margin-bottom: 20px !important;
+			}
+
+			.chat-sidebar {
+				width: 100% !important;
+				border-right: none !important;
+			}
+
+			.chat-main {
+				display: none !important;
+			}
+
+			.chat-master-container.chat-active .chat-sidebar {
+				display: none !important;
+			}
+
+			.chat-master-container.chat-active .chat-main {
+				display: flex !important;
+			}
+
+			.mobile-back {
+				display: block !important;
+			}
+		}
+
+		.mobile-back {
+			display: none;
+			margin-right: 15px;
+			background: none;
+			border: none;
+			color: white;
+			font-size: 1.2rem;
+			cursor: pointer;
+		}
+
+		.user-avatar {
+			width: 32px;
+			height: 32px;
+			border-radius: 8px;
+			background: #334155;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-weight: 800;
+			font-family: 'Outfit', sans-serif;
+			font-size: 0.8rem;
+		}
+
+		.badge {
+			padding: 2px 8px;
+			border-radius: 6px;
+			font-size: 0.7rem;
+			font-weight: 700;
+			white-space: nowrap;
+			border: 1px solid transparent;
+		}
+
+		.badge-pro {
+			background: rgba(139, 92, 246, 0.1);
+			color: #a78bfa;
+			border-color: rgba(139, 92, 246, 0.2);
+		}
+
+		.badge-basic {
+			background: rgba(59, 130, 246, 0.1);
+			color: #60a5fa;
+			border-color: rgba(59, 130, 246, 0.2);
+		}
+
+		.badge-free {
+			background: rgba(148, 163, 184, 0.1);
+			color: #94a3b8;
+			border-color: rgba(148, 163, 184, 0.2);
+		}
+
+		.switch {
+			position: relative;
+			display: inline-block;
+			width: 44px;
+			height: 22px;
+		}
+
+		.switch input {
+			opacity: 0;
+			width: 0;
+			height: 0;
+		}
+
+		.slider {
+			position: absolute;
+			cursor: pointer;
+			inset: 0;
+			background: #334155;
+			transition: .4s;
+			border-radius: 34px;
+			border: 1px solid rgba(255, 255, 255, 0.05);
+		}
+
+		.slider:before {
+			position: absolute;
+			content: "";
+			height: 16px;
+			width: 16px;
+			left: 3px;
+			bottom: 2px;
+			background: white;
+			transition: .4s;
+			border-radius: 50%;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+		}
+
+		input:checked+.slider {
+			background: var(--success);
+		}
+
+		input:checked+.slider:before {
+			transform: translateX(22px);
+		}
+
+		.updating .slider {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
+	</style>
+</head>
+
+<body>
+
+	<div id="loader">
+		<div class="spinner"></div>
+		<p style="margin-top: 20px; color: var(--text-muted);">Đang kết nối Master Core...</p>
+	</div>
+
+	<div id="app">
+		<header>
+			<div class="logo-area">
+				<h1>Quản Trị Hệ Thống</h1>
+				<p style="color: var(--text-muted);">Hệ thống Quản lý Tài khoản Toàn cầu</p>
+			</div>
+			<div style="display: flex; gap: 10px; align-items: center;">
+				<div class="tabs-header" style="display: flex; gap: 10px; margin-right: 20px;">
+					<button class="tab-btn-master active" onclick="switchMasterTab('users', event)">👥 Quản lý Người
+						dùng</button>
+					<button class="tab-btn-master" onclick="switchMasterTab('marketing', event)">📈 Lịch sử
+						Marketing</button>
+					<button class="tab-btn-master" onclick="switchMasterTab('chat', event)">💬 Hỗ trợ trực
+						tuyến</button>
+				</div>
+				<button class="btn-action" onclick="loadAdminData()" title="Làm mới"><i
+						class="fas fa-sync-alt"></i></button>
+				<button class="btn-action" onclick="location.href='index.html'" title="Về trang chủ"><i
+						class="fas fa-sign-out-alt"></i></button>
+			</div>
+		</header>
+
+		<div class="stats-grid">
+			<div class="stat-card">
+				<div class="stat-icon"
+					style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(99, 102, 241, 0.2)); color: #a78bfa; width: 45px; height: 45px; font-size: 1.1rem;">
+					<i class="fas fa-users-cog"></i>
+				</div>
+				<div class="stat-info">
+					<h3 style="color: var(--text-muted); font-weight: 500; font-size: 0.75rem;">TỔNG TÀI KHOẢN</h3>
+					<p id="stat_total"
+						style="font-size: 1.5rem; font-weight: 800; font-family: 'Outfit'; line-height: 1;">0</p>
+				</div>
+			</div>
+			<div class="stat-card">
+				<div class="stat-icon"
+					style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2)); color: #34d399; width: 45px; height: 45px; font-size: 1.1rem;">
+					<i class="fas fa-user-shield"></i>
+				</div>
+				<div class="stat-info">
+					<h3 style="color: var(--text-muted); font-weight: 500; font-size: 0.75rem;">QUẢN TRỊ (ADMIN)</h3>
+					<p id="stat_admins"
+						style="font-size: 1.5rem; font-weight: 800; font-family: 'Outfit'; line-height: 1;">0</p>
+				</div>
+			</div>
+			<div class="stat-card">
+				<div class="stat-icon"
+					style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.2)); color: #fbbf24; width: 45px; height: 45px; font-size: 1.1rem;">
+					<i class="fas fa-user-friends"></i>
+				</div>
+				<div class="stat-info">
+					<h3 style="color: var(--text-muted); font-weight: 500; font-size: 0.75rem;">NHÂN SỰ / MỒ CÔI</h3>
+					<p id="stat_staff"
+						style="font-size: 1.5rem; font-weight: 800; font-family: 'Outfit'; line-height: 1;">0</p>
+				</div>
+			</div>
+			<div class="stat-card">
+				<div class="stat-icon"
+					style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(185, 28, 28, 0.2)); color: #f87171; width: 45px; height: 45px; font-size: 1.1rem;">
+					<i class="fas fa-user-lock"></i>
+				</div>
+				<div class="stat-info">
+					<h3 style="color: var(--text-muted); font-weight: 500; font-size: 0.75rem;">BỊ KHÓA</h3>
+					<p id="stat_locked"
+						style="font-size: 1.5rem; font-weight: 800; font-family: 'Outfit'; line-height: 1;">0</p>
+				</div>
+			</div>
+		</div>
+		<!-- #app closing div removed from here -->
+
+		<div id="tab-users" class="master-tab-content active">
+			<div class="main-card">
+				<div class="card-header">
+					<div style="font-weight: 700; font-size: 1.1rem;"><i class="fas fa-list-ul"
+							style="color: var(--primary); margin-right: 10px;"></i> Danh sách Người dùng</div>
+					<div style="display: flex; gap: 15px; align-items: center;">
+						<button class="btn btn-primary" onclick="openBulkAdModal()">
+							<i class="fas fa-bullhorn"></i> Marketing Hàng Loạt
+						</button>
+						<div class="search-box">
+							<i class="fas fa-search"></i>
+							<input type="text" id="masterSearch" placeholder="Tìm email, ID, hoặc chủ quản..."
+								oninput="filterTable()">
+						</div>
+					</div>
+				</div>
+				<div class="table-container">
+					<table>
+						<thead>
+							<tr>
+								<th width="40">
+									<div class="checkbox-wrapper">
+										<input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)">
+									</div>
+								</th>
+								<th>TÀI KHOẢN & ID</th>
+								<th>LOẠI TK</th>
+								<th>CHỦ QUẢN</th>
+								<th>VAI TRÒ / GÓI</th>
+								<th>NGÀY TẠO</th>
+								<th>TRẠNG THÁI</th>
+								<th style="text-align: center;">MỞ KHÓA CHECK-IN</th>
+								<th style="text-align: center;">MỞ KHÓA MAIL NV</th>
+								<th style="text-align: center;">MỞ KHÓA MAIL ADMIN</th>
+								<th style="text-align: center;">MỞ KHÓA CÔNG NỢ</th>
+								<th style="text-align: center;">MỞ KHÓA TẠO SP</th>
+								<th style="text-align: center;">MỞ KHÓA NHẬP KHO</th>
+								<th style="text-align: center;">MỞ KHÓA XUẤT KHO</th>
+								<th style="text-align: center;">MỞ KHÓA GIAO HÀNG</th>
+								<th style="text-align: center;">MỞ KHÓA QUẢN LÝ NS</th>
+								<th style="text-align: center; color: #a855f7;">MỞ KHÓA PHÂN TÍCH GIÁ</th>
+								<th style="text-align: center; color: #22c55e;">MỞ KHÓA BÁO CÁO LỢI NHUẬN</th>
+								<th style="text-align: center;">NGẮT KẾT NỐI</th>
+								<th style="text-align: center; white-space: nowrap;">HẠN CHẾ BÁO CÁO</th>
+							</tr>
+						</thead>
+						<tbody id="masterTableBody">
+							<!-- Render results here -->
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+
+		<div id="tab-marketing" class="master-tab-content">
+			<div class="main-card">
+				<div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+					<div style="font-weight: 700; font-size: 1.1rem;">
+						<i class="fas fa-history" style="color: var(--primary); margin-right: 10px;"></i> Lịch sử Gửi
+						Email Marketing
+					</div>
+					<button class="btn btn-secondary" onclick="loadMarketingLogs()">
+						<i class="fas fa-sync-alt"></i> Làm mới
+					</button>
+				</div>
+				<div class="table-container" style="max-height: 600px; overflow-y: auto;">
+					<table style="min-width: 1000px;">
+						<thead>
+							<tr>
+								<th width="180">Thời gian</th>
+								<th>Chiến dịch / Tiêu đề</th>
+								<th>Email người nhận</th>
+								<th width="120">Trạng thái</th>
+								<th>Chi tiết lỗi (nếu có)</th>
+							</tr>
+						</thead>
+						<tbody id="marketingLogTableBody">
+							<tr>
+								<td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">
+									Đang tải lịch sử...</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+
+		<div id="tab-chat" class="master-tab-content">
+			<div id="chatMasterWrapper" class="main-card chat-master-container"
+				style="height: calc(100vh - 180px); display: flex; margin-bottom: 40px;">
+				<!-- Sidebar: Convo List -->
+				<div class="chat-sidebar"
+					style="width: 350px; border-right: 1px solid var(--glass-border); display: flex; flex-direction: column;">
+					<div style="padding: 25px; border-bottom: 1px solid var(--glass-border);">
+						<h3 style="margin-bottom: 15px; font-size: 1.1rem;">Hội thoại</h3>
+						<div class="search-box" style="max-width: none;">
+							<i class="fas fa-search"></i>
+							<input type="text" placeholder="Tìm người dùng..." oninput="filterConvos(this.value)">
+						</div>
+					</div>
+					<div id="convoList" style="flex: 1; overflow-y: auto; padding: 10px 0;">
+						<!-- Convo items -->
+					</div>
+				</div>
+
+				<!-- Main: Chat Window -->
+				<div class="chat-main"
+					style="flex: 1; display: flex; flex-direction: column; background: rgba(0,0,0,0.15); position: relative;">
+					<div id="chatDefaultMsg"
+						style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); text-align: center; padding: 40px;">
+						<div
+							style="width: 100px; height: 100px; background: rgba(139, 92, 246, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 25px;">
+							<i class="fas fa-comments"
+								style="font-size: 3rem; color: var(--primary); opacity: 0.6;"></i>
+						</div>
+						<h2 style="color: white; margin-bottom: 10px;">Trung tâm Phản hồi</h2>
+						<p style="max-width: 300px;">Chọn một hội thoại phía bên trái để bắt đầu hỗ trợ người dùng ngay
+							lập
+							tức.</p>
+					</div>
+
+					<div id="chatContentArea" style="display: none; flex: 1; flex-direction: column; overflow: hidden;">
+						<div class="chat-header"
+							style="padding: 15px 25px; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
+							<div style="display: flex; align-items: center;">
+								<button class="mobile-back" onclick="backToConvos()"><i
+										class="fas fa-chevron-left"></i></button>
+								<div style="display: flex; align-items: center; gap: 15px;">
+									<div id="activeUserAvatar" class="user-avatar"
+										style="width: 45px; height: 45px; border: 2px solid var(--primary);">?</div>
+									<div>
+										<div id="activeUserEmail"
+											style="font-weight: 700; font-size: 1rem; color: #fff;">
+											email@example.com</div>
+										<div
+											style="font-size: 0.75rem; color: var(--success); display: flex; align-items: center; gap: 5px;">
+											<span
+												style="width: 8px; height: 8px; background: var(--success); border-radius: 50%;"></span>
+											Trực tuyến
+										</div>
+									</div>
+								</div>
+							</div>
+							<div style="display: flex; gap: 10px;">
+								<button class="btn-action" onclick="loadAllConversations()" title="Làm mới"><i
+										class="fas fa-sync-alt"></i></button>
+							</div>
+						</div>
+
+						<div id="masterChatBody"
+							style="flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; gap: 20px;">
+							<!-- Messages load here -->
+						</div>
+
+						<!-- Image Preview -->
+						<div id="masterImgPreview"
+							style="display: none; padding: 10px 25px; background: rgba(0,0,0,0.2); border-top: 1px solid var(--glass-border); position: relative;">
+							<img src="" style="height: 80px; border-radius: 8px;">
+							<button onclick="removeMasterSelectedImg()"
+								style="position: absolute; top: 5px; right: 25px; background: var(--danger); border: none; color: white; border-radius: 50%; width: 22px; height: 22px; cursor: pointer;">×</button>
+						</div>
+
+						<div class="chat-footer">
+							<div class="chat-input-row">
+								<button class="btn-action" onclick="document.getElementById('masterImgUpload').click()"
+									style="background:transparent; border:none; width:auto; height:auto; color:var(--primary);">
+									<i class="fas fa-image" style="font-size:1.2rem;"></i>
+								</button>
+								<input type="file" id="masterImgUpload" hidden accept="image/*"
+									onchange="previewMasterImg(this)">
+
+								<input type="text" id="masterChatInput" placeholder="Nhập tin nhắn phản hồi..."
+									onkeypress="if(event.key==='Enter') sendMasterReply()">
+
+								<button class="btn btn-primary" onclick="sendMasterReply()"
+									style="padding: 10px 20px; border-radius:10px; height: 42px;">
+									GỬI <i class="fas fa-paper-plane"></i>
+								</button>
+							</div>
+							<p
+								style="font-size: 0.7rem; color: var(--text-muted); margin-top: 10px; text-align: center;">
+								<i class="fas fa-info-circle"></i> Nhấn Enter để gửi nhanh. Admin có quyền sửa/xóa tin
+								nhắn
+								của chính mình.
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div> <!-- Closing #app here -->
+
+		<div id="editModal" class="modal">
+			<div class="modal-content">
+				<h2 style="margin-bottom: 10px;">Cấu hình Tài khoản</h2>
+				<p id="editDisplay" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;"></p>
+				<form id="editForm">
+					<input type="hidden" id="edit_email">
+					<div class="form-group">
+						<label>Gói Cước / Phân hạng</label>
+						<select id="edit_package">
+							<option value="Free">Miễn phí (Free)</option>
+							<option value="Basic">Cơ bản (Basic)</option>
+							<option value="Premium">Cao cấp (Premium)</option>
+						</select>
+					</div>
+					<div class="form-group">
+						<label>Hạn Báo cáo Doanh thu</label>
+						<input type="date" id="edit_expiry">
+					</div>
+					<div class="form-group">
+						<label>Trạng thái</label>
+						<select id="edit_status">
+							<option value="Hoạt động">Hoạt động</option>
+							<option value="Tạm khóa">Tạm khóa</option>
+						</select>
+					</div>
+					<div style="display: flex; gap: 15px; margin-top: 30px;">
+						<button type="submit" class="btn btn-primary" style="flex: 2;">LƯU CẤU HÌNH</button>
+						<button type="button" class="btn btn-secondary" style="flex: 1;"
+							onclick="closeModal()">ĐÓNG</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<!-- MODAL QUẢNG CÁO NÂNG CẤP -->
+		<div id="adModal" class="modal">
+			<div class="modal-content"
+				style="max-width: 800px; padding: 0; background: #1e293b; border: 1px solid rgba(168, 85, 247, 0.3);">
+				<div
+					style="padding: 30px; background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%); border-bottom: 1px solid rgba(255,255,255,0.05);">
+					<h2 id="adDisplay" style="color: #a855f7; display: flex; align-items: center; gap: 15px;">
+						<div
+							style="width: 50px; height: 50px; background: #a855f722; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+							<i class="fas fa-bullhorn"></i>
+						</div>
+						Gửi Chiến Dịch Marketing
+					</h2>
+				</div>
+
+				<form id="adForm" style="padding: 20px;">
+					<div class="ad-form-grid">
+						<!-- Cột trái: Nội dung -->
+						<div>
+							<input type="hidden" id="ad_emails">
+							<div class="form-group">
+								<label>Gửi đến:</label>
+								<div id="targetEmailsList"
+									style="font-size: 0.8rem; color: #a855f7; background: #00000033; padding: 10px; border-radius: 8px; max-height: 100px; overflow-y: auto;">
+								</div>
+							</div>
+							<div class="form-group">
+								<label>Tiêu đề Email Marketing</label>
+								<input type="text" id="ad_title"
+									placeholder="Ví dụ: 🔥 [SIÊU ƯU ĐÃI] Nâng cấp Premium chỉ 99k/tháng!" required>
+							</div>
+							<div class="form-group">
+								<label>Nội dung thuyết phục người dùng</label>
+								<textarea id="ad_content" rows="8"
+									placeholder="Soạn nội dung tại đây. Hệ thống tự động kèm nút 'NÂNG CẤP' và banner bên dưới..."
+									required></textarea>
+							</div>
+						</div>
+
+						<!-- Cột phải: Hình ảnh & Hẹn giờ -->
+						<div>
+							<div class="form-group">
+								<label>Hình ảnh Banner (Tải trực tiếp)</label>
+								<div
+									style="background: rgba(255,255,255,0.02); border: 2px dashed rgba(168, 85, 247, 0.3); border-radius: 15px; padding: 20px; text-align: center;">
+									<input type="file" id="ad_file" accept="image/*" style="display: none;"
+										onchange="handleAdFileSelect(this)">
+									<div id="ad_preview_container" style="display: none; margin-bottom: 15px;">
+										<img id="ad_preview"
+											style="width: 100%; height: 180px; object-fit: cover; border-radius: 10px; border: 1px solid #a855f755;">
+									</div>
+									<button type="button" class="btn btn-secondary"
+										onclick="document.getElementById('ad_file').click()" style="width: 100%;">
+										<i class="fas fa-image"></i> Chọn Hình Ảnh
+									</button>
+									<p id="ad_fileName"
+										style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">Ưu tiên
+										ảnh
+										tỷ lệ 16:9</p>
+								</div>
+							</div>
+
+							<div
+								style="background: rgba(255,255,255,0.03); border-radius: 15px; padding: 20px; border: 1px solid rgba(255,255,255,0.05);">
+								<label
+									style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px; font-weight: 700; color: #22c55e;">
+									<i class="fas fa-clock"></i> Chế độ gửi bài
+								</label>
+								<div class="form-group">
+									<select id="send_mode" onchange="toggleSchedule(this.value)">
+										<option value="now">Gửi ngay bây giờ</option>
+										<option value="schedule">Hẹn giờ tự động</option>
+									</select>
+								</div>
+								<div id="schedule_inputs"
+									style="display: none; grid-template-columns: 1fr 1fr; gap: 10px;">
+									<div class="form-group" style="margin: 0;">
+										<input type="date" id="schedule_date">
+									</div>
+									<div class="form-group" style="margin: 0;">
+										<input type="time" id="schedule_time">
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div
+						style="display: flex; gap: 15px; margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 25px;">
+						<button type="button" class="btn btn-secondary" onclick="closeAdModal()" style="flex: 1;">HỦY
+							BỎ</button>
+						<button type="submit" class="btn btn-primary" style="flex: 2; height: 50px;">
+							<i class="fas fa-paper-plane"></i> XÁC NHẬN CHIẾN DỊCH
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<script>
+			// ĐÃ ĐỒNG BỘ URL VỚI HỆ THỐNG AUTH (Sửa lỗi 404 & CORS)
+			const MASTER_API = 'https://script.google.com/macros/s/AKfycbz2FpV9hWeZKzBJyS636Hlf7JrM8bfA03YbH9xF3KYqdHJXcpgvCLoD2xjOGCDKzpfj/exec';
+			const MASTER_EMAIL = 'dunvex.green@gmail.com';
+			let clientIP = 'N/A';
+
+			async function fetchIP() {
+				try {
+					const res = await fetch('https://api.ipify.org?format=json');
+					const data = await res.json();
+					clientIP = data.ip;
+				} catch (e) { console.warn("Không thể lấy IP"); }
+			}
+
+			let allUsers = [];
+
+			window.onload = function () {
+				fetchIP();
+				const session = SecurityProvider.getSession();
+				const user = session ? session.user : null;
+				setTimeout(() => {
+					document.getElementById('loader').style.display = 'none';
+					if (!user || user.email !== MASTER_EMAIL) {
+						document.body.innerHTML = `
+                        <div class="forbidden">
+                            <i class="fas fa-shield-slash"></i>
+                            <h1>TRUY CẬP BỊ TỪ CHỐI</h1>
+                            <p style="margin-top: 15px; color: var(--text-muted);">Tài khoản của bạn (${user ? user.email : 'Guest'}) không có quyền sở hữu Master Key.</p>
+                            <a href="index.html" class="btn-submit" style="max-width: 200px; text-decoration: none; margin-top: 30px;">VỀ TRANG CHỦ</a>
+                        </div>
+                    `;
+						return;
+					}
+					document.getElementById('app').style.display = 'block';
+					loadAdminData();
+				}, 800);
+			};
+
+			async function loadAdminData() {
+				try {
+					const res = await fetch(MASTER_API, {
+						method: 'POST',
+						body: SecurityProvider.prepareRequest('getMasterAllAccounts')
+					});
+					const data = await res.json();
+					if (data.success) {
+						allUsers = data.users;
+						renderTable(allUsers);
+						updateStats();
+					} else {
+						alert("Lỗi Backend: " + data.message);
+					}
+				} catch (e) {
+					console.error(e);
+					alert("LỖI KẾT NỐI (CORS):\n1. Vui lòng kiểm tra lại URL MASTER_API trong mã nguồn.\n2. Đảm bảo Google Apps Script đã được Deploy chính xác (Anyone has access).\n3. Nếu đang phát triển, hãy đảm bảo URL Script không bị chặn.");
+				}
+			}
+
+			function renderTable(data) {
+				const body = document.getElementById('masterTableBody');
+
+				// Render User Table
+				body.innerHTML = data.map(u => {
+					const f = u.features || {};
+					const typeBadge = u.type === 'ADMIN' ? 'badge-pro' : (u.type === 'STAFF' ? 'badge-basic' : 'badge-free');
+					const statusColor = u.status === 'Hoạt động' ? 'var(--success)' : 'var(--danger)';
+					const roleDisplay = u.type === 'ADMIN' ? u.package : u.roleId;
+
+					return `
+                    <tr>
+						<td>
+							<div class="checkbox-wrapper">
+								<input type="checkbox" class="user-select" value="${u.email}">
+							</div>
+						</td>
+                        <td>
+                            <div class="user-cell">
+                                <div class="user-avatar" style="background: ${u.type === 'ADMIN' ? 'var(--primary)' : '#475569'}">${u.email.charAt(0).toUpperCase()}</div>
+                                <div>
+                                    <div style="font-weight: 700;">${u.email}</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">${u.fullName} | ID: ${u.id}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge ${typeBadge}">${u.type}</span></td>
+                        <td>
+                            <div style="font-size: 0.8rem; color: ${u.owner.includes('@') ? 'var(--primary)' : 'var(--danger)'}">
+                                ${u.owner}
+                            </div>
+                        </td>
+                        <td><span style="font-weight: 600; color: var(--text-muted);">${roleDisplay}</span></td>
+                        <td><span style="font-size: 0.85rem;">${new Date(u.regDate).toLocaleDateString('vi-VN')}</span></td>
+                        <td><span class="badge" style="color: ${statusColor}; border: 1px solid ${statusColor}33; background: ${statusColor}11;">${u.status}</span></td>
+                        <td style="text-align: center;">
+							<label class="switch">
+								<input type="checkbox" ${f.checkinMaster === true ? 'checked' : ''} onchange="updateFeatureLock('${u.email}', 'checkinMaster', this)">
+								<span class="slider"></span>
+							</label>
+                        </td>
+                        <td style="text-align: center;">
+							<label class="switch">
+								<input type="checkbox" ${f.mailStaff === true ? 'checked' : ''} onchange="updateFeatureLock('${u.email}', 'mailStaff', this)">
+								<span class="slider"></span>
+							</label>
+                        </td>
+                        <td style="text-align: center;">
+							<label class="switch">
+								<input type="checkbox" ${f.mailAdmin === true ? 'checked' : ''} onchange="updateFeatureLock('${u.email}', 'mailAdmin', this)">
+								<span class="slider"></span>
+							</label>
+                        </td>
+                        <td style="text-align: center;">
+							<label class="switch">
+								<input type="checkbox" ${f.debtMaster === true ? 'checked' : ''} onchange="updateFeatureLock('${u.email}', 'debtMaster', this)">
+								<span class="slider"></span>
+							</label>
+                        </td>
+                        <td style="text-align: center;">
+							<label class="switch">
+								<input type="checkbox" ${f.productCreateMaster === true ? 'checked' : ''} onchange="updateFeatureLock('${u.email}', 'productCreateMaster', this)">
+								<span class="slider"></span>
+							</label>
+                        </td>
+                        <td style="text-align: center;">
+							<label class="switch">
+								<input type="checkbox" ${f.inventoryMaster === true ? 'checked' : ''} onchange="updateFeatureLock('${u.email}', 'inventoryMaster', this)">
+								<span class="slider"></span>
+							</label>
+                        </td>
+                        <td style="text-align: center;">
+							<label class="switch">
+								<input type="checkbox" ${f.warehouseMaster === true ? 'checked' : ''} onchange="updateFeatureLock('${u.email}', 'warehouseMaster', this)">
+								<span class="slider"></span>
+							</label>
+                        </td>
+						<td style="text-align: center;">
+							<label class="switch">
+								<input type="checkbox" ${f.deliveryMaster === true ? 'checked' : ''} onchange="updateFeatureLock('${u.email}', 'deliveryMaster', this)">
+								<span class="slider"></span>
+							</label>
+                        </td>
+						<td style="text-align: center;">
+							<label class="switch">
+								<input type="checkbox" ${f.hrMaster === true ? 'checked' : ''} onchange="updateFeatureLock('${u.email}', 'hrMaster', this)">
+								<span class="slider"></span>
+							</label>
+                        </td>
+						<td style="text-align: center;">
+							<label class="switch">
+								<input type="checkbox" ${f.priceAnalysisMaster === true ? 'checked' : ''} onchange="updateFeatureLock('${u.email}', 'priceAnalysisMaster', this)">
+								<span class="slider"></span>
+							</label>
+                        </td>
+						<td style="text-align: center;">
+							<label class="switch">
+								<input type="checkbox" ${f.profitMaster === true ? 'checked' : ''} onchange="updateFeatureLock('${u.email}', 'profitMaster', this)">
+								<span class="slider"></span>
+							</label>
+                        </td>
+                         <td style="text-align: center;">
+                            <button class="btn-action btn-lock" title="Khóa/Mở Truy Cập" onclick="toggleLock('${u.email}')" style="width: 45px; height: 45px; font-size: 1.1rem;">
+								<i class="fas fa-power-off"></i>
+							</button>
+                        </td>
+						<td style="text-align: center;">
+							<div style="display: flex; align-items: center; justify-content: center;">
+								<label class="switch">
+									<input type="checkbox" ${u.salesRestrict === 'ON' ? 'checked' : ''} 
+										onchange="updateRestriction('${u.email}', this)">
+									<span class="slider"></span>
+								</label>
+								<input type="date" class="timer-input" 
+									value="${u.restrictTimer ? u.restrictTimer.substring(0, 10) : ''}" 
+									onchange="updateRestrictionTimer('${u.email}', this)"
+									title="Hẹn giờ tự động bật/tắt">
+							</div>
+						</td>
+                    </tr>
+                `;
+				}).join('');
+			}
+
+			function renderFeatureToggle(email, key, val) {
+				return `
+				<td style="text-align: center;">
+					<label class="switch">
+						<input type="checkbox" ${val === true ? 'checked' : ''} onchange="updateFeatureLock('${email}', '${key}', this)">
+						<span class="slider"></span>
+					</label>
+				</td>
+			`;
+			}
+
+			async function updateFeatureLock(email, key, cb) {
+				const label = cb.parentElement;
+				label.classList.add('updating');
+				const state = cb.checked;
+				const payload = {
+					action: 'updateAdminConfig',
+					adminEmail: email,
+					features: { [key]: state },
+					ip: clientIP
+				};
+				try {
+					const res = await fetch(MASTER_API, { method: 'POST', body: SecurityProvider.prepareRequest('updateAdminConfig', payload) });
+					const data = await res.json();
+					if (!data.success) {
+						alert("❌ Lỗi: " + data.message);
+						cb.checked = !cb.checked;
+					}
+				} catch (e) {
+					alert("❌ Lỗi kết nối API Master");
+					cb.checked = !cb.checked;
+				} finally {
+					label.classList.remove('updating');
+				}
+			}
+
+			function switchMasterTab(tabId, e) {
+				document.querySelectorAll('.master-tab-content').forEach(el => el.classList.remove('active'));
+				document.querySelectorAll('.tab-btn-master').forEach(el => el.classList.remove('active'));
+				document.getElementById('tab-' + tabId).classList.add('active');
+				if (e) e.currentTarget.classList.add('active');
+			}
+
+			function updateStats() {
+				document.getElementById('stat_total').innerText = allUsers.length;
+				document.getElementById('stat_admins').innerText = allUsers.filter(u => u.type === 'ADMIN').length;
+				document.getElementById('stat_staff').innerText = allUsers.filter(u => u.type !== 'ADMIN').length;
+				document.getElementById('stat_locked').innerText = allUsers.filter(u => u.status !== 'Hoạt động').length;
+			}
+
+			function filterTable() {
+				const q = document.getElementById('masterSearch').value.toLowerCase();
+				const filtered = allUsers.filter(u =>
+					u.email.toLowerCase().includes(q) ||
+					u.fullName.toLowerCase().includes(q) ||
+					u.owner.toLowerCase().includes(q)
+				);
+				renderTable(filtered);
+			}
+
+			function editAccount(email) {
+				const u = allUsers.find(x => x.email === email);
+				if (!u) return;
+				document.getElementById('edit_email').value = email;
+				document.getElementById('editDisplay').innerText = `Tuỳ chỉnh tài khoản: ${email} (${u.type})`;
+				document.getElementById('edit_status').value = u.status;
+				document.getElementById('edit_package').value = u.package || 'Free';
+
+				// Format date cho input type="date"
+				let expiryVal = '';
+				if (u.expiry) {
+					const d = new Date(u.expiry);
+					if (!isNaN(d)) {
+						expiryVal = d.toISOString().split('T')[0];
+					}
+				}
+				document.getElementById('edit_expiry').value = expiryVal;
+
+				document.getElementById('editModal').classList.add('active');
+			}
+
+			function closeModal() { document.getElementById('editModal').classList.remove('active'); }
+
+			document.getElementById('editForm').onsubmit = async function (e) {
+				e.preventDefault();
+				const btn = e.target.querySelector('button[type="submit"]');
+				btn.innerText = "ĐANG LƯU...";
+
+				const payload = {
+					action: 'updateAdminConfig',
+					adminEmail: document.getElementById('edit_email').value,
+					package: document.getElementById('edit_package').value,
+					expiry: document.getElementById('edit_expiry').value,
+					status: document.getElementById('edit_status').value,
+					ip: clientIP
+				};
+
+				try {
+					const res = await fetch(MASTER_API, { method: 'POST', body: SecurityProvider.prepareRequest('updateAdminConfig', payload) });
+					const data = await res.json();
+					if (data.success) {
+						alert("✅ Cập nhật thành công!");
+						closeModal();
+						loadAdminData();
+					} else {
+						alert("❌ Lỗi: " + data.message);
+					}
+				} catch (e) { alert("Lỗi kết nối API"); }
+				btn.innerText = "LƯU CẤU HÌNH";
+			};
+
+			async function toggleLock(email) {
+				const u = allUsers.find(x => x.email === email);
+				if (!u) return;
+				const newStatus = u.status === 'Hoạt động' ? 'Tạm khóa' : 'Hoạt động';
+				if (!confirm(`Chuyển trạng thái ${email} sang: ${newStatus}?`)) return;
+
+				try {
+					const res = await fetch(MASTER_API, {
+						method: 'POST',
+						body: SecurityProvider.prepareRequest('updateAdminConfig', { adminEmail: email, status: newStatus, ip: clientIP })
+					});
+					const data = await res.json();
+					if (data.success) loadAdminData();
+				} catch (e) { alert("Lỗi kết nối"); }
+			}
+
+			async function updateRestriction(email, cb) {
+				const state = cb.checked ? 'ON' : 'OFF';
+				try {
+					const res = await fetch(MASTER_API, {
+						method: 'POST',
+						body: SecurityProvider.prepareRequest('updateAdminConfig', {
+							adminEmail: email,
+							salesRestrict: state,
+							ip: clientIP
+						})
+					});
+					const data = await res.json();
+					if (!data.success) {
+						alert("Lỗi: " + data.message);
+						cb.checked = !cb.checked;
+					}
+				} catch (e) {
+					alert("Lỗi kết nối");
+					cb.checked = !cb.checked;
+				}
+			}
+
+			async function updateRestrictionTimer(email, input) {
+				const timer = input.value;
+				try {
+					const res = await fetch(MASTER_API, {
+						method: 'POST',
+						body: SecurityProvider.prepareRequest('updateAdminConfig', {
+							adminEmail: email,
+							restrictTimer: timer,
+							ip: clientIP
+						})
+					});
+					const data = await res.json();
+					if (!data.success) {
+						alert("Lỗi: " + data.message);
+					}
+				} catch (e) {
+					alert("Lỗi kết nối");
+				}
+			}
+
+			// MARKETING FUNCTIONS
+			let selectedAdFile = null;
+
+			function toggleSelectAll(master) {
+				const cbs = document.querySelectorAll('.user-select');
+				cbs.forEach(cb => cb.checked = master.checked);
+			}
+
+			function openAdModal(email) {
+				openBulkAdModal([email]);
+			}
+
+			function openBulkAdModal(emails = null) {
+				if (!emails) {
+					const selected = Array.from(document.querySelectorAll('.user-select:checked')).map(cb => cb.value);
+					if (selected.length === 0) {
+						alert("Vui lòng tích chọn ít nhất một người dùng!");
+						return;
+					}
+					emails = selected;
+				}
+
+				document.getElementById('ad_emails').value = emails.join(',');
+				document.getElementById('targetEmailsList').innerText = emails.join(', ');
+				document.getElementById('adDisplay').innerHTML = `
+				<div style="width: 50px; height: 50px; background: rgba(250, 204, 21, 0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+					<i class="fas fa-bullhorn"></i>
+				</div>
+				Chiến Dịch: ${emails.length} Tài khoản`;
+
+				document.getElementById('ad_preview_container').style.display = 'none';
+				document.getElementById('ad_fileName').innerText = 'Ưu tiên ảnh tỷ lệ 16:9';
+				selectedAdFile = null;
+				document.getElementById('adForm').reset();
+				toggleSchedule('now');
+				document.getElementById('adModal').classList.add('active');
+			}
+
+			function closeAdModal() { document.getElementById('adModal').classList.remove('active'); }
+
+			function toggleSchedule(mode) {
+				document.getElementById('schedule_inputs').style.display = (mode === 'schedule') ? 'grid' : 'none';
+			}
+
+			function handleAdFileSelect(input) {
+				const file = input.files[0];
+				if (file) {
+					selectedAdFile = file;
+					document.getElementById('ad_fileName').innerText = file.name;
+					const reader = new FileReader();
+					reader.onload = function (e) {
+						const img = document.getElementById('ad_preview');
+						img.src = e.target.result;
+						document.getElementById('ad_preview_container').style.display = 'block';
+					};
+					reader.readAsDataURL(file);
+				}
+			}
+
+			document.getElementById('adForm').onsubmit = async function (e) {
+				e.preventDefault();
+				const btn = e.target.querySelector('button[type="submit"]');
+				const originalBtnText = btn.innerHTML;
+				btn.innerHTML = '<i class="fas fa-sync fa-spin"></i> ĐANG XỬ LÝ...';
+				btn.disabled = true;
+
+				try {
+					let finalImageUrl = "";
+					if (selectedAdFile) {
+						btn.innerHTML = '<i class="fas fa-cloud-upload-alt fa-spin"></i> ĐANG TẢI ẢNH...';
+						const base64 = await toBase64(selectedAdFile);
+						const uploadRes = await fetch(MASTER_API, {
+							method: 'POST',
+							body: SecurityProvider.prepareRequest('uploadAdImage', {
+								fileName: selectedAdFile.name,
+								mimeType: selectedAdFile.type,
+								base64Data: base64.split(',')[1]
+							})
+						});
+						const uploadData = await uploadRes.json();
+						if (uploadData.success) finalImageUrl = uploadData.url;
+						else throw new Error("Lỗi tải ảnh: " + uploadData.message);
+					}
+
+					const mode = document.getElementById('send_mode').value;
+					const payload = {
+						action: mode === 'now' ? 'sendPromotion' : 'schedulePromotion',
+						targetEmails: document.getElementById('ad_emails').value.split(','),
+						adTitle: document.getElementById('ad_title').value,
+						adImage: finalImageUrl,
+						adContent: document.getElementById('ad_content').value
+					};
+
+					if (mode === 'schedule') {
+						const date = document.getElementById('schedule_date').value;
+						const time = document.getElementById('schedule_time').value;
+						if (!date || !time) throw new Error("Vui lòng chọn thời gian hẹn giờ!");
+						payload.scheduledTime = `${date}T${time}`;
+					}
+
+					btn.innerHTML = '<i class="fas fa-paper-plane fa-spin"></i> ĐANG THỰC THI...';
+					const res = await fetch(MASTER_API, { method: 'POST', body: SecurityProvider.prepareRequest(mode === 'now' ? 'sendPromotion' : 'schedulePromotion', payload) });
+					const data = await res.json();
+
+					if (data.success) {
+						alert(mode === 'now' ? "🚀 Đã gửi thành công!" : "⏰ Đã hẹn giờ thành công!");
+						closeAdModal();
+					} else {
+						alert("❌ Lỗi: " + data.message);
+					}
+				} catch (e) {
+					alert("❌ Lỗi: " + e.message);
+				} finally {
+					btn.innerHTML = originalBtnText;
+					btn.disabled = false;
+				}
+			};
+
+			const toBase64 = file => new Promise((resolve, reject) => {
+				const reader = new FileReader();
+				reader.readAsDataURL(file);
+				reader.onload = () => resolve(reader.result);
+				reader.onerror = error => reject(error);
+			});
+
+			// --- CHAT SYSTEM LOGIC ---
+			const CHAT_BACKEND = 'https://script.google.com/macros/s/AKfycbw8gn4XKtN7XquKSEH0fDwEm2QU3PkL41kDbNZoYKcY4rQoPqkDPgq95zZl3WtLm_HjGg/exec';
+			let allConvos = [];
+			let activeConvo = null;
+			let selectedMasterImg = null;
+
+			function switchMasterTab(tabId, e) {
+				// Ẩn tất cả các tab
+				document.querySelectorAll('.master-tab-content').forEach(el => {
+					el.classList.remove('active');
+					el.style.display = 'none';
+				});
+				// Bỏ active của tất cả các nút tab
+				document.querySelectorAll('.tab-btn-master').forEach(el => el.classList.remove('active'));
+
+				// Hiện tab được chọn
+				const targetTab = document.getElementById('tab-' + tabId);
+				if (targetTab) {
+					targetTab.classList.add('active');
+					targetTab.style.display = 'block';
+				}
+
+				if (e) e.currentTarget.classList.add('active');
+
+				if (tabId === 'chat') {
+					loadAllConversations();
+					// Bắt đầu tự động làm mới mỗi 5 giây
+					if (!window.chatPollInterval) {
+						window.chatPollInterval = setInterval(() => {
+							const chatTab = document.getElementById('tab-chat');
+							if (chatTab && chatTab.classList.contains('active')) {
+								loadAllConversations();
+							}
+						}, 5000);
+					}
+				} else if (tabId === 'marketing') {
+					loadMarketingLogs();
+				}
+			}
+
+			async function loadMarketingLogs() {
+				const body = document.getElementById('marketingLogTableBody');
+				body.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px;"><i class="fas fa-sync fa-spin"></i> Đang tải dữ liệu...</td></tr>';
+
+				try {
+					const res = await fetch(MASTER_API, {
+						method: 'POST',
+						body: SecurityProvider.prepareRequest('getMarketingLogs')
+					});
+					const data = await res.json();
+					if (data.success) {
+						if (data.logs.length === 0) {
+							body.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">Chưa có lịch sử gửi mail nào.</td></tr>';
+							return;
+						}
+						body.innerHTML = data.logs.map(log => {
+							const statusColor = log.status === 'SUCCESS' ? 'var(--success)' : 'var(--danger)';
+							const date = new Date(log.time).toLocaleString('vi-VN');
+							return `
+								<tr>
+									<td>${date}</td>
+									<td style="font-weight: 700;">${log.campaign}</td>
+									<td>${log.email}</td>
+									<td>
+										<span class="badge" style="color: ${statusColor}; border: 1px solid ${statusColor}33; background: ${statusColor}11;">
+											${log.status === 'SUCCESS' ? 'THÀNH CÔNG' : 'THẤT BẠI'}
+										</span>
+									</td>
+									<td style="font-size: 0.8rem; color: var(--danger);">${log.error || '-'}</td>
+								</tr>
+							`;
+						}).join('');
+					} else {
+						body.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger); padding: 40px;">Lỗi: ${data.message}</td></tr>`;
+					}
+				} catch (e) {
+					body.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger); padding: 40px;">Lỗi kết nối API</td></tr>`;
+				}
+			}
+
+			async function loadAllConversations() {
+				try {
+					const res = await fetch(CHAT_BACKEND, {
+						method: 'POST',
+						body: SecurityProvider.prepareRequest('master_get_all')
+					});
+					const data = await res.json();
+					if (data.success) {
+						allConvos = data.conversations.sort((a, b) => new Date(b.lastTime) - new Date(a.lastTime));
+						renderConvoList(allConvos);
+						if (activeConvo) {
+							const updated = data.conversations.find(c => c.email === activeConvo.email);
+							if (updated) {
+								activeConvo = updated;
+								renderMessages();
+							}
+						}
+					}
+				} catch (e) { console.error("Could not fetch convos", e); }
+			}
+
+			function renderConvoList(list) {
+				const container = document.getElementById('convoList');
+				if (!container) return;
+
+				// Lưu lại trạng thái của ô tìm kiếm để tránh bị mất focus khi render lại
+				const searchInput = document.querySelector('.chat-sidebar input');
+				const query = searchInput ? searchInput.value.toLowerCase() : "";
+
+				const filtered = list.filter(c => c.email.toLowerCase().includes(query));
+
+				container.innerHTML = filtered.map(c => `
+				<div class="convo-item ${activeConvo && activeConvo.email === c.email ? 'active' : ''}" onclick="selectConvo('${c.email}')">
+					<div class="user-avatar" style="width: 45px; height: 45px; background: #6366f122">${c.email.charAt(0).toUpperCase()}</div>
+					<div class="convo-info">
+						<div class="convo-email">${c.email}</div>
+						<div class="convo-last">${c.lastMsg}</div>
+					</div>
+					<div style="font-size: 0.65rem; color: var(--text-muted);">${new Date(c.lastTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+				</div>
+			`).join('');
+			}
+
+			function filterConvos(q) {
+				renderConvoList(allConvos);
+			}
+
+			function selectConvo(email) {
+				activeConvo = allConvos.find(c => c.email === email);
+				if (!activeConvo) return;
+
+				// Reset số lượng tin nhắn để ép render lại
+				lastConvoMsgCount = 0;
+
+				// Thêm class cho mobile layout
+				document.getElementById('chatMasterWrapper').classList.add('chat-active');
+
+				document.getElementById('chatDefaultMsg').style.display = 'none';
+				document.getElementById('chatContentArea').style.display = 'flex';
+				document.getElementById('activeUserEmail').innerText = email;
+				document.getElementById('activeUserAvatar').innerText = email.charAt(0).toUpperCase();
+
+				renderMessages();
+				renderConvoList(allConvos); // refresh active state
+			}
+
+			function backToConvos() {
+				document.getElementById('chatMasterWrapper').classList.remove('chat-active');
+			}
+
+			let lastConvoMsgCount = 0;
+			function renderMessages() {
+				if (!activeConvo) return;
+				// Chỉ re-render nếu số lượng tin nhắn của hội thoại hiện tại thay đổi
+				if (activeConvo.messages.length === lastConvoMsgCount) return;
+
+				const body = document.getElementById('masterChatBody');
+				if (!body) return;
+				body.innerHTML = activeConvo.messages.map(m => `
+				<div class="msg-bubble ${m.type === 'admin' ? 'admin' : 'user'}">
+					${m.image ? `<img src="${m.image}" onclick="window.open(this.src)">` : ''}
+					${m.text ? `<div>${m.text}</div>` : ''}
+					<div class="msg-time" style="text-align: ${m.type === 'admin' ? 'right' : 'left'}">
+						${new Date(m.timestamp).toLocaleString('vi-VN')} ${m.isEdited ? '(đã chỉnh sửa)' : ''}
+					</div>
+					${m.type === 'admin' ? `
+						<div class="msg-actions">
+							<button class="btn-msg-sub" onclick="editMsgUI('${m.id}', \`${m.text.replace(/`/g, '\\`').replace(/\${/g, '\\${')}\`)" title="Sửa"><i class="fas fa-edit"></i></button>
+							<button class="btn-msg-sub" onclick="deleteMsg('${m.id}')" title="Xóa"><i class="fas fa-trash"></i></button>
+						</div>
+					` : ''}
+				</div>
+			`).join('');
+				body.scrollTop = body.scrollHeight;
+				lastConvoMsgCount = activeConvo.messages.length;
+			}
+
+			async function sendMasterReply() {
+				const input = document.getElementById('masterChatInput');
+				const text = input.value.trim();
+				const sendBtn = document.querySelector('.chat-footer .btn-primary');
+
+				if ((!text && !selectedMasterImg) || sendBtn.disabled) return;
+
+				// Khóa nút gửi
+				const originalContent = sendBtn.innerHTML;
+				sendBtn.disabled = true;
+				sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GỬI...';
+
+				const payload = {
+					action: 'master_reply',
+					userEmail: activeConvo.email,
+					text: text,
+					image: ""
+				};
+
+				try {
+					if (selectedMasterImg) {
+						const base64 = await toBase64(selectedMasterImg);
+						const uploadRes = await fetch(MASTER_API, {
+							method: 'POST', body: SecurityProvider.prepareRequest('uploadAdImage', {
+								fileName: selectedMasterImg.name,
+								mimeType: selectedMasterImg.type,
+								base64Data: base64.split(',')[1]
+							})
+						});
+						const uploadData = await uploadRes.json();
+						if (uploadData.success) payload.image = uploadData.url;
+					}
+
+					input.value = '';
+					removeMasterSelectedImg();
+
+					const res = await fetch(CHAT_BACKEND, { method: 'POST', body: SecurityProvider.prepareRequest('master_reply', payload) });
+					const data = await res.json();
+					if (data.success) {
+						loadAllConversations();
+					}
+				} catch (e) {
+					alert("Lỗi gửi tin nhắn");
+				} finally {
+					sendBtn.disabled = false;
+					sendBtn.innerHTML = originalContent;
+				}
+			}
+
+			async function deleteMsg(id) {
+				if (!confirm("Xóa tin nhắn này?")) return;
+				try {
+					await fetch(CHAT_BACKEND, { method: 'POST', body: SecurityProvider.prepareRequest('delete_msg', { msgId: id }) });
+					loadAllConversations();
+				} catch (e) { }
+			}
+
+			function editMsgUI(id, oldText) {
+				const newText = prompt("Nhập nội dung mới:", oldText);
+				if (newText === null || newText === oldText) return;
+				editMsg(id, newText);
+			}
+
+			async function editMsg(id, text) {
+				try {
+					await fetch(CHAT_BACKEND, { method: 'POST', body: SecurityProvider.prepareRequest('edit_msg', { msgId: id, newText: text }) });
+					loadAllConversations();
+				} catch (e) { }
+			}
+
+			function previewMasterImg(input) {
+				if (input.files[0]) {
+					selectedMasterImg = input.files[0];
+					const reader = new FileReader();
+					reader.onload = e => {
+						const previewImg = document.querySelector('#masterImgPreview img');
+						if (previewImg) previewImg.src = e.target.result;
+						document.getElementById('masterImgPreview').style.display = 'block';
+					};
+					reader.readAsDataURL(input.files[0]);
+				}
+			}
+
+			function removeMasterSelectedImg() {
+				selectedMasterImg = null;
+				document.getElementById('masterImgUpload').value = '';
+				document.getElementById('masterImgPreview').style.display = 'none';
+			}
+		</script>
+</body>
+
+</html>

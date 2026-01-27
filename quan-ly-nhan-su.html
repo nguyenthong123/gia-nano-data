@@ -1,0 +1,1788 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-QFQ2HMYTDH"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag('js', new Date());
+
+		gtag('config', 'G-QFQ2HMYTDH');
+	</script>
+
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Quản lý Nhân sự | Dunvex Ecosystem</title>
+	<link rel="icon" type="image/svg+xml"
+		href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23FACC15'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' fill='white' font-size='60' font-family='sans-serif' font-weight='800'>DV</text></svg>">
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;800&display=swap"
+		rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+	<!-- Leaflet for Geofencing -->
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+	<!-- FullCalendar -->
+	<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+	<script src="security-utils.js"></script>
+	<script src="assets/theme-toggle.js"></script>
+	<script>
+		const session = SecurityProvider.validateAccess();
+		const currentUser = session ? session.user : null;
+		const currentPerms = session ? session.permissions : null;
+	</script>
+	<link rel="stylesheet" href="assets/theme.css">
+	<style>
+		/* Variables handled in theme.css */
+
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+			text-rendering: optimizeLegibility;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+			font-weight: 500;
+		}
+
+		body {
+			background-color: var(--bg-body);
+			color: var(--text-main);
+			min-height: 100vh;
+			background-image: var(--bg-gradient-1), var(--bg-gradient-2);
+			background-attachment: fixed;
+			padding-bottom: 100px;
+			-webkit-text-size-adjust: 100%;
+		}
+
+		.container {
+			max-width: 1200px;
+			margin: 0 auto;
+			padding: 20px;
+		}
+
+		/* Glass Card - Updated to White Theme */
+		.glass-card {
+			background: white;
+			border: 1px solid var(--glass-border);
+			border-radius: 24px;
+			padding: 32px;
+			margin-bottom: 24px;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+			border: 1px solid #e2e8f0;
+		}
+
+		/* Header Area */
+		.header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 30px;
+		}
+
+		.brand h1 {
+			font-size: 2.22rem;
+			font-weight: 800;
+			color: #0f172a;
+			font-family: 'Outfit', sans-serif;
+			letter-spacing: -0.5px;
+		}
+
+		.user-profile {
+			display: flex;
+			align-items: center;
+			gap: 15px;
+			padding: 8px 20px 8px 8px;
+			background: white;
+			border-radius: 99px;
+			border: 1.5px solid #e2e8f0;
+			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+		}
+
+		/* Tab Navigation */
+		.tab-nav {
+			display: flex;
+			gap: 8px;
+			margin-bottom: 25px;
+			overflow-x: auto;
+			padding-bottom: 10px;
+			scrollbar-width: none;
+			-ms-overflow-style: none;
+		}
+
+		.tab-nav::-webkit-scrollbar {
+			display: none;
+		}
+
+		.tab-btn {
+			padding: 12px 20px;
+			border-radius: 12px;
+			background: white;
+			border: 1.5px solid #cbd5e1;
+			color: #475569;
+			cursor: pointer;
+			font-weight: 800;
+			transition: 0.3s;
+			white-space: nowrap;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			font-size: 0.95rem;
+		}
+
+		.tab-btn:hover {
+			border-color: var(--primary);
+			background: #f8fafc;
+		}
+
+		@media (max-width: 600px) {
+			.header {
+				flex-direction: column;
+				align-items: flex-start;
+				gap: 15px;
+			}
+
+			.brand h1 {
+				font-size: 1.5rem;
+			}
+
+			.big-btn {
+				width: 150px;
+				height: 150px;
+				font-size: 1.2rem;
+			}
+
+			.container {
+				padding: 15px;
+			}
+
+			.glass-card {
+				padding: 18px;
+				border-radius: 20px;
+			}
+
+			/* Adjust calendar for smaller screens */
+			.fc-toolbar {
+				flex-direction: column;
+				gap: 10px;
+			}
+
+			.fc-toolbar-title {
+				font-size: 1rem !important;
+			}
+
+			.fc-header-toolbar {
+				margin-bottom: 10px !important;
+			}
+
+			.fc-view-harness {
+				height: 400px !important;
+			}
+		}
+
+		@media (max-width: 1024px) {
+			.events-grid {
+				grid-template-columns: 1fr !important;
+				gap: 15px !important;
+			}
+		}
+
+		/* Tablet & Mobile Specific Overrides */
+		@media (max-width: 768px) {
+			.header {
+				flex-direction: column;
+				align-items: center;
+				text-align: center;
+				gap: 20px;
+			}
+
+			.brand h1 {
+				font-size: 1.5rem;
+			}
+
+			.grid-2 {
+				grid-template-columns: 1fr !important;
+				gap: 15px !important;
+			}
+
+			.fc-header-toolbar {
+				flex-direction: column !important;
+				gap: 8px !important;
+			}
+
+			.fc-toolbar-chunk {
+				display: flex;
+				justify-content: center;
+				width: 100%;
+			}
+
+			.fc-button-group {
+				width: 100%;
+				justify-content: center;
+			}
+
+			.fc-button {
+				font-size: 0.75rem !important;
+				padding: 6px 10px !important;
+			}
+		}
+
+		@media (max-width: 480px) {
+			.container {
+				padding: 10px;
+			}
+
+			.glass-card {
+				padding: 15px;
+				border-radius: 16px;
+			}
+
+			.tab-btn {
+				padding: 8px 12px;
+				font-size: 0.75rem;
+			}
+
+			.fc-toolbar-title {
+				font-size: 0.9rem !important;
+			}
+
+			.fc-view-harness {
+				height: 350px !important;
+			}
+
+			/* Form optimization for small screens */
+			.form-control {
+				font-size: 0.9rem;
+				padding: 10px;
+			}
+
+			label {
+				font-size: 0.8rem;
+			}
+
+			.leave-filter-container {
+				width: 100%;
+				justify-content: space-between;
+				margin-top: 10px;
+				margin-left: 0 !important;
+			}
+
+			.leave-filter-container input {
+				width: 45% !important;
+			}
+		}
+
+		.tab-btn.active {
+			background: var(--primary);
+			color: #0f172a;
+			border-color: var(--primary);
+			box-shadow: 0 4px 15px rgba(250, 204, 21, 0.4);
+		}
+
+		/* Main Content */
+		.tab-content {
+			display: none;
+			animation: fadeIn 0.4s ease-out;
+		}
+
+		.tab-content.active {
+			display: block;
+		}
+
+		@keyframes fadeIn {
+			from {
+				opacity: 0;
+				transform: translateY(10px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		/* Setup/Admin Sections */
+		.admin-only {
+			display: none;
+			/* Controlled by JS */
+			border: 1px dashed var(--primary);
+			padding: 5px;
+			border-radius: 20px;
+			position: relative;
+		}
+
+		.admin-label {
+			position: absolute;
+			top: -10px;
+			left: 20px;
+			background: var(--primary);
+			color: white;
+			padding: 2px 10px;
+			border-radius: 5px;
+			font-size: 0.7rem;
+			font-weight: 800;
+		}
+
+		.events-grid {
+			grid-template-columns: 1fr 2fr;
+		}
+
+		/* Grid Layouts */
+		.grid-2 {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 24px;
+		}
+
+		@media (max-width: 850px) {
+			.grid-2 {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		/* Form Elements */
+		.form-group {
+			margin-bottom: 18px;
+		}
+
+		.form-group label {
+			display: block;
+			margin-bottom: 8px;
+			color: var(--text-muted);
+			font-size: 0.9rem;
+		}
+
+		.form-control {
+			width: 100%;
+			padding: 14px 16px;
+			background: white !important;
+			border: 1.5px solid #cbd5e1 !important;
+			border-radius: 12px;
+			color: #0f172a !important;
+			outline: none;
+			transition: 0.3s;
+			font-weight: 600;
+		}
+
+		.form-control:focus {
+			border-color: var(--primary);
+			box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+		}
+
+		.btn-primary {
+			background: var(--primary);
+			color: #0f172a;
+			border: none;
+			padding: 14px 24px;
+			border-radius: 12px;
+			font-weight: 800;
+			cursor: pointer;
+			transition: 0.3s;
+			width: 100%;
+			box-shadow: 0 4px 12px rgba(250, 204, 21, 0.3);
+		}
+
+		.btn-primary:hover {
+			background: #facc15;
+			transform: translateY(-2px);
+			box-shadow: 0 8px 20px rgba(250, 204, 21, 0.5);
+		}
+
+		/* Checkin UI */
+		.checkin-hero {
+			text-align: center;
+			padding: 40px 0;
+		}
+
+		.big-btn {
+			width: 180px;
+			height: 180px;
+			border-radius: 50%;
+			border: 8px solid rgba(16, 185, 129, 0.2);
+			background: linear-gradient(135deg, var(--primary), #059669);
+			color: white;
+			font-size: 1.5rem;
+			font-weight: 800;
+			cursor: pointer;
+			box-shadow: 0 20px 40px rgba(16, 185, 129, 0.3);
+			transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+			margin: 0 auto 24px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			gap: 10px;
+		}
+
+		.big-btn:active {
+			transform: scale(0.9);
+		}
+
+		.big-btn.out {
+			background: linear-gradient(135deg, #ef4444, #dc2626);
+			border-color: rgba(239, 68, 68, 0.2);
+			box-shadow: 0 20px 40px rgba(239, 68, 68, 0.3);
+		}
+
+		/* Map UI */
+		#map-setup,
+		#map-checkin {
+			height: 350px;
+			border-radius: 16px;
+			border: 1px solid var(--glass-border);
+			margin-top: 10px;
+			z-index: 1;
+		}
+
+		/* FullCalendar Modern Premium Overrides */
+		.fc {
+			--fc-border-color: rgba(255, 255, 255, 0.05);
+			--fc-daygrid-event-dot-width: 8px;
+			background: transparent !important;
+			border: none !important;
+			padding: 0 !important;
+		}
+
+		.fc-theme-standard td,
+		.fc-theme-standard th {
+			border: 1px solid rgba(255, 255, 255, 0.05) !important;
+		}
+
+		.fc .fc-toolbar-title {
+			font-family: 'Outfit', sans-serif;
+			font-size: 1.5rem !important;
+			font-weight: 800;
+			color: var(--text-main);
+			text-transform: capitalize;
+		}
+
+		.fc .fc-button-primary {
+			background: rgba(255, 255, 255, 0.05) !important;
+			border: 1px solid rgba(255, 255, 255, 0.1) !important;
+			color: #fff !important;
+			font-weight: 600 !important;
+			padding: 8px 16px !important;
+			border-radius: 12px !important;
+			transition: all 0.3s !important;
+			text-transform: capitalize !important;
+			box-shadow: none !important;
+		}
+
+		.fc .fc-button-primary:hover {
+			background: var(--primary) !important;
+			border-color: var(--primary) !important;
+			transform: translateY(-1px);
+		}
+
+		.fc .fc-button-primary:disabled {
+			opacity: 0.3 !important;
+		}
+
+		.fc .fc-today-button {
+			background: rgba(16, 185, 129, 0.1) !important;
+			color: var(--primary) !important;
+			border: 1px solid rgba(16, 185, 129, 0.2) !important;
+		}
+
+		.fc-col-header-cell {
+			padding: 12px 0 !important;
+			background: rgba(255, 255, 255, 0.02);
+		}
+
+		.fc-col-header-cell-cushion {
+			color: var(--text-muted) !important;
+			font-size: 0.75rem !important;
+			font-weight: 700 !important;
+			text-transform: uppercase;
+			letter-spacing: 1px;
+			text-decoration: none !important;
+		}
+
+		.fc-daygrid-day-number {
+			color: var(--text-muted);
+			font-size: 0.85rem;
+			font-weight: 500;
+			padding: 8px 12px !important;
+			text-decoration: none !important;
+		}
+
+		.fc-day-today {
+			background: rgba(16, 185, 129, 0.05) !important;
+		}
+
+		.fc-day-today .fc-daygrid-day-number {
+			color: var(--primary);
+			font-weight: 800;
+		}
+
+		.fc-daygrid-event {
+			border-radius: 6px !important;
+			padding: 2px 6px !important;
+			font-size: 0.75rem !important;
+			margin: 2px 4px !important;
+			border: none !important;
+		}
+
+		.fc-v-event {
+			background-color: var(--primary) !important;
+		}
+
+		.fc-event-title {
+			font-weight: 600 !important;
+		}
+
+		.fc-daygrid-more-link {
+			color: var(--primary) !important;
+			font-size: 0.7rem !important;
+			font-weight: 700 !important;
+			text-decoration: none !important;
+			padding-left: 8px;
+		}
+
+		/* Events UI Improvements */
+		.event-staff-list {
+			max-height: 150px;
+			overflow-y: auto;
+			background: rgba(0, 0, 0, 0.2);
+			padding: 10px;
+			border-radius: 12px;
+			border: 1px solid var(--glass-border);
+		}
+
+		.event-item {
+			padding: 12px;
+			background: rgba(255, 255, 255, 0.03);
+			margin-bottom: 10px;
+			border-left: 4px solid var(--primary);
+			border-radius: 8px;
+			transition: 0.3s;
+		}
+
+		.event-item:hover {
+			background: rgba(255, 255, 255, 0.08);
+			transform: translateX(5px);
+		}
+
+		/* Toast */
+		#toast {
+			position: fixed;
+			top: 20px;
+			right: 20px;
+			z-index: 99999;
+		}
+
+		/* Table */
+		.table-responsive {
+			overflow-x: auto;
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+			margin-top: 10px;
+		}
+
+		th {
+			text-align: left;
+			padding: 12px;
+			color: var(--text-muted);
+			font-size: 0.85rem;
+			text-transform: uppercase;
+			letter-spacing: 1px;
+		}
+
+		td {
+			padding: 12px;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+			font-size: 0.95rem;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="container">
+		<!-- Header -->
+		<div class="header">
+			<div class="brand">
+				<h1>HỆ THỐNG HR</h1>
+				<p style="color: var(--text-muted); font-size: 0.85rem;" id="currentTime"></p>
+			</div>
+			<div style="display: flex; gap: 12px; align-items: center;">
+				<a href="index.html" class="btn btn-glass" style="height: auto; padding: 10px 18px;">
+					<i class="fa-solid fa-house"></i> Trang chủ
+				</a>
+				<div class="user-pill">
+					<div class="avatar" id="avatarLetter"
+						style="width:30px; height:30px; background: var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800;">
+						U</div>
+					<div>
+						<div id="userName" style="font-weight:600; font-size:0.9rem;">User Name</div>
+						<div id="userRole" style="font-size:0.75rem; color: var(--text-muted);">Role</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Navigation -->
+		<div class="tab-nav">
+			<button class="tab-btn active" onclick="switchTab('overview')"><i class="fas fa-chart-line"></i> Tổng
+				quan</button>
+			<button class="tab-btn" onclick="switchTab('checkin')"><i class="fas fa-map-marker-alt"></i> Chấm
+				công</button>
+			<button class="tab-btn" onclick="switchTab('events')"><i class="fas fa-calendar-alt"></i> Sự kiện &
+				Lịch</button>
+			<button class="tab-btn" onclick="switchTab('plan')"><i class="fas fa-tasks"></i> Kế hoạch tuần</button>
+			<button class="tab-btn" onclick="switchTab('leave')"><i class="fas fa-user-clock"></i> Nghỉ phép</button>
+			<button id="btn-tab-attendance" class="tab-btn admin-only" onclick="switchTab('attendance')"
+				style="display:none;"><i class="fas fa-clipboard-list"></i>
+				Báo cáo</button>
+			<button id="btn-tab-settings" class="tab-btn hr-setup-view" onclick="switchTab('settings')"
+				style="display:none;"><i class="fas fa-cog"></i> Cấu
+				hình</button>
+		</div>
+
+		<!-- OVERVIEW TAB -->
+		<div id="tab-overview" class="tab-content active">
+			<div class="grid-2">
+				<div class="glass-card">
+					<h3 style="margin-bottom: 20px;"><i class="fas fa-clock" style="color: var(--primary);"></i> Trạng
+						thái hôm nay</h3>
+					<div style="margin-top:20px; text-align:center;" id="checkinMsg">
+						<span style="color: var(--text-muted);">Đang xác định vị trí...</span>
+					</div>
+
+					<div id="checkinStatusList"
+						style="margin-top:30px; display:flex; gap:10px; justify-content:center;">
+						<!-- IN/OUT times show here -->
+					</div>
+				</div>
+				<div class="glass-card" style="display: none;">
+					<h3 style="margin-bottom: 20px;"><i class="fas fa-info-circle"
+							style="color: var(--accent-purple);"></i> Thông tin văn phòng</h3>
+					<div id="officeInfo">
+						<p style="color: var(--text-muted);">Vui lòng chờ...</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="glass-card">
+				<h3 style="margin-bottom: 20px;">Sự kiện sắp tới</h3>
+				<div id="upcomingEvents">
+					<p style="color: var(--text-muted);">Không có sự kiện nào gần đây.</p>
+				</div>
+			</div>
+		</div>
+
+		<!-- CHECKIN TAB -->
+		<div id="tab-checkin" class="tab-content">
+			<div class="glass-card">
+				<div class="checkin-hero">
+					<button id="checkinBtn" class="big-btn checkin-btn" onclick="handleCheckin()">
+						<i class="fas fa-fingerprint"></i>
+						<span>CHECK IN</span>
+					</button>
+					<p id="checkinStatusText" style="color: var(--text-muted); padding: 0 40px;"></p>
+				</div>
+
+				<div id="map-checkin"></div>
+				<p style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);"><i
+						class="fas fa-info-circle"></i> Vị trí của bạn cần nằm trong bán kính 100m tính từ văn phòng.
+				</p>
+			</div>
+		</div>
+
+		<!-- EVENTS TAB -->
+		<div id="tab-events" class="tab-content">
+			<div class="grid-2 events-grid">
+				<div class="glass-card">
+					<h3 style="margin-bottom: 20px;">Tạo sự kiện</h3>
+					<form id="eventForm">
+						<div class="form-group">
+							<label>Tên sự kiện</label>
+							<input type="text" id="ev_title" class="form-control" placeholder="Họp team, Kỷ niệm..."
+								required>
+						</div>
+						<div class="form-group">
+							<label>Loại sự kiện</label>
+							<select id="ev_type" class="form-control">
+								<option value="personal">Cá nhân (Nhắc nhở)</option>
+								<option value="market">Đi thị trường (Sales)</option>
+								<option value="company">Toàn công ty (Admin)</option>
+							</select>
+						</div>
+						<div class="grid-2">
+							<div class="form-group">
+								<label>Bắt đầu</label>
+								<input type="datetime-local" id="ev_start" class="form-control" required>
+							</div>
+							<div class="form-group">
+								<label>Kết thúc</label>
+								<input type="datetime-local" id="ev_end" class="form-control" required>
+							</div>
+						</div>
+						<div class="form-group">
+							<label>Địa điểm</label>
+							<input type="text" id="ev_location" class="form-control" placeholder="Văn phòng, HCM...">
+						</div>
+						<div class="form-group">
+							<label>Mô tả</label>
+							<textarea id="ev_desc" class="form-control" rows="3"></textarea>
+						</div>
+						<div class="form-group">
+							<label>Chọn nhân viên tham gia</label>
+							<div id="eventStaffList" class="event-staff-list">
+								<p style="font-size: 0.8rem; color: var(--text-muted);">Đang tải danh sách...</p>
+							</div>
+						</div>
+						<div class="form-group">
+							<label>Email thông báo khác (cách nhau bởi dấu phẩy)</label>
+							<input type="text" id="ev_notify" class="form-control" placeholder="email1@..., email2@...">
+						</div>
+						<button type="submit" class="btn-primary">LƯU SỰ KIỆN</button>
+					</form>
+				</div>
+				<div class="glass-card">
+					<div id="calendar"></div>
+				</div>
+			</div>
+		</div>
+
+		<!-- REPORT TAB (ADMIN ONLY) -->
+		<div id="tab-attendance" class="tab-content">
+			<span class="admin-label">DÀNH CHO QUẢN LÝ</span>
+
+			<div class="tab-nav" style="margin-top: 20px;">
+				<button class="tab-btn active" onclick="switchSubTab('personal')">Cá nhân</button>
+				<button class="tab-btn admin-only" onclick="switchSubTab('all')">Tất cả nhân viên</button>
+			</div>
+
+			<div id="subtab-personal" class="subtab-content active">
+				<div class="glass-card">
+					<h3 style="margin-bottom: 20px;">Lịch sử Chấm công Cá nhân</h3>
+					<div class="table-responsive">
+						<table id="personalAttendanceTable">
+							<thead>
+								<tr>
+									<th>Thời gian</th>
+									<th>Loại</th>
+									<th>Địa điểm</th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+
+			<div id="subtab-all" class="subtab-content" style="display:none;">
+				<div class="glass-card">
+					<div
+						style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+						<h3>Tổng hợp Chấm công Toàn bộ</h3>
+						<div style="display:flex; gap: 10px;">
+							<input type="month" id="reportMonth" class="form-control" style="width: auto;">
+							<button class="btn-primary" style="width: auto;"
+								onclick="loadAttendanceReport()">TẢI</button>
+						</div>
+					</div>
+					<div class="table-responsive">
+						<table id="attendanceTable">
+							<thead>
+								<tr>
+									<th>Nhân viên</th>
+									<th>Thời gian</th>
+									<th>Loại</th>
+									<th>Địa điểm</th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- SETTINGS TAB (ADMIN ONLY) -->
+		<div id="tab-settings" class="tab-content">
+			<span class="admin-label">CẤU HÌNH HỆ THỐNG</span>
+			<div class="grid-2">
+				<div class="glass-card">
+					<h3 style="margin-bottom: 20px;">Vị trí Văn phòng</h3>
+					<p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 10px;">Click lên bản đồ để
+						chọn tâm điểm check-in (bán kính 100m).</p>
+					<div id="map-setup"
+						style="height: 300px; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--glass-border);">
+					</div>
+
+					<button class="btn-primary" onclick="getCurrentSetupLocation()"
+						style="margin-bottom: 15px; background: var(--accent-purple); width: 100%;">
+						<i class="fas fa-location-crosshairs"></i> LẤY VỊ TRÍ HIỆN TẠI (GPS)
+					</button>
+
+					<div class="grid-2" style="margin-top: 15px;">
+						<div class="form-group">
+							<label>Vĩ độ (Lat)</label>
+							<input type="text" id="conf_lat" class="form-control" readonly>
+						</div>
+						<div class="form-group">
+							<label>Kinh độ (Lng)</label>
+							<input type="text" id="conf_lng" class="form-control" readonly>
+						</div>
+					</div>
+					<div class="form-group">
+						<label>Tên văn phòng</label>
+						<input type="text" id="conf_office_name" class="form-control" placeholder="Trụ sở chính...">
+					</div>
+				</div>
+
+				<div class="glass-card">
+					<h3 style="margin-bottom: 20px;">Thời gian làm việc</h3>
+					<div class="form-group">
+						<label>Công nhật hàng tuần (1: Cả ngày, 0.5: Nửa buổi, 0: Nghỉ)</label>
+						<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;" id="workdayGrid">
+							<div class="form-group"><label>T2</label><select name="wd-1" class="form-control">
+									<option value="1" selected>1.0</option>
+									<option value="0.5">0.5</option>
+									<option value="0">Off</option>
+								</select></div>
+							<div class="form-group"><label>T3</label><select name="wd-2" class="form-control">
+									<option value="1" selected>1.0</option>
+									<option value="0.5">0.5</option>
+									<option value="0">Off</option>
+								</select></div>
+							<div class="form-group"><label>T4</label><select name="wd-3" class="form-control">
+									<option value="1" selected>1.0</option>
+									<option value="0.5">0.5</option>
+									<option value="0">Off</option>
+								</select></div>
+							<div class="form-group"><label>T5</label><select name="wd-4" class="form-control">
+									<option value="1" selected>1.0</option>
+									<option value="0.5">0.5</option>
+									<option value="0">Off</option>
+								</select></div>
+							<div class="form-group"><label>T6</label><select name="wd-5" class="form-control">
+									<option value="1" selected>1.0</option>
+									<option value="0.5">0.5</option>
+									<option value="0">Off</option>
+								</select></div>
+							<div class="form-group"><label>T7</label><select name="wd-6" class="form-control">
+									<option value="1">1.0</option>
+									<option value="0.5" selected>0.5</option>
+									<option value="0">Off</option>
+								</select></div>
+							<div class="form-group"><label>CN</label><select name="wd-0" class="form-control">
+									<option value="1">1.0</option>
+									<option value="0.5">0.5</option>
+									<option value="0" selected>Off</option>
+								</select></div>
+						</div>
+					</div>
+					<div class="grid-2">
+						<div class="form-group">
+							<label>Giờ bắt đầu</label>
+							<input type="time" id="conf_start" class="form-control" value="08:00">
+						</div>
+						<div class="form-group">
+							<label>Giờ kết thúc</label>
+							<input type="time" id="conf_end" class="form-control" value="17:00">
+						</div>
+					</div>
+					<button id="btnSaveConfig" class="btn-primary" style="margin-top: 40px;" onclick="saveConfig()">LƯU
+						CẤU HÌNH</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- WEEKLY PLAN TAB -->
+		<div id="tab-plan" class="tab-content">
+			<div class="glass-card">
+				<div class="header" style="margin-bottom:20px; border-bottom:none; padding:0;">
+					<h3><i class="fas fa-tasks" style="color: var(--primary);"></i> Kế hoạch công việc tuần</h3>
+					<div id="planAdminActions" class="admin-only" style="display:none;">
+						<button class="btn-primary" onclick="loadAllStaffPlans()"><i class="fas fa-sync"></i> Xem kế
+							hoạch toàn nhân viên</button>
+					</div>
+				</div>
+
+				<div id="staffPlanView">
+					<div class="form-group">
+						<label>Chọn tuần</label>
+						<select id="plan_week" class="form-control">
+							<option value="">-- Chọn tuần báo cáo --</option>
+							<!-- JS will populate -->
+						</select>
+					</div>
+					<div class="form-group">
+						<label>Nội dung kế hoạch & Báo cáo</label>
+						<textarea id="plan_content" class="form-control" rows="8"
+							placeholder="Liệt kê các mục tiêu trong tuần và kết quả đạt được..."></textarea>
+					</div>
+					<button class="btn-primary" onclick="saveWeeklyPlan()">GỬI BÁO CÁO KẾ HOẠCH</button>
+
+					<div
+						style="margin-top:40px; margin-bottom:15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+						<h3>Lịch sử báo cáo</h3>
+						<div style="display: flex; gap: 10px; align-items: center;">
+							<label style="font-size: 0.85rem; color: var(--text-muted); white-space: nowrap;">Lọc theo
+								tuần:</label>
+							<select id="filter_plan_week" class="form-control"
+								style="width: auto; height: 36px; padding: 0 10px; font-size: 0.85rem;"
+								onchange="loadStaffPlans()">
+								<option value="all">Tất cả các tuần</option>
+								<!-- Same week options as plan_week will be added here -->
+							</select>
+						</div>
+					</div>
+					<div class="table-responsive">
+						<table id="tablePlanHistory">
+							<thead>
+								<tr>
+									<th>Tuần</th>
+									<th>Ngày gửi</th>
+									<th>Trạng thái</th>
+									<th>Thao tác</th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+				</div>
+
+				<div id="adminPlanView" style="display:none;">
+					<div
+						style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+						<button class="tab-btn" style="width: auto;"
+							onclick="document.getElementById('adminPlanView').style.display='none'; document.getElementById('staffPlanView').style.display='block';"><i
+								class="fas fa-arrow-left"></i> Quay lại</button>
+						<div style="display: flex; gap: 10px; align-items: center;">
+							<label style="font-size: 0.85rem; color: var(--text-muted);">Tuần:</label>
+							<select id="filter_admin_plan_week" class="form-control" style="width: auto; height: 36px;"
+								onchange="loadAllStaffPlans()">
+								<option value="all">Tất cả các tuần</option>
+							</select>
+						</div>
+					</div>
+					<div class="table-responsive" style="margin-top:20px;">
+						<table id="tableAdminPlans">
+							<thead>
+								<tr>
+									<th>Nhân viên</th>
+									<th>Tuần</th>
+									<th>Nội dung</th>
+									<th>Thao tác</th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- LEAVE REQUEST TAB -->
+		<div id="tab-leave" class="tab-content">
+			<div class="grid-2">
+				<div class="glass-card">
+					<h3><i class="fas fa-paper-plane" style="color: var(--primary);"></i> Gửi yêu cầu nghỉ phép</h3>
+					<div class="form-group" style="margin-top:20px;">
+						<label>Loại nghỉ phép</label>
+						<select id="leave_type" class="form-control">
+							<option value="Nghỉ phép năm">Nghỉ phép năm (hưởng lương)</option>
+							<option value="Nghỉ không lương">Nghỉ không lương</option>
+							<option value="Nghỉ ốm">Nghỉ ốm / Khám bệnh</option>
+							<option value="Việc riêng">Việc riêng / Hiếu hỷ</option>
+						</select>
+					</div>
+					<div class="grid-2">
+						<div class="form-group">
+							<label>Từ ngày</label>
+							<input type="date" id="leave_start" class="form-control">
+						</div>
+						<div class="form-group">
+							<label>Đến ngày</label>
+							<input type="date" id="leave_end" class="form-control">
+						</div>
+					</div>
+					<div class="form-group">
+						<label>Lý do</label>
+						<textarea id="leave_reason" class="form-control" rows="3"></textarea>
+					</div>
+					<button class="btn-primary" onclick="submitLeave()">GỬI YÊU CẦU</button>
+				</div>
+
+				<div class="glass-card">
+					<div class="header"
+						style="margin-bottom:20px; border-bottom:1px solid var(--glass-border); padding:0 0 10px 0; display:flex; gap:15px; justify-content: flex-start; align-items: center; flex-wrap: wrap;">
+						<div id="subtab-leave-personal" class="subtab-active"
+							style="cursor:pointer; font-weight:bold; color:var(--primary); font-size: 0.95rem;"
+							onclick="switchLeaveSubTab('personal')">CÁ NHÂN</div>
+						<div id="subtab-leave-staff" class="admin-only"
+							style="display:none; cursor:pointer; color:var(--text-muted); font-size: 0.95rem;"
+							onclick="switchLeaveSubTab('staff')">NHÂN VIÊN</div>
+						<div class="leave-filter-container"
+							style="margin-left:auto; display:flex; gap:5px; align-items:center;">
+							<input type="date" id="leave_filter_start" class="form-control"
+								style="padding:2px 5px; font-size:0.7rem; width:110px; height:28px;"
+								onchange="refreshLeaveList()">
+							<span style="font-size:0.7rem;">đến</span>
+							<input type="date" id="leave_filter_end" class="form-control"
+								style="padding:2px 5px; font-size:0.7rem; width:110px; height:28px;"
+								onchange="refreshLeaveList()">
+						</div>
+					</div>
+
+					<!-- Personal History Content -->
+					<div id="leave-content-personal" class="table-responsive">
+						<table id="tableLeaveHistory">
+							<thead>
+								<tr>
+									<th>Loại</th>
+									<th>Thời gian</th>
+									<th>Trạng thái</th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+
+					<!-- Staff Management Content (Admin only) -->
+					<div id="leave-content-staff" class="table-responsive" style="display:none;">
+						<table id="tableAdminLeave">
+							<thead>
+								<tr>
+									<th>Nhân viên</th>
+									<th>Loại</th>
+									<th>Thời gian</th>
+									<th>Lý do</th>
+									<th>Thao tác</th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+
+			<!-- Section removed as requested and integrated into tabs above -->
+		</div>
+	</div>
+
+	<style>
+		.subtab-active {
+			color: var(--primary) !important;
+			font-weight: bold;
+			border-bottom: 2px solid var(--primary);
+			padding-bottom: 5px;
+		}
+
+		.badge {
+			padding: 4px 8px;
+			border-radius: 6px;
+			font-size: 0.7rem;
+			font-weight: bold;
+		}
+
+		.badge.in {
+			background: rgba(16, 185, 129, 0.2);
+			color: #10b981;
+		}
+
+		.badge.out {
+			background: rgba(245, 158, 11, 0.2);
+			color: #f59e0b;
+		}
+	</style>
+	<!-- Toast UI -->
+	<div id="toast"></div>
+
+	<script src="security-utils.js"></script>
+	<script>
+		// --- CONFIG ---
+		const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby8jUfM9OIn6P_pXpXU2f9-E7f2-sXf4_p-f-f-f-f-f-f-f-f-f-f/exec'; // Need to update with actual HR script
+		const HR_URL = 'https://script.google.com/macros/s/AKfycbwns9yFGYCEjyrK17TQ6AMVdYe8TOvxoqomzZCU2csbzXfIfm0NhK6hq6GtgKh3P8Df/exec';
+		const HR_API = HR_URL;
+		const HR_STAFF_API = HR_URL;
+
+		// currentUser already defined in head script
+		let hrConfig = null, calendar = null, mapSetup = null, mapCheckin = null;
+		let markerSetup = null, userPosMarker = null, officeCircle = null;
+
+		window.onload = function () {
+			if (!currentUser) { window.location.href = 'auth.html'; return; }
+
+			// Normalize adminEmail for HR requests
+			currentUser.adminEmail = currentUser.adminEmail || currentUser.owner || currentUser.email;
+
+			document.getElementById('userName').innerText = currentUser.fullName;
+			document.getElementById('userRole').innerText = (currentUser.roleId === 'R001' ? 'Quản lý' : 'Nhân viên');
+			document.getElementById('avatarLetter').innerText = currentUser.fullName.charAt(0).toUpperCase();
+			const perms = JSON.parse(localStorage.getItem('permissions')) || {};
+			if (currentUser.roleId === 'R001') {
+				document.querySelectorAll('.admin-only').forEach(el => {
+					if (el.tagName === 'DIV' || el.tagName === 'BUTTON') el.style.display = 'block';
+					else el.style.display = 'flex';
+					if (el.classList.contains('admin-flex')) el.style.display = 'flex';
+				});
+			}
+			if (currentUser.roleId === 'R001' || perms.hrSetup) {
+				const btn = document.getElementById('btn-tab-settings');
+				if (btn) btn.style.display = 'flex';
+			}
+			populateWeekSelect();
+			updateTime();
+			setInterval(updateTime, 1000);
+			loadHRData();
+		};
+
+		function updateTime() {
+			const now = new Date();
+			document.getElementById('currentTime').innerText = now.toLocaleString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+		}
+
+		async function loadHRData() { try { await loadHRConfig(); loadUpcomingEvents(); loadTodayLog(); } catch (e) { } }
+
+		function renderOfficeInfo() {
+			const info = document.getElementById('officeInfo');
+			if (!hrConfig?.offices?.length) { info.innerHTML = `<p style="color:var(--danger);">Chưa cấu hình văn phòng.</p>`; return; }
+			const o = hrConfig.offices[0];
+
+			// Render workDays summary
+			let daysHtml = [];
+			const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+			if (hrConfig.workDays && typeof hrConfig.workDays === 'object' && !Array.isArray(hrConfig.workDays)) {
+				for (let i = 1; i <= 6; i++) { if (hrConfig.workDays[i] > 0) daysHtml.push(`${dayNames[i]} (${hrConfig.workDays[i]})`); }
+				if (hrConfig.workDays[0] > 0) daysHtml.push(`${dayNames[0]} (${hrConfig.workDays[0]})`);
+			} else if (Array.isArray(hrConfig.workDays)) {
+				daysHtml = hrConfig.workDays.map(d => dayNames[d]);
+			}
+
+			info.innerHTML = `<b>${o.name}</b><br><small>${daysHtml.join(', ')} | ${hrConfig.workHours.start} - ${hrConfig.workHours.end}</small>`;
+		}
+
+		function switchTab(t) {
+			document.querySelectorAll('.tab-nav:not(.sub-tabs) .tab-btn').forEach(b => b.classList.remove('active'));
+			document.querySelectorAll('.tab-content').forEach(c => {
+				c.classList.remove('active');
+				c.style.display = 'none';
+			});
+
+			const btn = document.getElementById(`btn-tab-${t}`) || Array.from(document.querySelectorAll('.tab-nav:not(.sub-tabs) .tab-btn')).find(b => b.getAttribute('onclick')?.includes(`'${t}'`));
+			if (btn) btn.classList.add('active');
+
+			const content = document.getElementById('tab-' + t);
+			if (content) {
+				content.classList.add('active');
+				content.style.display = 'block';
+			}
+
+			if (t === 'checkin') initCheckinMap();
+			if (t === 'attendance') switchSubTab('personal');
+			if (t === 'events') { initCalendar(); loadOrgUsers(); setTimeout(() => calendar?.render(), 100); }
+			if (t === 'settings') initSetupMap();
+			if (t === 'plan') loadStaffPlans();
+			if (t === 'leave') loadStaffLeaves();
+		}
+
+		function switchSubTab(st) {
+			const tab = document.getElementById('tab-attendance');
+			tab.querySelectorAll('.tab-nav .tab-btn').forEach(b => b.classList.remove('active'));
+			tab.querySelectorAll('.subtab-content').forEach(c => {
+				c.style.display = 'none';
+				c.classList.remove('active');
+			});
+
+			const btn = Array.from(tab.querySelectorAll('.tab-nav .tab-btn')).find(b => b.getAttribute('onclick')?.includes(`'${st}'`));
+			if (btn) btn.classList.add('active');
+
+			const content = document.getElementById('subtab-' + st);
+			if (content) {
+				content.style.display = 'block';
+				content.classList.add('active');
+			}
+
+			if (st === 'personal') loadPersonalAttendance();
+			if (st === 'all') loadAttendanceReport();
+		}
+
+		async function loadTodayLog() {
+			try {
+				const r = await fetch(HR_URL, { method: 'POST', body: SecurityProvider.prepareRequest('getTodayLog', { userEmail: currentUser.email }) });
+				const j = await r.json();
+				if (j.success && j.data) {
+					const cont = document.getElementById('checkinStatusList'), btn = document.getElementById('checkinBtn'), txt = document.getElementById('checkinStatusText');
+					const inL = j.data.find(l => l.type === 'IN'), outL = j.data.find(l => l.type === 'OUT');
+					cont.innerHTML = `
+						<div class="glass-card" style="padding:10px; border-color:${inL ? 'var(--primary)' : 'rgba(255,255,255,0.05)'}">${inL ? new Date(inL.time).toLocaleTimeString('vi-VN') : 'IN: --:--'}</div>
+						<div class="glass-card" style="padding:10px; border-color:${outL ? 'var(--primary)' : 'rgba(255,255,255,0.05)'}">${outL ? new Date(outL.time).toLocaleTimeString('vi-VN') : 'OUT: --:--'}</div>`;
+					if (inL && !outL) { btn.classList.add('out'); btn.querySelector('span').innerText = 'CHECK OUT'; txt.innerText = 'Nhấn Check-out.'; }
+					else if (inL && outL) { btn.style.opacity = '0.5'; btn.style.pointerEvents = 'none'; btn.querySelector('span').innerText = 'HOÀN THÀNH'; txt.innerText = 'Đã xong hôm nay.'; }
+					else { btn.classList.remove('out'); btn.querySelector('span').innerText = 'CHECK IN'; txt.innerText = 'Nhấn Check-in.'; }
+				}
+			} catch (e) { }
+		}
+
+		async function handleCheckin() {
+			if (!hrConfig?.offices?.length) { showToast("Chưa có tọa độ văn phòng!", "error"); return; }
+			if (!userPosMarker) { showToast("Bật GPS để chấm công!", "error"); return; }
+			if (mapCheckin.distance(userPosMarker.getLatLng(), [hrConfig.offices[0].lat, hrConfig.offices[0].lng]) > 100) { showToast("Vui lòng lại gần văn phòng!", "error"); return; }
+			const b = document.querySelector('.checkin-btn'), old = b.innerHTML || 'CHECK IN';
+
+			// Prevent double clicks
+			if (b.disabled) return;
+			b.disabled = true; b.innerHTML = 'OTP...';
+
+			try {
+				const r = await fetch(HR_URL, { method: 'POST', body: SecurityProvider.prepareRequest('sendCheckinOTP', { userEmail: currentUser.email }) });
+				const j = await r.json();
+				if (j.success) {
+					const { value: otp } = await Swal.fire({ title: 'Xác thực', text: 'Nhập mã OTP từ email:', input: 'text', showCancelButton: true });
+					if (otp) {
+						// Fetch IP address
+						let userIp = 'N/A';
+						try {
+							const ipRes = await fetch('https://api.ipify.org?format=json');
+							const ipJson = await ipRes.json();
+							userIp = ipJson.ip;
+						} catch (e) { console.error("IP Fetch Error", e); }
+
+						// Show loading again
+						b.innerHTML = 'Gửi...';
+						const v = await fetch(HR_URL, { method: 'POST', body: SecurityProvider.prepareRequest('verifyAndCheckin', { otp, userEmail: currentUser.email, adminEmail: currentUser.adminEmail, fullName: currentUser.fullName || currentUser.email, location: `Lat: ${userPosMarker.getLatLng().lat.toFixed(6)}, Lng: ${userPosMarker.getLatLng().lng.toFixed(6)}`, officeName: hrConfig.offices[0].name, ip: userIp }) });
+						const vj = await v.json();
+						if (vj.success) { Swal.fire('Xong!', vj.message, 'success'); loadTodayLog(); } else Swal.fire('Lỗi', vj.message, 'error');
+					}
+				} else {
+					showToast(j.message, "error");
+				}
+			} catch (e) {
+				showToast("Lỗi kết nối", "error");
+			}
+			b.disabled = false; b.innerHTML = '<i class="fas fa-fingerprint"></i><span>CHECK IN</span>';
+			// Check logic to restore original button state / text if needed, but loadTodayLog will handle it on success
+		}
+
+		function initSetupMap() {
+			if (mapSetup) { mapSetup.invalidateSize(); return; }
+			mapSetup = L.map('map-setup').setView([10.8231, 106.6297], 13);
+			L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(mapSetup);
+			mapSetup.on('click', e => {
+				document.getElementById('conf_lat').value = e.latlng.lat;
+				document.getElementById('conf_lng').value = e.latlng.lng;
+				if (markerSetup) markerSetup.setLatLng(e.latlng);
+				else markerSetup = L.marker(e.latlng).addTo(mapSetup);
+			});
+			if (hrConfig?.offices?.[0]) {
+				const o = hrConfig.offices[0];
+				mapSetup.setView([o.lat, o.lng], 16);
+				markerSetup = L.marker([o.lat, o.lng]).addTo(mapSetup);
+				document.getElementById('conf_lat').value = o.lat;
+				document.getElementById('conf_lng').value = o.lng;
+				document.getElementById('conf_office_name').value = o.name;
+				document.getElementById('conf_start').value = hrConfig.workHours.start;
+				document.getElementById('conf_end').value = hrConfig.workHours.end;
+				if (hrConfig.workDays) {
+					for (let i = 0; i <= 6; i++) {
+						const sel = document.querySelector(`select[name="wd-${i}"]`);
+						if (sel) sel.value = hrConfig.workDays[i] || 0;
+					}
+				}
+			}
+		}
+
+		function initCheckinMap() {
+			if (mapCheckin) { mapCheckin.invalidateSize(); return; }
+			mapCheckin = L.map('map-checkin').setView([10.8231, 106.6297], 15);
+			L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(mapCheckin);
+			if (hrConfig?.offices?.[0]) {
+				const o = hrConfig.offices[0];
+				L.circle([o.lat, o.lng], { radius: 100, color: 'var(--primary)', weight: 2 }).addTo(mapCheckin);
+				mapCheckin.setView([o.lat, o.lng], 16);
+			}
+			navigator.geolocation.watchPosition(p => {
+				const ll = [p.coords.latitude, p.coords.longitude];
+				if (userPosMarker) userPosMarker.setLatLng(ll);
+				else userPosMarker = L.marker(ll).addTo(mapCheckin);
+				if (hrConfig?.offices?.[0]) {
+					const d = mapCheckin.distance(ll, [hrConfig.offices[0].lat, hrConfig.offices[0].lng]), ok = d <= 100;
+					const h = `<span style="color:${ok ? 'var(--primary)' : 'var(--danger)'}"><i class="fas fa-${ok ? 'check' : 'times'}-circle"></i> ${ok ? 'Hợp lệ' : 'Quá xa'} (${Math.round(d)}m)</span>`;
+					const msgEl = document.getElementById('checkinMsg'); if (msgEl) msgEl.innerHTML = h;
+					const txtEl = document.getElementById('checkinStatusText'); if (txtEl) txtEl.innerHTML = h;
+				}
+			}, e => { }, { enableHighAccuracy: true });
+		}
+
+		async function getCurrentSetupLocation() { navigator.geolocation.getCurrentPosition(p => { const la = p.coords.latitude, ln = p.coords.longitude; document.getElementById('conf_lat').value = la; document.getElementById('conf_lng').value = ln; mapSetup.setView([la, ln], 17); if (markerSetup) markerSetup.setLatLng([la, ln]); else markerSetup = L.marker([la, ln]).addTo(mapSetup); showToast("Đã lấy tọa độ!", "success"); }, e => { }, { enableHighAccuracy: true }); }
+
+		async function loadHRConfig() {
+			try {
+				const r = await fetch(HR_URL, { method: 'POST', body: SecurityProvider.prepareRequest('getHRConfig', { adminEmail: currentUser.adminEmail }) });
+				const j = await r.json();
+				if (j.success) {
+					hrConfig = j.data;
+					renderOfficeInfo();
+				}
+			} catch (e) { }
+		}
+
+		async function saveConfig() {
+			const b = document.getElementById('btnSaveConfig');
+			const workDays = {};
+			for (let i = 0; i <= 6; i++) {
+				const val = document.querySelector(`select[name="wd-${i}"]`)?.value || 0;
+				workDays[i] = parseFloat(val);
+			}
+
+			const p = {
+				action: 'saveHRConfig',
+				userEmail: currentUser.email,
+				adminEmail: currentUser.adminEmail,
+				config: {
+					offices: [{
+						name: document.getElementById('conf_office_name').value,
+						lat: parseFloat(document.getElementById('conf_lat').value),
+						lng: parseFloat(document.getElementById('conf_lng').value)
+					}],
+					workDays: workDays,
+					workHours: {
+						start: document.getElementById('conf_start').value,
+						end: document.getElementById('conf_end').value
+					}
+				}
+			};
+
+			b.disabled = true;
+			const oldHtml = b.innerHTML;
+			b.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ĐANG LƯU...';
+
+			try {
+				const res = await fetch(HR_URL, { method: 'POST', body: SecurityProvider.prepareRequest('saveHRConfig', p) });
+				const json = await res.json();
+				if (json.success) {
+					showToast("Đã lưu cấu hình!", "success");
+					hrConfig = p.config;
+					renderOfficeInfo();
+				} else {
+					showToast(json.message || "Lỗi lưu", "error");
+				}
+			} catch (e) {
+				showToast("Lỗi kết nối", "error");
+			} finally {
+				b.disabled = false;
+				b.innerHTML = oldHtml;
+			}
+		}
+		function initCalendar() {
+			const el = document.getElementById('calendar');
+			if (calendar) calendar.destroy();
+			calendar = new FullCalendar.Calendar(el, {
+				initialView: 'dayGridMonth',
+				locale: 'vi',
+				headerToolbar: {
+					left: 'prev,next today',
+					center: 'title',
+					right: 'dayGridMonth,timeGridWeek,timeGridDay'
+				},
+				events: async (info, sc, fl) => {
+					try {
+						const res = await fetch(HR_URL, {
+							method: 'POST',
+							body: SecurityProvider.prepareRequest('get_hr_initial_data', {
+								adminEmail: currentUser.adminEmail || currentUser.email
+							})
+						});
+						const j = await res.json();
+						if (j.success) {
+							sc(j.data.map(e => ({
+								id: e.id,
+								title: e.title,
+								start: e.startTime,
+								end: e.endTime,
+								backgroundColor: e.type === 'company' ? '#10b981' : (e.type === 'market' ? '#f59e0b' : '#3b82f6'),
+								extendedProps: {
+									description: e.description,
+									location: e.location,
+									type: e.type,
+									participants: e.participants || []
+								}
+							})));
+							updateUpcomingList(j.data);
+						}
+					} catch (e) { fl(e); }
+				},
+				eventClick: function (info) {
+					const p = info.event.extendedProps;
+					const typeNames = { company: 'Toàn công ty', market: 'Đi thị trường', personal: 'Cá nhân' };
+					const start = info.event.start.toLocaleString('vi-VN');
+					const end = info.event.end ? info.event.end.toLocaleString('vi-VN') : 'N/A';
+
+					Swal.fire({
+						title: `<span style="color:var(--primary)">${info.event.title}</span>`,
+						html: `
+							<div style="text-align: left; font-size: 0.9rem; color: #cbd5e1;">
+								<p style="margin-bottom: 8px;"><strong><i class="fas fa-tag"></i> Loại:</strong> ${typeNames[p.type] || p.type}</p>
+								<p style="margin-bottom: 8px;"><strong><i class="fas fa-clock"></i> Thời gian:</strong> ${start} - ${end}</p>
+								<p style="margin-bottom: 8px;"><strong><i class="fas fa-map-marker-alt"></i> Địa điểm:</strong> ${p.location || 'N/A'}</p>
+								<p style="margin-bottom: 12px;"><strong><i class="fas fa-align-left"></i> Mô tả:</strong><br>${p.description || 'Không có mô tả'}</p>
+								${p.participants.length ? `<p><strong><i class="fas fa-users"></i> Tham gia:</strong> ${p.participants.join(', ')}</p>` : ''}
+							</div>
+						`,
+						background: 'var(--bg-dark)',
+						color: '#fff',
+						confirmButtonColor: 'var(--primary)',
+						confirmButtonText: 'Đóng',
+						showCloseButton: true,
+						customClass: {
+							popup: 'glass-card',
+							title: 'fc-toolbar-title'
+						}
+					});
+				}
+			});
+		}
+		function loadUpcomingEvents() { fetch(HR_API, { method: 'POST', body: JSON.stringify({ action: 'getEvents', adminEmail: currentUser.adminEmail, userEmail: currentUser.email }) }).then(r => r.json()).then(j => { if (j.success) updateUpcomingList(j.data); }); }
+		function updateUpcomingList(evs) {
+			const c = document.getElementById('upcomingEvents'), now = new Date(); const up = evs.filter(e => new Date(e.startTime) >= now).sort((a, b) => new Date(a.startTime) - new Date(b.startTime)).slice(0, 3); c.innerHTML = up.length ? up.map(e => `
+			<div class="event-item">
+				<div style="font-weight: 700; font-size: 0.95rem;">${e.title}</div>
+				<div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+					<i class="far fa-clock"></i> ${new Date(e.startTime).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })} ${new Date(e.startTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+				</div>
+			</div>`).join('') : 'Không có sự kiện nào sắp tới.';
+		}
+		document.getElementById('eventForm').onsubmit = async function (e) {
+			e.preventDefault();
+			const btn = e.submitter || document.querySelector('#eventForm button[type="submit"]');
+			const originalHtml = btn.innerHTML;
+			btn.disabled = true;
+			btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ĐANG LƯU...';
+
+			const participants = Array.from(document.querySelectorAll('input[name="event_p"]:checked')).map(i => i.value);
+			const p = {
+				action: 'saveEvent',
+				adminEmail: currentUser.adminEmail,
+				userEmail: currentUser.email,
+				event: {
+					title: document.getElementById('ev_title').value,
+					type: document.getElementById('ev_type').value,
+					startTime: document.getElementById('ev_start').value,
+					endTime: document.getElementById('ev_end').value,
+					location: document.getElementById('ev_location').value,
+					description: document.getElementById('ev_desc').value,
+					notifyEmails: document.getElementById('ev_notify').value,
+					participants: participants,
+					creator: currentUser.email
+				}
+			};
+			try {
+				const res = await (await fetch(HR_API, { method: 'POST', body: JSON.stringify(p) })).json();
+				if (res.success) {
+					showToast("Xong!", "success");
+					calendar.refetchEvents();
+					document.getElementById('eventForm').reset();
+				} else {
+					showToast(res.message || "Lỗi lưu sự kiện", "error");
+				}
+			} catch (e) {
+				showToast("Lỗi kết nối", "error");
+			} finally {
+				btn.disabled = false;
+				btn.innerHTML = originalHtml;
+			}
+		};
+
+		async function loadOrgUsers() {
+			const container = document.getElementById('eventStaffList');
+			try {
+				const r = await fetch(HR_API, { method: 'POST', body: JSON.stringify({ action: 'getOrgUsers', adminEmail: currentUser.adminEmail }) });
+				const j = await r.json();
+				if (j.success) {
+					if (!j.data || j.data.length === 0) {
+						container.innerHTML = '<p style="font-size: 0.8rem; color: var(--text-muted);">Không tìm thấy nhân viên nào.</p>';
+						return;
+					}
+					container.innerHTML = j.data.map(u => `
+						<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
+							<input type="checkbox" name="event_p" value="${u.email}" id="p_${u.email}" onchange="updateNotifyEmails()">
+							<label for="p_${u.email}" style="margin:0; font-size: 0.85rem; color: #fff;">${u.name} (${u.email})</label>
+						</div>
+					`).join('');
+				} else {
+					container.innerHTML = `<p style="font-size: 0.8rem; color: var(--danger);">${j.message || 'Lỗi tải.'}</p>`;
+				}
+			} catch (e) { container.innerHTML = 'Lỗi kết nối.'; }
+		}
+
+		function updateNotifyEmails() {
+			const checked = Array.from(document.querySelectorAll('input[name="event_p"]:checked')).map(i => i.value);
+			const otherInput = document.getElementById('ev_notify');
+			// Pre-existing manual emails (not from checkboxes)
+			let currentManual = otherInput.value.split(',').map(e => e.trim()).filter(e => e && !checked.includes(e) && e.includes('@'));
+
+			// Combine
+			otherInput.value = [...new Set([...checked, ...currentManual])].join(', ');
+		}
+
+		async function loadPersonalAttendance() {
+			const tb = document.querySelector('#personalAttendanceTable tbody');
+			tb.innerHTML = '<tr><td colspan="3">Đang tải...</td></tr>';
+			try {
+				const j = await (await fetch(HR_STAFF_API, { method: 'POST', body: JSON.stringify({ action: 'getTodayLog', userEmail: currentUser.email }) })).json();
+				if (j.success) {
+					tb.innerHTML = j.data.reverse().map(l => `<tr><td>${new Date(l.time).toLocaleString()}</td><td>${l.type}</td><td>${l.officeName || 'VP'}</td></tr>`).join('');
+				}
+			} catch (e) { }
+		}
+		async function saveWeeklyPlan() {
+			const b = event.currentTarget, wk = document.getElementById('plan_week').value, ct = document.getElementById('plan_content').value;
+			if (!wk || !ct) { showToast("Vui lòng điền đủ thông tin!", "error"); return; }
+			const old = b.innerHTML;
+			b.disabled = true;
+			b.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ĐANG GỬI...';
+			try {
+				const p = {
+					action: 'saveStaffPlan',
+					userEmail: currentUser.email,
+					adminEmail: currentUser.adminEmail,
+					fullName: currentUser.fullName,
+					plan: { week: wk, content: ct }
+				};
+				if ((await (await fetch(HR_STAFF_API, { method: 'POST', body: JSON.stringify(p) })).json()).success) {
+					showToast("Gửi xong!", "success");
+					loadStaffPlans();
+					document.getElementById('plan_content').value = '';
+				}
+			} catch (e) { showToast("Lỗi kết nối", "error"); } finally {
+				b.disabled = false;
+				b.innerHTML = old;
+			}
+		}
+		async function loadStaffPlans() {
+			const tb = document.querySelector('#tablePlanHistory tbody');
+			const filterWeek = document.getElementById('filter_plan_week').value;
+			tb.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">Đang tải...</td></tr>';
+			try {
+				const j = await (await fetch(HR_STAFF_API, { method: 'POST', body: JSON.stringify({ action: 'getStaffPlans', userEmail: currentUser.email }) })).json();
+				if (j.success && j.data.length) {
+					let list = j.data.reverse();
+					if (filterWeek !== 'all') {
+						list = list.filter(p => p.week === filterWeek);
+					}
+
+					if (list.length === 0) {
+						tb.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">Không có báo cáo nào cho tuần này.</td></tr>';
+						return;
+					}
+
+					tb.innerHTML = list.map(p => `
+						<tr>
+							<td>${p.week}</td>
+							<td>${p.updatedAt ? new Date(p.updatedAt).toLocaleDateString('vi-VN') : 'N/A'}</td>
+							<td><span class="badge ${p.status === 'Đã duyệt' ? 'in' : 'out'}">${p.status}</span></td>
+							<td><button class="btn-primary" style="padding:4px 8px; font-size:0.75rem;" onclick="Swal.fire({title:'Chi tiết kế hoạch', text:\`${p.content}\`, icon:'info'})">XEM</button></td>
+						</tr>`).join('');
+				} else {
+					tb.innerHTML = '<tr><td colspan="4">Chưa có báo cáo nào.</td></tr>';
+				}
+			} catch (e) { tb.innerHTML = '<tr><td colspan="4">Lỗi tải dữ liệu.</td></tr>'; }
+		}
+		async function submitLeave() {
+			const b = event.currentTarget, p = { action: 'submitLeaveRequest', userEmail: currentUser.email, adminEmail: currentUser.adminEmail, fullName: currentUser.fullName, request: { type: document.getElementById('leave_type').value, startDate: document.getElementById('leave_start').value, endDate: document.getElementById('leave_end').value, reason: document.getElementById('leave_reason').value } };
+			const old = b.innerHTML;
+			b.disabled = true;
+			b.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ĐANG GỬI...';
+			try {
+				if ((await (await fetch(HR_STAFF_API, { method: 'POST', body: JSON.stringify(p) })).json()).success) {
+					showToast("Gửi xong!", "success");
+					loadStaffLeaves();
+					document.getElementById('leave_reason').value = '';
+				}
+			} catch (e) { } finally {
+				b.disabled = false;
+				b.innerHTML = old;
+			}
+		}
+		async function loadAllStaffPlans() {
+			document.getElementById('staffPlanView').style.display = 'none';
+			document.getElementById('adminPlanView').style.display = 'block';
+			const tb = document.querySelector('#tableAdminPlans tbody');
+			const filterWeek = document.getElementById('filter_admin_plan_week').value;
+			tb.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">Đang tải...</td></tr>';
+			try {
+				const j = await (await fetch(HR_API, { method: 'POST', body: JSON.stringify({ action: 'getAdminWorkPlans', adminEmail: currentUser.adminEmail }) })).json();
+				if (j.success && j.data.length) {
+					let list = j.data.reverse();
+					if (filterWeek !== 'all') {
+						list = list.filter(p => p.week === filterWeek);
+					}
+
+					if (list.length === 0) {
+						tb.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">Không có dữ liệu cho tuần này.</td></tr>';
+						return;
+					}
+
+					tb.innerHTML = list.map(p => {
+						const name = p.fullName || p.userEmailPlain || 'Cố vấn';
+						const summary = p.content.length > 40 ? p.content.substring(0, 40) + '...' : p.content;
+						return `
+							<tr>
+								<td><b>${name}</b></td>
+								<td>${p.week}</td>
+								<td><span style="cursor:pointer; color:var(--primary); text-decoration:underline;" onclick="Swal.fire({title:'Kế hoạch của ${name}', text:\`${p.content}\`, icon:'info'})">${summary}</span></td>
+								<td style="display:flex; gap:5px;">
+									<button class="btn-primary" style="padding:4px 8px; font-size:0.75rem;" onclick="updatePlanStatus('${p.id}','Đã duyệt')">DUYỆT</button>
+									<button class="btn-primary" style="padding:4px 8px; font-size:0.75rem; background:var(--danger);" onclick="updatePlanStatus('${p.id}','Yêu cầu sửa')">SỬA</button>
+								</td>
+							</tr>`;
+					}).join('');
+				} else {
+					tb.innerHTML = '<tr><td colspan="4">Không có dữ liệu nhân viên.</td></tr>';
+				}
+			} catch (e) { tb.innerHTML = '<tr><td colspan="4">Lỗi kết nối.</td></tr>'; }
+		}
+		async function updatePlanStatus(id, s) {
+			try {
+				const res = await (await fetch(HR_API, { method: 'POST', body: JSON.stringify({ action: 'updateStaffPlanStatus', id, status: s, approvedBy: currentUser.email }) })).json();
+				if (res.success) {
+					showToast(`Đã ${s.toLowerCase()} kế hoạch`, "success");
+					loadAllStaffPlans();
+				}
+			} catch (e) { showToast("Lỗi kết nối", "error"); }
+		}
+
+		function switchLeaveSubTab(t) {
+			const pB = document.getElementById('subtab-leave-personal'), sB = document.getElementById('subtab-leave-staff');
+			const pC = document.getElementById('leave-content-personal'), sC = document.getElementById('leave-content-staff');
+			if (t === 'personal') {
+				pB.classList.add('subtab-active'); sB.classList.remove('subtab-active');
+				pB.style.color = 'var(--primary)'; sB.style.color = 'var(--text-muted)';
+				pC.style.display = 'block'; sC.style.display = 'none';
+				loadStaffLeaves();
+			} else {
+				sB.classList.add('subtab-active'); pB.classList.remove('subtab-active');
+				sB.style.color = 'var(--primary)'; pB.style.color = 'var(--text-muted)';
+				sC.style.display = 'block'; pC.style.display = 'none';
+				loadAdminLeave();
+			}
+		}
+
+		function refreshLeaveList() {
+			const active = document.getElementById('subtab-leave-personal').classList.contains('subtab-active') ? 'personal' : 'staff';
+			if (active === 'personal') loadStaffLeaves();
+			else loadAdminLeave();
+		}
+
+		async function loadStaffLeaves() {
+			const tb = document.querySelector('#tableLeaveHistory tbody');
+			tb.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px;">Đang tải...</td></tr>';
+			const sF = document.getElementById('leave_filter_start').value, eF = document.getElementById('leave_filter_end').value;
+			try {
+				const j = await (await fetch(HR_STAFF_API, { method: 'POST', body: JSON.stringify({ action: 'getStaffLeaves', userEmail: currentUser.email }) })).json();
+				if (j.success && j.data.length) {
+					let list = j.data.reverse();
+					if (sF) list = list.filter(l => l.startDate >= sF);
+					if (eF) list = list.filter(l => l.endDate <= eF);
+					if (list.length === 0) { tb.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px;">Không có yêu cầu phù hợp.</td></tr>'; return; }
+					tb.innerHTML = list.map(l => `
+						<tr>
+							<td><b>${l.type}</b></td>
+							<td><small>${l.startDate} → ${l.endDate}</small></td>
+							<td><span class="badge ${l.status === 'Đã duyệt' ? 'in' : 'out'}">${l.status}</span></td>
+						</tr>`).join('');
+				} else {
+					tb.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px;">Bạn chưa có yêu cầu nào.</td></tr>';
+				}
+			} catch (e) { tb.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px;">Lỗi tải dữ liệu.</td></tr>'; }
+		}
+
+		async function loadAdminLeave() {
+			const viewS = document.getElementById('leave-content-staff');
+			if (!viewS) return;
+			const tb = document.querySelector('#tableAdminLeave tbody');
+			tb.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Đang tải...</td></tr>';
+			const sF = document.getElementById('leave_filter_start').value, eF = document.getElementById('leave_filter_end').value;
+			try {
+				const r = await fetch(HR_API, { method: 'POST', body: JSON.stringify({ action: 'getAdminLeaveRequests', adminEmail: currentUser.adminEmail }) });
+				const j = await r.json();
+				if (j.success && j.data && j.data.length) {
+					let list = j.data.filter(l => l.status === 'Chờ duyệt');
+					if (sF) list = list.filter(l => l.startDate >= sF);
+					if (eF) list = list.filter(l => l.endDate <= eF);
+					if (list.length === 0) { tb.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Không có yêu cầu phù hợp đang chờ duyệt.</td></tr>'; return; }
+					tb.innerHTML = list.map(l => {
+						const name = l.fullName || l.userEmailPlain || 'Nhân viên';
+						const rea = l.reason || 'N/A';
+						const reasonSummary = rea.length > 20 ? rea.substring(0, 20) + '...' : rea;
+						return `
+							<tr>
+								<td><b>${name}</b></td>
+								<td>${l.type || 'Nghỉ'}</td>
+								<td><small>${l.startDate} → ${l.endDate}</small></td>
+								<td><span style="cursor:pointer; color:var(--primary); text-decoration:underline;" onclick="Swal.fire({title:'Lý do nghỉ', text:\`${rea}\`, icon:'info'})">${reasonSummary}</span></td>
+								<td style="display:flex; gap:5px;">
+									<button class="btn-primary" style="padding:4px 8px; font-size:0.75rem;" onclick="updateLeave('${l.id}','Đã duyệt')">DUYỆT</button>
+									<button class="btn-primary" style="padding:4px 8px; font-size:0.75rem; background:var(--danger);" onclick="updateLeave('${l.id}','Không duyệt')">TỪ CHỐI</button>
+								</td>
+							</tr>`;
+					}).join('');
+				} else {
+					tb.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Chưa có dữ liệu yêu cầu nghỉ phép.</td></tr>';
+				}
+			} catch (e) { tb.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Lỗi tải dữ liệu.</td></tr>'; }
+		}
+		async function updateLeave(id, s) {
+			try {
+				const res = await (await fetch(HR_API, { method: 'POST', body: JSON.stringify({ action: 'updateLeaveRequest', id, status: s, approvedBy: currentUser.email }) })).json();
+				if (res.success) {
+					showToast(`Đã ${s.toLowerCase()} yêu cầu`, "success");
+					loadAdminLeave();
+				}
+			} catch (e) { showToast("Lỗi xử lý", "error"); }
+		}
+		async function loadAttendanceReport() {
+			const m = document.getElementById('reportMonth').value, tb = document.querySelector('#attendanceTable tbody');
+			tb.innerHTML = '<tr><td colspan="4">Đang tải...</td></tr>';
+			try {
+				const j = await (await fetch(HR_API, { method: 'POST', body: JSON.stringify({ action: 'getAttendanceReport', month: m }) })).json();
+				if (j.success) {
+					tb.innerHTML = j.logs.reverse().map(l => `
+						<tr>
+							<td>${l.name || l.fullName || 'N/A'}</td>
+							<td>${new Date(l.time).toLocaleString('vi-VN')}</td>
+							<td><span class="badge ${l.type.toLowerCase()}">${l.type}</span></td>
+							<td>${l.officeName || 'Văn phòng'}</td>
+						</tr>`).join('');
+				} else {
+					tb.innerHTML = '<tr><td colspan="4">Không có dữ liệu.</td></tr>';
+				}
+			} catch (e) { tb.innerHTML = '<tr><td colspan="4">Lỗi tải dữ liệu.</td></tr>'; }
+		}
+		function populateWeekSelect() {
+			const s = document.getElementById('plan_week');
+			const fs = document.getElementById('filter_plan_week');
+			const fas = document.getElementById('filter_admin_plan_week');
+			if (!s) return;
+			s.innerHTML = '';
+			const now = new Date();
+			// Populate from 2 weeks ago to 4 weeks ahead to cover more data
+			for (let i = -2; i < 5; i++) {
+				const st = new Date(now.getTime() + i * 7 * 24 * 60 * 60 * 1000);
+				st.setDate(st.getDate() - st.getDay() + (st.getDay() === 0 ? -6 : 1));
+				const lb = `Tuần: ${st.toLocaleDateString('vi-VN')} - ${new Date(st.getTime() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString('vi-VN')}`;
+				s.add(new Option(lb, lb));
+				if (fs) fs.add(new Option(lb, lb));
+				if (fas) fas.add(new Option(lb, lb));
+			}
+			if (s.options.length > 2) s.selectedIndex = 2; // Default to current week
+		}
+		function showToast(m, t = "success") { const ts = document.getElementById('toast'); if (!ts) return; const el = document.createElement('div'), cl = t === 'success' ? 'var(--primary)' : 'var(--danger)'; el.style = `background:var(--card-bg); border:1px solid ${cl}; padding:15px; border-radius:12px; margin-bottom:10px; display:flex; align-items:center; gap:10px; animation:slIn 0.3s forwards; z-index:9999;`; el.innerHTML = `<i class="fas fa-${t === 'success' ? 'check' : 'exclamation'}-circle" style="color:${cl};"></i><span>${m}</span>`; ts.appendChild(el); setTimeout(() => el.remove(), 3500); }
+		document.head.appendChild(document.createElement('style')).textContent = `@keyframes slIn { from { transform: translateX(100%); opacity:0; } to { transform: translateX(0); opacity:1; } }`;
+	</script>
+</body>
+
+</html>

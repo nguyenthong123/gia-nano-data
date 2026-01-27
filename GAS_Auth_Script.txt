@@ -1,0 +1,812 @@
+const SPREADSHEET_ID = '1rhP1UCiMLi8yNVvcd56SsZIJAm09Yxu6WpjxuHKYKb0';
+const MASTER_SPREADSHEET_ID = '1SiB4k-T7HoT9cNv-Q8KPIS3AnA6C_8HAX0hFyR3ZWOc';
+const API_SECRET = 'dv_api_secret_2025_prod_v2';
+const MASTER_SHEET_NAME = 'menu';
+
+function doPost(e) {
+  let result;
+  try {
+    const contents = e.postData ? e.postData.contents : "";
+    if (!contents) return ContentService.createTextOutput(JSON.stringify({ success: false, message: 'Data empty' })).setMimeType(ContentService.MimeType.JSON);
+    const data = JSON.parse(contents);
+    
+    // --- API SECURITY CHECK ---
+    if (data.apiKey !== API_SECRET) {
+      return ContentService.createTextOutput(JSON.stringify({ 
+        success: false, 
+        message: 'Unauthorized Auth Access' 
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const action = data.action;
+
+    // --- SERVER-SIDE RATE LIMITING ---
+    const identifier = data.email || 'anonymous';
+    const limitResult = checkRateLimit(action, identifier);
+    if (!limitResult.success) {
+      return ContentService.createTextOutput(JSON.stringify(limitResult)).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    switch (action) {
+      case 'sendOTP': result = handleSendOTP(data); break;
+      case 'verifyOTP': result = handleVerifyOTP(data); break;
+      case 'register': result = handleRegister(data); break;
+      case 'login': result = handleLogin(data); break;
+      case 'getUsers': result = getUsers(data); break;
+      case 'createUser': result = handleCreateUser(data); break;
+      case 'updateRole': result = handleUpdateRole(data); break;
+      case 'updateOwner': result = handleUpdateOwner(data); break;
+      case 'deleteUser': result = handleDeleteUser(data); break;
+      case 'resetPassword': result = handleResetPassword(data); break;
+      case 'get_phan_quyen': result = getPhanQuyen(data.adminEmail); break;
+      case 'save_phan_quyen': result = savePhanQuyen(data); break;
+      case 'getRoles': result = getRoles(); break;
+      case 'getUserConfig': result = { success: true, features: getUserPackage(data.email).features }; break;
+      case 'get_permissions': result = { success: true, permissions: getPermissions(data.email) }; break;
+      case 'setup': result = initSystem(); break;
+      default: 
+        result = { success: false, message: 'Hành động không hợp lệ' };
+    }
+  } catch (error) {
+    result = { success: false, message: 'Lỗi hệ thống: ' + error.toString() };
+  }
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+}
+
+// --- SECURITY UTILS ---
+function checkRateLimit(action, identifier) {
+  const cache = CacheService.getScriptCache();
+  const key = 'rl_' + action + '_' + identifier.replace(/[^a-zA-Z0-9]/g, '');
+  
+  // Rule: Max 1 request every 2 seconds for any specific action/user
+  const lastRequest = cache.get(key);
+  if (lastRequest) {
+    return { success: false, message: 'Yêu cầu quá nhanh. Vui lòng thử lại sau vài giây.' };
+  }
+  
+  // Set cache for 2 seconds
+  cache.put(key, '1', 2);
+  
+  // Custom rule for OTP: Max 3 OTPs per email per 10 minutes
+  if (action === 'sendOTP') {
+    const otpKey = 'otp_count_' + identifier.replace(/[^a-zA-Z0-9]/g, '');
+    let count = parseInt(cache.get(otpKey) || '0');
+    if (count >= 5) {
+      return { success: false, message: 'Bạn đã yêu cầu OTP quá nhiều lần. Vui lòng thử lại sau 10 phút.' };
+    }
+    cache.put(otpKey, (count + 1).toString(), 600); // 10 minutes
+  }
+
+  return { success: true };
+}
+
+// --- CONFIG & UTILS ---
+function getSheet(name) { return SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(name); }
+function hashPassword(p) { return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, p).map(b => ('0' + (b & 0xFF).toString(16)).slice(-2)).join(''); }
+
+const XOR_SECRET = 'dunvex_secure_key_2025_custom';
+
+function encryptData(text) {
+  if (!text) return "";
+  const inputBytes = Utilities.newBlob(text.toString()).getBytes();
+  const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+  const outputBytes = [];
+  for (let i = 0; i < inputBytes.length; i++) {
+    outputBytes.push(inputBytes[i] ^ keyBytes[i % keyBytes.length]);
+  }
+  return Utilities.base64Encode(outputBytes);
+}
+
+function decryptData(text) {
+  if (!text || text === 'n/a') return "";
+  const cleanText = text.toString().trim();
+  try {
+    const bytes = Utilities.base64Decode(cleanText);
+    const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+    let result = "";
+    for (let i = 0; i < bytes.length; i++) {
+        result += String.fromCharCode(bytes[i] ^ keyBytes[i % keyBytes.length]);
+    }
+    return result;
+  } catch (e) { return text; }
+}
+
+// --- CORE FUNCTIONS ---
+function findUserInSheet(sName, email, hashedPass, isUseSheet = false) {
+  const sheet = getSheet(sName);
+  if (!sheet || sheet.getLastRow() <= 1) return null;
+  const rows = sheet.getDataRange().getValues();
+  const searchEmail = email.toLowerCase().trim();
+
+    for (let i = 1; i < rows.length; i++) {
+        const rowEmail = decryptData(rows[i][1]).toLowerCase();
+        const rowPass = (rows[i][2] || "").toString().trim();
+        if (rowEmail === searchEmail && (hashedPass === null || rowPass === hashedPass)) {
+            const userData = {
+                id: rows[i][0],
+                email: rowEmail,
+                fullName: rows[i][3],
+                roleId: rows[i][4],
+                status: isUseSheet ? rows[i][6] : rows[i][5]
+            };
+            if (isUseSheet) {
+                userData.owner = decryptData(rows[i][5]);
+            } else {
+                userData.owner = rowEmail; // Admin owns themselves/their org
+            }
+            return userData;
+        }
+    }
+  return null;
+}
+
+function handleLogin(d) {
+  const email = (d.email || "").toLowerCase().trim();
+  const hashedPass = hashPassword(d.password || "");
+  const user = findUserInSheet('admin', email, hashedPass) || findUserInSheet('use', email, hashedPass, true);
+  
+  if (!user) {
+    logAction('Đăng nhập', email, 'Thất bại', 'Guest');
+    return { success: false, message: 'Sai thông tin đăng nhập' };
+  }
+
+  // KIỂM TRA TRẠNG THÁI TÀI KHOẢN (Master Lock)
+  if (user.status === 'Tạm khóa') {
+    logAction('Đăng nhập', email, 'Bị chặn (Tạm khóa)', email);
+    return { 
+      success: false, 
+      message: 'Tài khoản của bạn hiện đang bị [Tạm khóa]. Vui lòng liên hệ Email: dunvex.green@gmail.com để xử lý.' 
+    };
+  }
+
+  // adminEmail luôn là email của chủ tài khoản (Boss) quản lý tổ chức này
+  const adminEmail = (user.owner || email).toLowerCase().trim();
+  
+  // Xác định gói cước & hạn chế (Dựa trên Admin sở hữu)
+  const pkgInfo = getUserPackage(adminEmail);
+  user.package = pkgInfo.package;
+  user.expiry = pkgInfo.expiry;
+  user.salesRestrict = pkgInfo.salesRestrict; 
+  user.features = pkgInfo.features; 
+  user.adminEmail = adminEmail; 
+
+  // TỰ ĐỘNG TÌM TẤT CẢ ADMIN TRONG CÔNG TY (Org Admins)
+  const allUseSheet = getSheet('use');
+  const allUseData = allUseSheet.getDataRange().getValues();
+  const orgAdmins = [adminEmail]; // Bắt đầu bằng Admin gốc
+  
+  for (let i = 1; i < allUseData.length; i++) {
+    const uRole = allUseData[i][4];
+    const uOwner = (decryptData(allUseData[i][5]) || "").toLowerCase().trim();
+    const uEmail = (decryptData(allUseData[i][1]) || "").toLowerCase().trim();
+    
+    // Nếu cùng chủ (Owner) và là Admin (R001) thì thêm vào danh sách quản lý chung
+    if (uOwner === adminEmail && uRole === 'R001' && uEmail !== adminEmail) {
+      orgAdmins.push(uEmail);
+    }
+  }
+  user.orgAdmins = [...new Set(orgAdmins)].join(', '); 
+
+  logAction('Đăng nhập', email, 'Thành công', email);
+  return { success: true, user: user, permissions: getPermissions(user.email) };
+}
+
+// Helper to trace back to the ultimate root owner (SYSTEM ROOT)
+function getSystemRootOwner(email) {
+  if (!email) return "";
+  let currentEmail = email.toLowerCase().trim();
+  let depth = 0;
+  
+  // Try to find if this email is "owned" by someone else in 'use' sheet
+  // This logic mimics the client-side/utility recursion but simplified for Auth context
+  try {
+    const sheet = getSheet('use');
+    const rows = sheet.getDataRange().getValues();
+    
+    while (depth < 5) { // Max 5 levels to prevent infinite loops
+      const userRow = rows.find(r => decryptData(r[1]).toLowerCase().trim() === currentEmail);
+      if (userRow) {
+        const owner = (decryptData(userRow[5]) || "").toLowerCase().trim();
+        // If owner exists, is valid, and is NOT the user themselves -> move up
+        if (owner && owner !== 'n/a' && owner !== 'system (root)' && owner !== currentEmail) {
+          currentEmail = owner;
+          depth++;
+        } else {
+          // If owner is 'system (root)' or self or empty, we found the top of this branch
+          break;
+        }
+      } else {
+        // Not found in 'use' (might be in 'admin' sheet directly), so this IS a root
+        break;
+      }
+    }
+  } catch(e) {}
+  
+  return currentEmail;
+}
+
+function getUserPackage(email) {
+  try {
+    // IMPORTANT: Features/Package are attached to the ROOT OWNER (Main Admin)
+    // Sub-admins inherit from the Root. We must find the Root first.
+    const rootEmail = getSystemRootOwner(email);
+    
+    const ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(MASTER_SHEET_NAME);
+    if (!sheet) return { package: 'Free', expiry: '', salesRestrict: 'OFF', features: {} };
+    
+    const rows = sheet.getDataRange().getValues();
+    // Look for config using the ROOT Email
+    const config = rows.find(r => r[0].toString().toLowerCase() === rootEmail);
+    
+    return config ? { 
+      package: config[1], 
+      expiry: config[3],
+      salesRestrict: config[10] || 'OFF',
+      features: JSON.parse(config[4] || '{}')
+    } : { package: 'Free', expiry: '', salesRestrict: 'OFF', features: {} };
+  } catch (e) { return { package: 'Free', expiry: '', salesRestrict: 'OFF', features: {} }; }
+}
+
+function getLatestFeatureLogs(email) {
+  try {
+    const rootEmail = getSystemRootOwner(email);
+    const ss = SpreadsheetApp.openById(MASTER_SPREADSHEET_ID);
+    const sheet = ss.getSheetByName('activity_log');
+    if (!sheet) return {};
+    const rows = sheet.getDataRange().getValues();
+    const logs = {};
+
+    // Scan backwards
+    for (let i = rows.length - 1; i >= 1; i--) {
+      if (rows[i][1].toString().toLowerCase().trim() === rootEmail && rows[i][2] === 'UPDATE_FEATURES') {
+        const details = rows[i][3].toString();
+        const matches = details.split(' | ');
+        matches.forEach(m => {
+          const key = m.split(':')[0].trim();
+          if (!logs[key]) {
+            logs[key] = {
+              time: Utilities.formatDate(new Date(rows[i][0]), "GMT+7", "dd/MM/yyyy HH:mm"),
+              details: m
+            };
+          }
+        });
+      }
+    }
+    return logs;
+  } catch(e) { return {}; }
+}
+
+// --- OTP & REGISTRATION ---
+function handleSendOTP(data) {
+  const email = (data.email || "").toString().trim().toLowerCase();
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const expire = new Date(new Date().getTime() + 5 * 60000); // 5 mins
+  const sheet = getSheet('otps');
+  
+  // Clean old OTPs
+  if(sheet.getLastRow() > 0) {
+    const rows = sheet.getDataRange().getValues();
+    for (let i = rows.length - 1; i >= 1; i--) {
+        if (rows[i][0] && decryptData(rows[i][0]) === email) sheet.deleteRow(i + 1);
+    }
+  }
+  
+  // Save new OTP
+  const encEmail = encryptData(email);
+  sheet.appendRow([encEmail, otp, expire]);
+  
+  try {
+    MailApp.sendEmail({
+      to: email,
+      subject: "Mã xác thực Dunvex Account: " + otp,
+      htmlBody: `
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 500px; margin: 20px auto; border: 1px solid #6366f1; border-radius: 16px; padding: 40px 20px; box-sizing: border-box;">
+          <h2 style="color: #6366f1; text-align: center; font-size: 24px; margin-bottom: 20px; font-weight: 800;">Xác thực OTP</h2>
+          <p style="text-align: center; color: #475569; font-size: 15px; margin-bottom: 30px;">
+            Chào bạn, đây là mã xác thực để bạn thực hiện thay đối trên hệ thống Dunvex:
+          </p>
+          <div style="background: #f0f7ff; border: 1px solid #6366f1; padding: 25px; text-align: center; border-radius: 12px; margin: 20px 0;">
+            <span style="font-size: 48px; font-weight: 900; letter-spacing: 12px; color: #1e1b4b; display: block;">${otp}</span>
+          </div>
+          <p style="text-align: center; font-size: 12px; color: #94a3b8; margin-top: 30px;">
+            Mã có hiệu lực trong 5 phút. Vui lòng bảo mật mã này.
+          </p>
+        </div>
+      `
+    });
+    return { success: true, message: 'Đã gửi mã xác thực!' };
+  } catch (e) { return { success: false, message: e.toString() }; }
+}
+
+function handleVerifyOTP(data) {
+  const success = verifyOTP(data.email, data.otp);
+  return { success: success, message: success ? "Xác thực thành công" : "Mã OTP không đúng hoặc hết hạn" };
+}
+
+function verifyOTP(email, otp) {
+  const sheet = getSheet('otps');
+  if(sheet.getLastRow() <= 1) return false;
+  const rows = sheet.getDataRange().getValues();
+  const now = new Date().getTime();
+  const lowerEmail = email.toLowerCase();
+  
+  for (let i = 1; i < rows.length; i++) {
+    const rowEmail = decryptData(rows[i][0]);
+    if (rowEmail === lowerEmail && rows[i][1].toString() === otp.toString()) {
+      if (now < new Date(rows[i][2]).getTime()) { 
+        sheet.deleteRow(i + 1); 
+        return true; 
+      }
+    }
+  }
+  return false;
+}
+
+function handleRegister(data) {
+  const email = (data.email || "").toLowerCase().trim();
+  if (!verifyOTP(email, data.otp)) return { success: false, message: 'OTP sai hoặc hết hạn' };
+  
+  const roleId = data.roleId || 'R005';
+  const prefix = (roleId === 'R001' ? 'AD' : 'US');
+  const sheetName = (roleId === 'R001' ? 'admin' : 'use');
+  const id = generateNextId(sheetName, prefix);
+  const encEmail = encryptData(email);
+  
+  const sheet = getSheet(sheetName);
+  if (roleId === 'R001') {
+    sheet.appendRow([id, encEmail, hashPassword(data.password), data.fullName, 'R001', 'Hoạt động', new Date()]);
+  } else {
+    sheet.appendRow([id, encEmail, hashPassword(data.password), data.fullName, 'R005', encryptData('n/a'), 'Hoạt động', new Date()]);
+  }
+  return { success: true };
+}
+
+function getPermissions(userEmail) {
+  if (!userEmail) return null;
+  const targetEmail = userEmail.toLowerCase().trim();
+
+  let userRole = '';
+  let ownerEmail = '';
+  
+  const useUser = findUserInSheet('use', targetEmail, null, true);
+  if (useUser) {
+    userRole = useUser.roleId;
+    ownerEmail = useUser.owner;
+  } else {
+    const adminUser = findUserInSheet('admin', targetEmail, null);
+    if (adminUser) {
+      userRole = 'R001';
+      ownerEmail = targetEmail;
+    }
+  }
+
+  if (!userRole) return null;
+
+  const sheet = getSheet('phan_quyen');
+  if (!sheet || sheet.getLastRow() <= 1) return null;
+  const rows = sheet.getDataRange().getValues();
+  
+  let specific = null, general = null;
+  ownerEmail = ownerEmail.toLowerCase().trim();
+
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][0] == userRole) {
+      const p = { 
+        checkinSales:!!rows[i][3], quanLySanPham:!!rows[i][4], danhSachDonHang:!!rows[i][5], 
+        quanLyNhanVien:!!rows[i][6], xemBangGia:!!rows[i][7], quanLyKho:!!rows[i][8],
+        notifyStaff:!!rows[i][9], notifyAdmin:!!rows[i][10], checkinSummary:!!rows[i][11],
+        quanLyCongNo:!!rows[i][12], nhapKho:!!rows[i][13],
+        khoXuatHang:!!rows[i][14], giaoHang:!!rows[i][15], quanLyNhanSu:!!rows[i][16], 
+        priceAnalysis:!!rows[i][17], hrSetup:!!rows[i][18], traCuuSanPham:!!rows[i][19], profitAnalysis:!!rows[i][20]
+      };
+      
+      let rowAdmin = decryptData(rows[i][2]).toLowerCase().trim();
+      if (!rowAdmin || rowAdmin === 'n/a' || rowAdmin === 'empty') rowAdmin = 'all';
+      
+      if (rowAdmin === ownerEmail) specific = p;
+      if (rowAdmin === 'all') general = p;
+    }
+  }
+
+  const pkgInfo = getUserPackage(ownerEmail || targetEmail);
+  const f = pkgInfo.features || {};
+
+  const perms = specific || general || {
+    checkinSales: false, quanLySanPham: false, danhSachDonHang: false,
+    quanLyNhanVien: false, xemBangGia: false, quanLyKho: false,
+    notifyStaff: false, notifyAdmin: false, checkinSummary: false,
+    quanLyCongNo: false, nhapKho: false,
+    khoXuatHang: false, giaoHang: false, quanLyNhanSu: false, priceAnalysis: false, hrSetup: false, traCuuSanPham: true, profitAnalysis: false
+  };
+
+  // ENFORCE MASTER LOCKS
+  if (f.mailStaff === false) perms.notifyStaff = false;
+  if (f.mailAdmin === false) perms.notifyAdmin = false;
+  if (f.checkinMaster === false) perms.checkinSummary = false;
+  if (f.debtMaster === false) perms.quanLyCongNo = false;
+  if (f.productCreateMaster === false) perms.quanLySanPham = false;
+  if (f.inventoryMaster === false) perms.nhapKho = false;
+  if (f.warehouseMaster === false) perms.khoXuatHang = false;
+  if (f.deliveryMaster === false) perms.giaoHang = false;
+  if (f.hrMaster === false) perms.quanLyNhanSu = false;
+  if (f.priceAnalysisMaster === false) perms.priceAnalysis = false;
+  if (f.profitMaster === false) perms.profitAnalysis = false;
+
+  return perms;
+}
+
+function getPhanQuyen(adminEmail) {
+  const sheet = getSheet('phan_quyen');
+  if (!sheet || sheet.getLastRow() <= 1) return { success: true, data: [] };
+  const rows = sheet.getDataRange().getValues();
+  const safeAdmin = (adminEmail || "").toLowerCase().trim();
+
+  // Chỉ lấy quyền của chính Admin này hoặc quyền 'all' (chung)
+  let filteredRows = rows.slice(1).filter(r => {
+    let em = decryptData(r[2]).toLowerCase().trim();
+    if (!em || em === 'n/a' || em === 'empty') em = 'all';
+    return em === safeAdmin;
+  });
+
+  // Nếu là Admin mới hoàn toàn, chưa có dòng nào -> Tự động khởi tạo bộ quyền mặc định
+  if (filteredRows.length === 0 && safeAdmin !== 'all' && safeAdmin !== '') {
+    const defaultPerms = [
+      // Format: [id, name, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18] (p indices match phan_quyen sheet cols 4-21)
+      ['R001', 'Admin', true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true],
+      ['R002', 'Sale', true, false, true, false, true, false, true, true, false, true, false, false, false, false, true, false, true, false],
+      ['R003', 'Kho', false, true, false, false, true, true, false, false, false, false, true, true, true, true, false, true, false, false],
+      ['R003_DRV', 'Tài Xế', false, false, false, false, true, false, false, false, false, false, false, false, false, false, true, true, false, false],
+      ['R004', 'Kế toán', false, false, false, false, true, false, false, false, false, true, false, false, false, false, false, true, false, true],
+      ['R005', 'Khách', false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, true, false, false]
+    ];
+    
+    const encAdmin = encryptData(safeAdmin);
+    defaultPerms.forEach(p => {
+       sheet.appendRow([p[0], p[1], encAdmin, p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15], p[16], p[17], p[18], p[19], p[20]]);
+    });
+    
+    // Đọc lại sau khi đã append
+    const newRows = sheet.getDataRange().getValues();
+    filteredRows = newRows.slice(1).filter(r => {
+      let em = decryptData(r[2]).toLowerCase().trim();
+      if (!em || em === 'n/a' || em === 'empty') em = 'all';
+      return em === safeAdmin;
+    });
+  }
+
+  const pkgInfo = getUserPackage(safeAdmin);
+  const f = pkgInfo.features || {};
+  return { 
+    success: true, 
+    data: filteredRows.map(r => {
+      let em = decryptData(r[2]).toLowerCase().trim();
+      let p = {
+        id_vai_tro: r[0], ten_vai_tro: r[1], email_quan_ly: em,
+        checkin_sales: !!r[3], quan_ly_san_pham: !!r[4], danh_sach_don_hang: !!r[5],
+        quan_ly_nhan_vien: !!r[6], xem_bang_gia: !!r[7], quan_ly_kho: !!r[8],
+        notify_staff: !!r[9], notify_admin: !!r[10],        checkin_summary: !!r[11],
+        quan_ly_cong_no: !!r[12], nhap_kho: !!r[13], 
+        kho_xuat_hang: !!r[14], giao_hang: !!r[15], quan_ly_nhan_su: !!r[16], 
+        price_analysis: !!r[17], hr_setup: !!r[18], tra_cuu_san_pham: !!r[19], profit_analysis: !!r[20]
+      };
+
+      // ENFORCE MASTER LOCKS FOR UI DISPLAY
+      if (f.mailStaff === false) p.notify_staff = false;
+      if (f.mailAdmin === false) p.notify_admin = false;
+      if (f.checkinMaster === false) p.checkin_summary = false;
+      if (f.debtMaster === false) p.quan_ly_cong_no = false;
+      if (f.productCreateMaster === false) p.quan_ly_san_pham = false;
+      if (f.inventoryMaster === false) p.nhap_kho = false;
+      if (f.warehouseMaster === false) p.kho_xuat_hang = false;
+      if (f.deliveryMaster === false) p.giao_hang = false;
+      if (f.hrMaster === false) p.quan_ly_nhan_su = false;
+      if (f.hrMaster === false) p.hr_setup = false;
+      if (f.priceAnalysisMaster === false) p.price_analysis = false;
+      if (f.profitMaster === false) p.profit_analysis = false;
+      return p;
+    }),
+    features: f,
+    masterLogs: getLatestFeatureLogs(safeAdmin)
+  };
+}
+
+function savePhanQuyen(d) {
+  const sheet = getSheet('phan_quyen');
+  const rows = sheet.getDataRange().getValues();
+  const adminPlain = (d.email_quan_ly || "all").toLowerCase().trim();
+  
+  const pkgInfo = getUserPackage(adminPlain === 'all' ? 'dunvex.green@gmail.com' : adminPlain);
+  const f = pkgInfo.features || {};
+
+  const adminEnc = encryptData(adminPlain);
+  
+  // KIỂM TRA KHÓA MASTER TỪ SUPER ADMIN
+  // Nếu Super Admin đã khóa quyền tạo SP hoặc Nhập kho, Admin không được phép gạch mở cho bất kỳ ai
+  if (f.productCreateMaster === false) d.quan_ly_san_pham = false; 
+  if (f.inventoryMaster === false) d.nhap_kho = false;
+  if (f.warehouseMaster === false) d.kho_xuat_hang = false;
+  if (f.deliveryMaster === false) d.giao_hang = false;
+  if (f.mailStaff === false) d.notify_staff = false;
+  if (f.mailAdmin === false) d.notify_admin = false;
+  if (f.checkinMaster === false) d.checkin_summary = false;
+  if (f.debtMaster === false) d.quan_ly_cong_no = false;
+  if (f.hrMaster === false) d.quan_ly_nhan_su = false;
+  if (f.hrMaster === false) d.hr_setup = false;
+  if (f.priceAnalysisMaster === false) d.price_analysis = false;
+  if (f.profitMaster === false) d.profit_analysis = false;
+
+  for (let i = 1; i < rows.length; i++) {
+    let rowAdmin = decryptData(rows[i][2]).toLowerCase().trim();
+    if (!rowAdmin || rowAdmin === 'n/a' || rowAdmin === 'empty') rowAdmin = 'all';
+
+    if (rows[i][0] == d.id_vai_tro && rowAdmin === adminPlain) {
+      const vals = [
+        d.checkin_sales, d.quan_ly_san_pham, d.danh_sach_don_hang, 
+        d.quan_ly_nhan_vien, d.xem_bang_gia, d.quan_ly_kho, 
+        d.notify_staff, d.notify_admin, d.checkin_summary, 
+        d.quan_ly_cong_no, d.nhap_kho,
+        d.kho_xuat_hang,
+        d.giao_hang,
+        d.quan_ly_nhan_su,
+        d.price_analysis,
+        d.hr_setup,
+        d.tra_cuu_san_pham,
+        d.profit_analysis
+      ];
+      sheet.getRange(i + 1, 4, 1, vals.length).setValues([vals]);
+      return { success: true };
+    }
+  }
+  sheet.appendRow([
+    d.id_vai_tro, d.ten_vai_tro, adminEnc, 
+    d.checkin_sales, d.quan_ly_san_pham, d.danh_sach_don_hang, 
+    d.quan_ly_nhan_vien, d.xem_bang_gia, d.quan_ly_kho, 
+    d.notify_staff, d.notify_admin, d.checkin_summary, 
+    d.quan_ly_cong_no, d.nhap_kho, d.kho_xuat_hang, d.giao_hang, d.quan_ly_nhan_su, d.price_analysis, d.hr_setup, d.tra_cuu_san_pham, d.profit_analysis
+  ]);
+  return { success: true };
+}
+
+function getRoles() {
+  const sheet = getSheet('roles_lookup');
+  if (!sheet || sheet.getLastRow() <= 1) return { success: true, roles: [{ id: 'R005', name: 'Khách' }] };
+  const rows = sheet.getDataRange().getValues();
+  const roles = rows.filter((r, i) => i > 0 && r[0]).map(r => ({ 
+    id: r[0], 
+    name: r[1] // Dùng tên trực tiếp (không giải mã)
+  }));
+  return { success: true, roles: roles };
+}
+
+function generateNextId(sName, prefix) {
+  const sheet = getSheet(sName);
+  const lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return prefix + '-001';
+  const ids = sheet.getRange("A2:A" + lastRow).getValues().flat();
+  const max = ids.reduce((m, id) => {
+    const n = parseInt(id.toString().split('-').pop());
+    return isNaN(n) ? m : Math.max(m, n);
+  }, 0);
+  return prefix + '-' + (max + 1).toString().padStart(3, '0');
+}
+
+function logAction(action, target, result, performer) {
+  const sheet = getSheet('logs');
+  if (!sheet) return;
+  const now = new Date();
+  const id = "L" + Utilities.formatDate(now, "GMT+7", "yyyyMMddHHmmss");
+  sheet.appendRow([id, Utilities.formatDate(now, "GMT+7", "dd/MM/yyyy HH:mm:ss"), action, encryptData(target), result, encryptData(performer), "System"]);
+}
+
+function handleResetPassword(d) {
+  const email = (d.email || "").toString().trim().toLowerCase();
+  const newPass = (d.newPassword || "").toString().trim();
+  
+  if (!verifyOTP(email, d.otp)) return { success: false, message: 'OTP sai hoặc hết hạn' };
+  
+  for (let name of ['admin', 'use']) {
+    const sheet = getSheet(name);
+    if (!sheet || sheet.getLastRow() <= 1) continue;
+    const rows = sheet.getDataRange().getValues();
+    for (let i = 1; i < rows.length; i++) {
+      const rowEmail = decryptData(rows[i][1]).toLowerCase();
+      if (rowEmail === email) {
+        sheet.getRange(i + 1, 3).setValue(hashPassword(newPass));
+        return { success: true };
+      }
+    }
+  }
+  return { success: false, message: 'Không tìm thấy tài khoản với email này' };
+}
+
+function getUsers(d) {
+  const sheet = getSheet('use');
+  if (!sheet || sheet.getLastRow() <= 1) return { success: true, users: [] };
+  const rows = sheet.getDataRange().getValues();
+  const reqEmail = (d.adminEmail || "").toLowerCase().trim();
+  const reqUser = reqEmail.split('@')[0];
+
+  let bossEmail = reqEmail;
+  for (let i = 1; i < rows.length; i++) {
+    const plainEmail = (decryptData(rows[i][1]) || "").toLowerCase().trim();
+    if (plainEmail === reqEmail || plainEmail === reqUser) {
+      const parent = (decryptData(rows[i][5]) || "").toLowerCase().trim();
+      if (parent && parent !== 'n/a') {
+        bossEmail = parent;
+        break;
+      }
+    }
+  }
+  const bossUser = bossEmail.split('@')[0];
+
+  const orgAdmins = [bossEmail];
+  for (let i = 1; i < rows.length; i++) {
+    const uRole = (rows[i][4] || "").toString().trim().toUpperCase();
+    const uEmail = (decryptData(rows[i][1]) || "").toLowerCase().trim();
+    const uOwner = (decryptData(rows[i][5]) || "").toLowerCase().trim();
+    const uUser = uEmail ? uEmail.split('@')[0] : "";
+    const uOwnerUser = uOwner ? uOwner.split('@')[0] : "";
+    const bossUserSafe = bossUser || "";
+
+    const isThisOrg = (
+        (uOwner === bossEmail) || 
+        (uOwnerUser === bossUserSafe && uOwnerUser !== "") || 
+        (uEmail === bossEmail) || 
+        (uUser === bossUserSafe && uUser !== "")
+    );
+
+    if ((uRole === 'R001' || uRole === 'ADMIN') && isThisOrg) {
+      if (uEmail && orgAdmins.indexOf(uEmail) === -1) orgAdmins.push(uEmail);
+    }
+  }
+  const groupText = [...new Set(orgAdmins)].map(em => em.split('@')[0].trim()).filter(n => n && n !== 'n/a').join(', ');
+
+  const users = [];
+  for (let i = 1; i < rows.length; i++) {
+    const uEmail = (decryptData(rows[i][1]) || "").toLowerCase().trim();
+    const uOwner = (decryptData(rows[i][5]) || "").toLowerCase().trim();
+    if (!uEmail || uEmail === 'n/a') continue;
+    const uUser = uEmail.split('@')[0];
+    const uOwnerUser = uOwner.split('@')[0];
+    const isSameOrg = (uOwner === bossEmail || uOwnerUser === bossUser || uEmail === bossEmail || uUser === bossUser);
+    const isMe = (uEmail === reqEmail || uUser === reqUser);
+
+    if (isSameOrg && !isMe) {
+      users.push({
+        id: rows[i][0], email: uEmail, fullName: rows[i][3], roleId: rows[i][4], owner: groupText, status: rows[i][6]
+      });
+    }
+  }
+  return { success: true, users: users };
+}
+
+function handleCreateUser(d) {
+  const email = d.email.toLowerCase().trim();
+  const adminEmail = (d.adminEmail || "").toLowerCase().trim();
+  const pkgInfo = getUserPackage(adminEmail);
+  const limit = pkgInfo.package === 'Premium' ? 50 : 5;
+  const sheet = getSheet('use');
+  if (!sheet) return { success: false, message: 'Lỗi hệ thống' };
+  const rows = sheet.getDataRange().getValues();
+  let currentCount = 0;
+  for (let i = 1; i < rows.length; i++) {
+    const assigned = (decryptData(rows[i][5]) || "").toLowerCase().trim();
+    if (assigned === adminEmail) currentCount++;
+    if (decryptData(rows[i][1]).toLowerCase() === email) {
+      if (!assigned || assigned === 'n/a') {
+        if (currentCount >= limit) return { success: false, message: 'Giới hạn nhân sự' };
+        sheet.getRange(i + 1, 6).setValue(encryptData(adminEmail));
+        return { success: true };
+      }
+      return { success: false, message: 'Email đã thuộc Admin khác' };
+    }
+  }
+  if (currentCount >= limit) return { success: false, message: 'Giới hạn nhân sự' };
+  const id = generateNextId('use', 'US');
+  sheet.appendRow([id, encryptData(email), hashPassword(d.password || '123456'), d.fullName, d.roleId, encryptData(adminEmail), 'Hoạt động', new Date()]);
+  return { success: true };
+}
+
+function handleUpdateRole(d) {
+  const sheet = getSheet('use');
+  const rows = sheet.getDataRange().getValues();
+  const email = d.userEmail.toLowerCase().trim();
+  for (let i = 1; i < rows.length; i++) {
+    if (decryptData(rows[i][1]).toLowerCase() === email) {
+      sheet.getRange(i+1, 5).setValue(d.newRoleId);
+      return { success: true };
+    }
+  }
+  return { success: false };
+}
+
+function handleUpdateOwner(d) {
+  const sheet = getSheet('use');
+  const rows = sheet.getDataRange().getValues();
+  const email = d.userEmail.toLowerCase().trim();
+  const newOwner = d.newOwner.toLowerCase().trim();
+  for (let i = 1; i < rows.length; i++) {
+    if (decryptData(rows[i][1]).toLowerCase() === email) {
+      sheet.getRange(i+1, 6).setValue(encryptData(newOwner));
+      return { success: true };
+    }
+  }
+  return { success: false };
+}
+
+function handleDeleteUser(d) {
+  const email = (d.userEmail || "").toLowerCase().trim();
+  const adminEmail = (d.adminEmail || "").toLowerCase().trim();
+  const useSheet = getSheet('use');
+  const useRows = useSheet.getDataRange().getValues();
+  for (let i = 1; i < useRows.length; i++) {
+    if (decryptData(useRows[i][1]).toLowerCase() === email) {
+      const assigned = (decryptData(useRows[i][5]) || "").toLowerCase().trim();
+      const adminSheet = getSheet('admin');
+      const adminRows = adminSheet.getDataRange().getValues();
+      const isRoot = adminRows.some((r, idx) => idx > 0 && decryptData(r[1]).toLowerCase() === adminEmail);
+      if (isRoot || assigned === adminEmail) {
+        useSheet.deleteRow(i + 1);
+        return { success: true };
+      }
+    }
+  }
+  return { success: false };
+}
+
+function initSystem() {
+  migrate_UpdatePermissionHeaders();
+  migrateAuthEmailsToEncrypted();
+  setup_StandardRoles();
+  return { success: true, message: 'Đã cập nhật hệ thống và chuẩn hóa Vai trò thành công!' };
+}
+
+function setup_StandardRoles() {
+  const sheet = getSheet('roles_lookup');
+  if (!sheet) return;
+  const roles = [
+    ['R001', 'Admin'],
+    ['R002', 'Sale'],
+    ['R003', 'Kho'],
+    ['R003_DRV', 'Tài Xế'],
+    ['R004', 'Kế toán'],
+    ['R005', 'Khách']
+  ];
+  sheet.clear();
+  sheet.appendRow(['ID', 'Tên Vai Trò']);
+  roles.forEach(r => sheet.appendRow(r));
+}
+
+function migrateAuthEmailsToEncrypted() {
+  const configs = [{ sheet: 'admin', cols: [1] }, { sheet: 'use', cols: [1, 5] }, { sheet: 'phan_quyen', cols: [2] }, { sheet: 'logs', cols: [3, 5] }];
+  configs.forEach(c => {
+    const s = getSheet(c.sheet); if (!s || s.getLastRow() < 2) return;
+    const data = s.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      c.cols.forEach(col => {
+        const val = (data[i][col] || "").toString();
+        if (val.includes('@') && val.length < 50) s.getRange(i+1, col+1).setValue(encryptData(val.toLowerCase()));
+      });
+    }
+  });
+}
+
+function migrate_UpdatePermissionHeaders() {
+  const sheet = getSheet('phan_quyen');
+  if (!sheet) return;
+  
+  // Tìm và xóa cột "Tạo Sản Phẩm" cũ nếu còn tồn tại
+  const currentHeaders = sheet.getRange(1, 1, 1, Math.max(1, sheet.getLastColumn())).getValues()[0];
+  const obsoleteIdx = currentHeaders.indexOf('Tạo Sản Phẩm');
+  if (obsoleteIdx > -1) {
+    sheet.deleteColumn(obsoleteIdx + 1);
+    SpreadsheetApp.flush();
+  }
+
+  const headers = ['Vai Trò', 'Tên Vai Trò', 'Quản Lý Bởi', 'CRM & Sales', 'Quản Lý SP', 'Danh Sách Đơn', 'Quản Lý NV', 'Xem Bảng Giá', 'Quản Lý Kho', '📩 Mail Nhân viên', '📩 Mail Admin', '📍 Tổng hợp Check-in', '📊 Quản lý Công nợ', 'Nhập Kho', '🚚 Kho xuất hàng', '📍 Giao Hàng', '🏢 Quản lý Nhân sự mới', '📈 Phân tích giá', '⚙️ Cấu hình Nhân sự', '🔍 Tra cứu Sản phẩm', '📊 Báo cáo Lợi nhuận'
+  ];
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  sheet.getRange(1, 1, 1, headers.length).setBackground('#6366f1').setFontColor('#ffffff').setFontWeight('bold');
+  SpreadsheetApp.flush();
+}

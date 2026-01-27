@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-QFQ2HMYTDH"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag('js', new Date());
+
+		gtag('config', 'G-QFQ2HMYTDH');
+	</script>
+
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Quản Lý Nhân Viên | Dunvex Admin</title>
+	<link rel="icon" type="image/svg+xml"
+		href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23FACC15'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' fill='white' font-size='60' font-family='sans-serif' font-weight='800'>DV</text></svg>">
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;800&display=swap"
+		rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+	<script src="security-utils.js"></script>
+	<script>
+		const session = SecurityProvider.validateAccess();
+		const currentUser = session ? session.user : null;
+		const perms = session ? session.permissions : null;
+	</script>
+	<link rel="stylesheet" href="assets/theme.css">
+	<script src="assets/theme-toggle.js"></script>
+	<style>
+		/* Variables handled in theme.css */
+
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+			text-rendering: optimizeLegibility;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+		}
+
+		body {
+			/* Background handled by theme.css */
+			min-height: 100vh;
+			padding: 40px 20px;
+			-webkit-text-size-adjust: 100%;
+		}
+
+		.container {
+			max-width: 1000px;
+			margin: 0 auto;
+		}
+
+		/* Top Bar */
+		.top-bar {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 40px;
+			gap: 20px;
+		}
+
+		.top-bar-actions {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+		}
+
+		.user-info {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			background: var(--card-bg);
+			padding: 6px 12px;
+			border-radius: 99px;
+			border: 1px solid var(--glass-border);
+			white-space: nowrap;
+			overflow: hidden;
+			max-width: 200px;
+		}
+
+		.user-info span {
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+			max-width: 100px;
+		}
+
+		.avatar {
+			width: 32px;
+			height: 32px;
+			background: var(--primary);
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-weight: 800;
+			font-size: 0.8rem;
+			color: #0f172a;
+		}
+
+		.btn-logout {
+			background: transparent;
+			border: 1px solid var(--glass-border);
+			color: var(--text-muted);
+			padding: 8px 16px;
+			border-radius: 12px;
+			cursor: pointer;
+			transition: all 0.3s ease;
+		}
+
+		.btn-logout:hover {
+			background: rgba(239, 68, 68, 0.1);
+			color: #ef4444;
+			border-color: rgba(239, 68, 68, 0.2);
+		}
+
+		.admin-section {
+			background: white;
+			border: 1px solid #e2e8f0;
+			border-radius: 24px;
+			padding: 32px;
+			margin-bottom: 32px;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+		}
+
+		.admin-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 24px;
+			margin-bottom: 32px;
+		}
+
+		@media (max-width: 900px) {
+			.admin-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		h2 {
+			font-size: 1.25rem;
+			margin-bottom: 20px;
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			color: #0f172a;
+			font-weight: 800;
+		}
+
+		.role-form {
+			display: flex;
+			flex-direction: column;
+			gap: 16px;
+		}
+
+		.form-row {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 12px;
+		}
+
+		@media (max-width: 600px) {
+			.form-row {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		.form-group label {
+			display: block;
+			font-size: 0.8rem;
+			color: #475569;
+			margin-bottom: 6px;
+			font-weight: 700;
+			text-transform: uppercase;
+		}
+
+		input,
+		select {
+			width: 100%;
+			background: white !important;
+			border: 1.5px solid #cbd5e1 !important;
+			border-radius: 12px;
+			padding: 12px 14px;
+			color: #0f172a !important;
+			outline: none;
+			transition: all 0.3s ease;
+			font-size: 0.9rem;
+			font-weight: 600;
+		}
+
+		input:focus,
+		select:focus {
+			border-color: var(--primary) !important;
+			box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.15);
+		}
+
+		.btn-action {
+			background: var(--primary);
+			color: white;
+			border: none;
+			padding: 10px 20px;
+			border-radius: 10px;
+			font-weight: 600;
+			cursor: pointer;
+			transition: all 0.3s ease;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+		}
+
+		.btn-action:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
+		}
+
+		.btn-secondary-action {
+			background: rgba(192, 132, 252, 0.15);
+			color: var(--accent-purple);
+		}
+
+		.btn-action:disabled {
+			background: #334155 !important;
+			color: #64748b !important;
+			cursor: not-allowed !important;
+			opacity: 0.7;
+			transform: none !important;
+			box-shadow: none !important;
+		}
+
+		.btn-edit {
+			padding: 4px 10px;
+			font-size: 0.75rem;
+			border-radius: 4px;
+			background: rgba(255, 255, 255, 0.05);
+			border: 1px solid var(--glass-border);
+			color: var(--text-main);
+			cursor: pointer;
+		}
+
+		.btn-edit:hover {
+			background: var(--primary);
+			color: white;
+		}
+
+		/* Sub-tabs for Report */
+		.sub-tab-content {
+			display: none;
+		}
+
+		.sub-tab-content.active {
+			display: block;
+			animation: fadeIn 0.3s ease-in-out;
+		}
+
+		.sub-tabs-nav {
+			display: flex;
+			gap: 12px;
+			margin: 32px 0 16px;
+			padding: 0 4px;
+		}
+
+		.sub-tab-btn {
+			padding: 8px 16px;
+			background: rgba(255, 255, 255, 0.03);
+			border: 1px solid var(--glass-border);
+			color: var(--text-muted);
+			border-radius: 10px;
+			cursor: pointer;
+			font-size: 0.85rem;
+			font-weight: 500;
+			transition: all 0.3s ease;
+		}
+
+		.sub-tab-btn.active {
+			background: var(--primary);
+			color: #0f172a;
+			border-color: var(--primary);
+			box-shadow: 0 4px 12px rgba(250, 204, 21, 0.2);
+		}
+
+		/* Table Section */
+		.user-list-container {
+			width: 100%;
+			overflow-x: auto;
+			-webkit-overflow-scrolling: touch;
+			margin-bottom: 20px;
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+			margin-top: 10px;
+		}
+
+		#permissionTable {
+			min-width: 1800px;
+		}
+
+		#userTable {
+			min-width: 800px;
+		}
+
+		th {
+			text-align: left;
+			padding: 16px;
+			color: var(--text-muted);
+			font-weight: 500;
+			font-size: 0.8rem;
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			border-bottom: 1px solid var(--glass-border);
+			white-space: normal;
+			line-height: 1.2;
+		}
+
+		td {
+			padding: 16px;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+			font-size: 0.95rem;
+		}
+
+		.role-badge {
+			padding: 4px 10px;
+			border-radius: 6px;
+			font-size: 0.75rem;
+			font-weight: 600;
+		}
+
+		.badge-admin {
+			background: rgba(250, 204, 21, 0.15);
+			color: #b45309;
+			/* Darker Yellow/Amber for text readability */
+		}
+
+		.badge-user {
+			background: rgba(34, 197, 94, 0.15);
+			color: #4ade80;
+		}
+
+		.status-dot {
+			display: inline-block;
+			width: 8px;
+			height: 8px;
+			border-radius: 50%;
+			margin-right: 6px;
+		}
+
+		.status-active {
+			background: #22c55e;
+		}
+
+		.status-locked {
+			background: #ef4444;
+		}
+
+		.loading-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background: rgba(15, 23, 42, 0.8);
+			display: none;
+			justify-content: center;
+			align-items: center;
+			z-index: 1000;
+		}
+
+		.loader {
+			width: 48px;
+			height: 48px;
+			border: 5px solid #FFF;
+			border-bottom-color: var(--primary);
+			border-radius: 50%;
+			animation: rotation 1s linear infinite;
+		}
+
+		@keyframes rotation {
+			0% {
+				transform: rotate(0deg);
+			}
+
+			100% {
+				transform: rotate(360deg);
+			}
+		}
+
+		#toast {
+			position: fixed;
+			bottom: 20px;
+			right: 20px;
+			padding: 16px 24px;
+			border-radius: 12px;
+			background: #1e293b;
+			color: white;
+			box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+			transform: translateY(100px);
+			transition: transform 0.3s ease;
+			z-index: 1001;
+		}
+
+		#toast.show {
+			transform: translateY(0);
+		}
+
+		/* Tabs */
+		.tabs-nav {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 12px;
+			margin-bottom: 30px;
+			padding-bottom: 20px;
+			border-bottom: 1px solid var(--glass-border);
+		}
+
+		.tab-btn {
+			padding: 12px 16px;
+			background: rgba(255, 255, 255, 0.05);
+			border: 1px solid var(--glass-border);
+			color: var(--text-muted);
+			border-radius: 12px;
+			cursor: pointer;
+			font-weight: 600;
+			font-size: 0.85rem;
+			transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+			text-align: center;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+		}
+
+		.tab-btn.active {
+			background: rgba(99, 102, 241, 0.1);
+			color: var(--primary);
+			border-color: rgba(99, 102, 241, 0.2);
+		}
+
+		.tab-content {
+			display: none;
+		}
+
+		.tab-content.active {
+			display: block;
+			animation: fadeIn 0.4s ease-out;
+		}
+
+		@keyframes fadeIn {
+			from {
+				opacity: 0;
+				transform: translateY(10px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		.filter-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+			gap: 16px;
+			align-items: flex-end;
+		}
+
+		.report-summary {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+			gap: 20px;
+			margin-top: 30px;
+		}
+
+		.summary-card {
+			background: rgba(255, 255, 255, 0.03);
+			border: 1px solid var(--glass-border);
+			padding: 20px;
+			border-radius: 16px;
+			text-align: center;
+		}
+
+		.summary-card h4 {
+			font-size: 0.8rem;
+			color: var(--text-muted);
+			margin-bottom: 8px;
+		}
+
+		.summary-card .value {
+			font-size: 1.5rem;
+			font-weight: 800;
+			color: var(--primary);
+		}
+
+		/* Custom Toggle Switch for Permissions */
+		.perm-toggle {
+			position: relative;
+			display: inline-block;
+			width: 44px;
+			height: 24px;
+			cursor: pointer;
+		}
+
+		.perm-toggle input {
+			opacity: 0;
+			width: 0;
+			height: 0;
+		}
+
+		.perm-slider {
+			position: absolute;
+			cursor: pointer;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background-color: rgba(255, 255, 255, 0.05);
+			border: 1px solid var(--glass-border);
+			transition: .3s;
+			border-radius: 24px;
+		}
+
+		.perm-slider:before {
+			position: absolute;
+			content: "";
+			height: 18px;
+			width: 18px;
+			left: 2px;
+			bottom: 2px;
+			background-color: var(--text-muted);
+			transition: .3s;
+			border-radius: 50%;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+		}
+
+		input:checked+.perm-slider {
+			background-color: var(--primary);
+			border-color: var(--primary);
+		}
+
+		input:checked+.perm-slider:before {
+			transform: translateX(20px);
+			background-color: white;
+		}
+
+		input:focus+.perm-slider {
+			box-shadow: 0 0 1px var(--primary);
+		}
+
+		input:disabled+.perm-slider {
+			opacity: 0.3;
+			cursor: not-allowed;
+		}
+
+		@media (max-width: 768px) {
+			body {
+				padding: 15px 10px;
+			}
+
+			.top-bar {
+				flex-direction: row;
+				gap: 10px;
+				align-items: center;
+				justify-content: center;
+				margin-bottom: 25px;
+			}
+
+			.top-bar h1 {
+				display: none;
+				/* Hide title to save space as requested */
+			}
+
+			.top-bar-actions {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 6px;
+				width: 100%;
+				justify-content: center;
+				order: 2;
+			}
+
+			.top-bar-actions .user-info {
+				flex: 1 0 100%;
+				/* Full width for profile pill on small screens */
+				justify-content: center;
+				margin-bottom: 5px;
+				grid-column: auto;
+				max-width: none;
+			}
+
+			.btn-logout {
+				flex: 1 1 auto;
+				padding: 8px 10px;
+				font-size: 0.75rem;
+				min-width: 80px;
+				justify-content: center;
+				background: rgba(255, 255, 255, 0.05);
+			}
+
+			.admin-section {
+				padding: 20px 15px;
+				border-radius: 16px;
+			}
+
+			.tabs-nav {
+				grid-template-columns: 1fr 1fr;
+			}
+
+			#nav_checkin {
+				grid-column: span 2;
+			}
+
+			.role-form {
+				grid-template-columns: 1fr;
+			}
+
+			.btn-update {
+				width: 100%;
+			}
+
+			input,
+			select,
+			.btn-action {
+				min-height: 48px;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<div class="loading-overlay" id="loader">
+		<div class="loader"></div>
+	</div>
+
+	<div class="container">
+		<div class="top-bar">
+			<h1>Dunvex Admin</h1>
+			<div class="top-bar-actions">
+				<a href="index.html" class="btn btn-glass" style="height: auto; padding: 10px 18px;">
+					<i class="fa-solid fa-house"></i> Trang chủ
+				</a>
+				<button class="btn-logout"
+					style="background: rgba(34, 197, 94, 0.1); color: #22c55e; border-color: rgba(34, 197, 94, 0.2);"
+					onclick="syncSystem()">⚙️ Đồng Bộ</button>
+				<div class="user-info">
+					<div class="avatar" id="avatarLetter">A</div>
+					<span id="adminName">Admin</span>
+				</div>
+				<button class="btn-logout" onclick="logout()">Thoát</button>
+			</div>
+		</div>
+
+		<div class="tabs-nav">
+			<button class="tab-btn active" onclick="switchTab('hr')">👥 Quản Lý Nhân Sự</button>
+			<button class="tab-btn" onclick="switchTab('report')">📊 Báo Cáo Doanh Thu</button>
+			<button id="nav_checkin" class="tab-btn" onclick="window.location.href='admin-checkin-summary.html'">📍 Tổng
+				Hợp
+				Check-in</button>
+		</div>
+
+		<!-- HR MANAGEMENT TAB -->
+		<div id="tab-hr" class="tab-content active">
+			<div class="admin-grid">
+				<!-- CREATE NEW USER -->
+				<div class="admin-section">
+					<h2>➕ Tạo Nhân Viên Mới</h2>
+					<form class="role-form" id="createUserForm">
+						<div class="form-group">
+							<label>Họ và Tên</label>
+							<input type="text" id="newFullName" placeholder="Nguyễn Văn B" required>
+						</div>
+						<div class="form-row">
+							<div class="form-group">
+								<label>Email (Đăng nhập)</label>
+								<input type="email" id="newEmail" placeholder="nv@gmail.com" required>
+							</div>
+							<div class="form-group">
+								<label>Vai Trò Ban Đầu</label>
+								<select class="role-select-list" id="newRoleSelect">
+									<option value="">-- Đang tải vai trò --</option>
+									<option value="R002">Sale</option>
+									<option value="R003">Kho</option>
+									<option value="R004">Kế toán</option>
+									<option value="R005">Khách hàng</option>
+								</select>
+							</div>
+						</div>
+						<p style="font-size: 0.7rem; color: var(--text-muted);">* Mật khẩu mặc định: <b>123456</b></p>
+						<button type="submit" class="btn-action">Tạo Tài Khoản</button>
+					</form>
+				</div>
+
+				<!-- UPDATE EXISTING USER -->
+				<div class="admin-section">
+					<h2>⚡ Gán Lại Vai Trò</h2>
+					<form class="role-form" id="updateRoleForm">
+						<div class="form-group">
+							<label>Email Nhân Viên</label>
+							<input type="email" id="targetEmail" placeholder="Chọn từ bảng bên dưới" required>
+						</div>
+						<div class="form-group">
+							<label>Vai Trò Mới</label>
+							<select class="role-select-list" id="roleSelect">
+								<option value="">-- Đang tải vai trò --</option>
+								<option value="R001">Admin</option>
+								<option value="R002">Sale</option>
+								<option value="R003">Kho</option>
+								<option value="R004">Kế toán</option>
+								<option value="R005">Khách hàng</option>
+							</select>
+						</div>
+						<div style="height: 14px;"></div>
+						<button type="submit" class="btn-action btn-secondary-action">Cập Nhật Quyền</button>
+					</form>
+				</div>
+			</div>
+
+			<div class="admin-section">
+				<h2>🛡️ Cấu Hình Quyền Truy Cập</h2>
+				<p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px;">* Chỉnh sửa quyền trực tiếp
+					cho
+					từng Vai trò. Các thay đổi sẽ có hiệu lực ngay khi người dùng đăng nhập lại.</p>
+				<div class="user-list-container">
+					<table id="permissionTable">
+						<thead>
+							<tr>
+								<th>Vai Trò</th>
+								<th style="min-width: 100px;">Quản lý bởi</th>
+								<th style="text-align:center">📊 CRM &<br>Sales <i class="fas fa-lock"
+										style="font-size: 0.7rem; opacity: 0.5;"></i></th>
+								<th style="text-align:center">Quản lý<br>Sản phẩm <i class="fas fa-lock"
+										style="font-size: 0.7rem; opacity: 0.5;"></i></th>
+								<th style="text-align:center">Danh sách<br>đơn hàng <i class="fas fa-lock"
+										style="font-size: 0.7rem; opacity: 0.5;"></i></th>
+								<th style="text-align:center">Quản lý<br>nhân viên <i class="fas fa-lock"
+										style="font-size: 0.7rem; opacity: 0.5;"></i></th>
+								<th style="text-align:center">Xem<br>Bảng giá <i class="fas fa-lock"
+										style="font-size: 0.7rem; opacity: 0.5;"></i></th>
+								<th style="text-align:center" id="th_logi">Quản lý<br>Kho vận <i class="fas fa-lock"
+										style="font-size: 0.7rem; opacity: 0.5;"></i></th>
+								<th style="text-align:center" id="th_inventory">➕ Nhập/Xuất<br>kho <i
+										class="fas fa-lock" style="font-size: 0.7rem; opacity: 0.5;"></i></th>
+								<th style="text-align:center" id="th_warehouse">➖ Lệnh<br>Xuất kho <i
+										class="fas fa-lock" style="font-size: 0.7rem; opacity: 0.5;"></i></th>
+								<th style="text-align:center" id="th_delivery">🚚 Giao<br>hàng <i class="fas fa-lock"
+										style="font-size: 0.7rem; opacity: 0.5;"></i></th>
+								<th style="text-align:center; color: #4ade80;" id="th_mail_staff">📩 Mail<br>Nhân viên
+									<i class="fas fa-lock" id="lock_mail_staff"
+										style="font-size: 0.7rem; opacity: 0.5;"></i>
+								</th>
+								<th style="text-align:center; color: #818cf8;" id="th_mail_admin">📩 Mail<br>Admin <i
+										class="fas fa-lock" id="lock_mail_admin"
+										style="font-size: 0.7rem; opacity: 0.5;"></i></th>
+								<th style="text-align:center" id="th_checkin_summary">📍 Tổng hợp<br>Check-in <span
+										id="label_checkin_summary"
+										style="font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 4px;"></span>
+									<i class="fas fa-lock" id="lock_checkin_summary"
+										style="font-size: 0.7rem; opacity: 0.5;"></i>
+								</th>
+								<th style="text-align:center; color: #fbbf24;" id="th_cong_no">💰 Quản lý<br>Công nợ
+									<i class="fas fa-lock" id="lock_cong_no"
+										style="font-size: 0.7rem; opacity: 0.5;"></i>
+								</th>
+
+								<th style="text-align:center; color: #10b981;" id="th_hr_new">🏢 Quản lý<br>Nhân sự mới
+									<span id="label_hr_new"
+										style="font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 4px;"></span>
+									<i class="fas fa-lock" id="lock_hr_new"
+										style="font-size: 0.7rem; opacity: 0.5;"></i>
+								</th>
+								<th style="text-align:center; color: #a855f7;" id="th_price_analysis">📈 Phân
+									tích<br>giá
+									<i class="fas fa-lock" id="lock_price_analysis"
+										style="font-size: 0.7rem; opacity: 0.5;"></i>
+								</th>
+								<th style="text-align:center; color: #22c55e;" id="th_profit_analysis">📊 Báo cáo<br>Lợi
+									nhuận
+									<i class="fas fa-lock" id="lock_profit_analysis"
+										style="font-size: 0.7rem; opacity: 0.5;"></i>
+								</th>
+								<th style="text-align:center; color: #f59e0b;">⚙️ Cấu hình<br>HR</th>
+								<th style="text-align:center; color: #38bdf8;">🔍 Tra cứu<br>Sản phẩm</th>
+								<th style="text-align:center">Thao tác</th>
+							</tr>
+						</thead>
+						<tbody id="permissionTableBody">
+							<!-- Data will be loaded here -->
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+			<div class="admin-section">
+				<h2>👥 Danh Sách Tài Khoản</h2>
+				<div class="user-list-container">
+					<table id="userTable">
+						<thead>
+							<tr>
+								<th>ID</th>
+								<th>Họ và Tên</th>
+								<th>Email</th>
+								<th>Thuộc nhóm</th>
+								<th>Trạng thái</th>
+								<th>Hành Động</th>
+							</tr>
+						</thead>
+						<tbody id="userTableBody">
+							<!-- Data will be loaded here -->
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div> <!-- End tab-hr -->
+
+		<!-- REPORT TAB -->
+		<div id="tab-report" class="tab-content">
+			<div class="admin-section">
+				<h2>📈 Lọc Dữ Liệu Doanh Thu</h2>
+				<div class="filter-grid">
+					<div class="form-group">
+						<label>Từ ngày</label>
+						<input type="date" id="reportStart">
+					</div>
+					<div class="form-group">
+						<label>Đến ngày</label>
+						<input type="date" id="reportEnd">
+					</div>
+					<div class="form-group">
+						<label>Nhân viên</label>
+						<select id="reportStaffSelect">
+							<option value="ALL">-- Tất cả nhân viên --</option>
+						</select>
+					</div>
+					<div class="form-group">
+						<label>Trạng thái</label>
+						<select id="reportStatusSelect">
+							<option value="ALL">-- Tất cả trạng thái --</option>
+							<option value="đơn chốt" selected>Đơn chốt</option>
+							<option value="đang xử lý">Đang xử lý</option>
+							<option value="đơn nháp">Đơn nháp</option>
+							<option value="đã hủy">Đã hủy</option>
+						</select>
+					</div>
+					<button class="btn-action" id="btnFilterReport" onclick="fetchRevenueReport()">🔍 Lọc Dữ
+						Liệu</button>
+				</div>
+			</div>
+
+			<div class="report-summary" id="revenueSummary" style="display:none;">
+				<div class="summary-card">
+					<h4>Tổng Số Đơn</h4>
+					<div class="value" id="sumOrderCount">0</div>
+				</div>
+				<div class="summary-card">
+					<h4>Tổng Doanh Thu</h4>
+					<div class="value" id="sumTotalRevenue">0 ₫</div>
+				</div>
+				<div class="summary-card">
+					<h4>Khách Hàng Mới</h4>
+					<div class="value" id="sumNewCustomers">0</div>
+				</div>
+				<button class="btn-action btn-secondary-action" id="btnSendReport" style="grid-column: span 1;"
+					onclick="sendReport()">📤
+					Gửi Report Email</button>
+				<button class="btn-action" id="btnWeeklyTest"
+					style="grid-column: span 1; background: #1e1b4b; color: #818cf8; border: 1px solid #312e81; display: none;"
+					onclick="runWeeklyReportTest()">🚀
+					Test Báo Cáo Tuần</button>
+			</div>
+
+			<div class="admin-section" style="margin-top: 32px; padding-top: 20px;">
+				<div class="sub-tabs-nav">
+					<button class="sub-tab-btn active" id="btnSubOrders" onclick="switchSubTab('orders')">📋 Đơn
+						Hàng</button>
+					<button class="sub-tab-btn" id="btnSubCustomers" onclick="switchSubTab('customers')">👥 Khách Hàng
+						Mới</button>
+				</div>
+
+				<!-- SUB TAB: ORDERS -->
+				<div id="sub-tab-orders" class="sub-tab-content active">
+					<div class="user-list-container">
+						<table id="reportTable">
+							<thead>
+								<tr>
+									<th>Thời Gian</th>
+									<th>Khách Hàng</th>
+									<th>Nhân Viên</th>
+									<th>Tổng Tiền</th>
+									<th>Trạng Thái</th>
+								</tr>
+							</thead>
+							<tbody id="reportTableBody">
+								<tr>
+									<td colspan="5" style="text-align:center; padding: 40px; color: var(--text-muted);">
+										Vui lòng chọn thời gian và bấm Lọc.</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+
+				<!-- SUB TAB: CUSTOMERS -->
+				<div id="sub-tab-customers" class="sub-tab-content">
+					<div class="user-list-container">
+						<table id="customerReportTable">
+							<thead>
+								<tr>
+									<th>Ngày Tạo</th>
+									<th>ID</th>
+									<th>Tên Khách Hàng</th>
+									<th>Khu Vực</th>
+									<th>Nhân Viên</th>
+								</tr>
+							</thead>
+							<tbody id="customerReportTableBody">
+								<tr>
+									<td colspan="5" style="text-align:center; padding: 40px; color: var(--text-muted);">
+										Vui lòng chọn thời gian và bấm Lọc.</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="toast"></div>
+
+	<script>
+		const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyaz_6xI3Nz0FHnNgr9qEcPuOUGf4OY53l8x1ofSoh_LIGozbKmpSJNAwpq8U6ygpPNHw/exec';
+		const REPORT_URL = 'https://script.google.com/macros/s/AKfycbzUfmgFXDKg4TCwEvotTAmILCu7ZZJFSPtimQ7hHVzO5C9JZqfzxeGGSRSTzkSCPHGT4w/exec';
+		const MASTER_URL = 'https://script.google.com/macros/s/AKfycbz2FpV9hWeZKzBJyS636Hlf7JrM8bfA03YbH9xF3KYqdHJXcpgvCLoD2xjOGCDKzpfj/exec';
+
+		window.onload = async function () {
+			if (!currentUser) {
+				window.location.href = 'auth.html';
+				return;
+			}
+			document.getElementById('adminName').innerText = currentUser.fullName;
+			document.getElementById('avatarLetter').innerText = currentUser.fullName.charAt(0).toUpperCase();
+
+			// Hiển thị huy hiệu Premium nếu có
+			if (currentUser.package === 'Premium') {
+				const badge = document.createElement('span');
+				badge.innerHTML = '💎 PREMIUM';
+				badge.style.cssText = 'background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%); color: white; font-size: 0.65rem; padding: 2px 8px; border-radius: 6px; font-weight: 800; margin-left: 8px; border: 1px solid rgba(255,255,255,0.2);';
+				document.getElementById('adminName').parentElement.appendChild(badge);
+			}
+
+			async function syncAndLoad() {
+				// 1. Đồng bộ lại Features từ Server (Khóa Master)
+				try {
+					const res = await fetch(SCRIPT_URL, {
+						method: 'POST',
+						body: SecurityProvider.prepareRequest('getUserConfig', { email: currentUser.email })
+					});
+					const data = await res.json();
+					if (data.success && data.features) {
+						currentUser.features = data.features;
+						SecurityProvider.saveSession(currentUser, session.permissions);
+					}
+				} catch (e) { console.error("Sync failed", e); }
+
+				// 2. Load dữ liệu chính
+				loadRoles();
+				loadPermissions();
+				loadUsers();
+			}
+
+			// Check if Super Admin
+			if (currentUser.email === 'dunvex.green@gmail.com') {
+				const hrBtn = document.querySelector('button[onclick="switchTab(\'hr\')"]');
+				const chkBtn = document.getElementById('nav_checkin');
+				const hrContent = document.getElementById('tab-hr');
+				if (hrBtn) hrBtn.style.display = 'none';
+				if (chkBtn) chkBtn.style.display = 'none';
+				if (hrContent) hrContent.style.display = 'none';
+				switchTab('report');
+			}
+
+			syncAndLoad();
+		}; // End of window.onload
+
+		function switchTab(tabId) {
+			document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+			document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+			document.getElementById('tab-' + tabId).classList.add('active');
+			// Find the button that triggered the switch, or the one corresponding to tabId
+			const targetButton = document.querySelector(`.tab-btn[onclick="switchTab('${tabId}')"]`);
+			if (targetButton) {
+				targetButton.classList.add('active');
+			}
+
+
+			if (tabId === 'report') {
+				// Default dates
+				const now = new Date();
+				const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+				const today = now.toISOString().split('T')[0];
+				if (!document.getElementById('reportStart').value) document.getElementById('reportStart').value = firstDay;
+				if (!document.getElementById('reportEnd').value) document.getElementById('reportEnd').value = today;
+
+				// Populate staff select if empty
+				populateReportStaff();
+
+				// NEW: Check for Sales Report Restriction
+				if (currentUser.salesRestrict === 'ON') {
+					const btnSend = document.getElementById('btnSendReport');
+					if (btnSend) {
+						btnSend.disabled = true;
+						btnSend.innerHTML = "🔒 Tính năng bị khóa bởi Super Admin";
+						btnSend.title = "Vui lòng liên hệ Super Admin để mở quyền gửi báo cáo.";
+					}
+				}
+
+				// Show Weekly Test Button only for Dunvex
+				if (currentUser.email.toLowerCase().includes('dunvex')) {
+					const weeklyBtn = document.getElementById('btnWeeklyTest');
+					if (weeklyBtn) weeklyBtn.style.display = 'block';
+				}
+			}
+		}
+
+		function switchSubTab(subTabId) {
+			document.querySelectorAll('.sub-tab-content').forEach(el => el.classList.remove('active'));
+			document.querySelectorAll('.sub-tab-btn').forEach(el => el.classList.remove('active'));
+
+			document.getElementById('sub-tab-' + subTabId).classList.add('active');
+			// Find button by ID or text depending on call
+			if (subTabId === 'orders') document.getElementById('btnSubOrders').classList.add('active');
+			else document.getElementById('btnSubCustomers').classList.add('active');
+		}
+
+		let allUsersCache = [];
+		function populateReportStaff() {
+			const select = document.getElementById('reportStaffSelect');
+			if (select.options.length > 1) return; // Already populated
+
+			allUsersCache.forEach(u => {
+				if (u.roleId === 'R002' || u.roleId === 'R001') {
+					const opt = document.createElement('option');
+					opt.value = u.email;
+					opt.innerText = u.fullName + " (" + u.email + ")";
+					select.appendChild(opt);
+				}
+			});
+		}
+
+		let cachedRawData = null;
+		let cachedDateRange = { start: '', end: '' };
+
+		async function fetchRevenueReport() {
+			const start = document.getElementById('reportStart').value;
+			const end = document.getElementById('reportEnd').value;
+			const staff = document.getElementById('reportStaffSelect').value;
+			const status = document.getElementById('reportStatusSelect').value;
+
+			if (!start || !end) return showToast("Vui lòng chọn ngày", "error");
+
+			const btn = document.getElementById('btnFilterReport');
+			btn.disabled = true;
+
+			// 1. Check Cache
+			if (cachedRawData && cachedDateRange.start === start && cachedDateRange.end === end) {
+				console.log("Using cached data...");
+				processAndRender(cachedRawData, staff, status);
+				btn.disabled = false;
+				return;
+			}
+
+			// 2. Fetch New Data
+			btn.innerHTML = "⌛ Đang tải từ server...";
+			try {
+				const res = await fetch(REPORT_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('getRevenueData', {
+						startDate: start,
+						endDate: end,
+						staffEmail: 'ALL', // Fetch ALL for client-side filtering
+						status: 'ALL',     // Fetch ALL for client-side filtering
+						requesterEmail: currentUser.email
+					})
+				});
+				const data = await res.json();
+				if (data.success) {
+					// Store Cache
+					cachedRawData = data;
+					cachedDateRange = { start, end };
+					processAndRender(data, staff, status);
+				} else {
+					showToast('❌ Lỗi: ' + data.message, 'error');
+				}
+			} catch (e) {
+				showToast('❌ Lỗi kết nối!', 'error');
+				console.error(e);
+			} finally {
+				btn.disabled = false;
+				btn.innerHTML = "🔍 Lọc Dữ Liệu";
+			}
+		}
+
+		function processAndRender(data, staffFilter, statusFilter) {
+			// Local Filtering Logic to replace Server Logic
+			let filteredOrders = data.orders || [];
+			let filteredCustomers = data.customers || [];
+
+			// 1. Filter Orders
+			if (staffFilter !== 'ALL') {
+				filteredOrders = filteredOrders.filter(o => o.staffEmail === staffFilter || o.staffName === staffFilter);
+			}
+			if (statusFilter !== 'ALL') {
+				filteredOrders = filteredOrders.filter(o => (o.status || '').toLowerCase() === statusFilter.toLowerCase());
+			}
+
+			// 2. Filter Customers
+			if (staffFilter !== 'ALL') {
+				filteredCustomers = filteredCustomers.filter(c => c.staffEmail === staffFilter);
+			}
+
+			// 3. Calculate Summaries
+			let totalRev = 0;
+			filteredOrders.forEach(o => {
+				// Only sum revenue for completed orders or whatever logic business requires - usually 'Đơn chốt' or similar
+				// Assuming 'Đơn chốt' or 'Hoàn thành' implies revenue.
+				// However, the report usually shows Total Value of the list filtered.
+				// Let's sum the 'total' field of filtered orders.
+				totalRev += (typeof o.total === 'number' ? o.total : 0);
+			});
+
+			const summary = {
+				orderCount: filteredOrders.length,
+				totalRevenue: totalRev,
+				newCustomers: filteredCustomers.length
+			};
+
+			renderRevenueReport({
+				summary: summary,
+				orders: filteredOrders,
+				customers: filteredCustomers
+			});
+		}
+
+		function renderRevenueReport(result) {
+			document.getElementById('revenueSummary').style.display = 'grid';
+			// Animate numbers? For now just set them.
+			document.getElementById('sumOrderCount').innerText = result.summary.orderCount;
+			document.getElementById('sumTotalRevenue').innerText = result.summary.totalRevenue.toLocaleString() + " ₫";
+			document.getElementById('sumNewCustomers').innerText = result.summary.newCustomers;
+
+			const tbody = document.getElementById('reportTableBody');
+			if (!result.orders || result.orders.length === 0) {
+				tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 40px; color: var(--text-muted);">Không tìm thấy đơn hàng nào phù hợp.</td></tr>';
+			} else {
+				// Limit render to 500 rows to prevent freeze if huge data
+				const displayOrders = result.orders.slice(0, 500);
+
+				tbody.innerHTML = displayOrders.map(o => {
+					const displayTotal = (typeof o.total === 'number') ? o.total.toLocaleString() : '0';
+					const displayStatus = o.status || 'N/A';
+					const statusColor = getStatusColor(displayStatus);
+
+					return `
+					<tr>
+						<td style="font-size: 0.85rem; color: var(--text-muted);">${o.date || '-'}</td>
+						<td style="font-weight: 600;">${o.customerName || 'N/A'}</td>
+						<td>${o.staffName || '-'}</td>
+						<td style="font-weight: 800; color: var(--primary);">${displayTotal} ₫</td>
+						<td>
+							<span class="status-dot" style="background: ${statusColor}"></span>
+							${displayStatus}
+						</td>
+					</tr>
+				`}).join('');
+
+				if (result.orders.length > 500) {
+					tbody.innerHTML += `<tr><td colspan="5" style="text-align:center; color: var(--text-muted);">...và ${result.orders.length - 500} đơn khác...</td></tr>`;
+				}
+			}
+
+			// Render Customers Table
+			const custTbody = document.getElementById('customerReportTableBody');
+			if (!result.customers || result.customers.length === 0) {
+				custTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 40px; color: var(--text-muted);">Không có khách hàng mới nào.</td></tr>';
+			} else {
+				const displayCust = result.customers.slice(0, 500);
+				custTbody.innerHTML = displayCust.map(c => `
+					<tr>
+						<td style="font-size: 0.85rem; color: var(--text-muted);">${c.dateStr || '-'}</td>
+						<td style="color: var(--accent-purple); font-weight: bold; font-size: 0.8rem;">${c.id || '-'}</td>
+						<td style="font-weight: 600;">${c.name || 'N/A'}</td>
+						<td>${c.area || '-'}</td>
+						<td>${c.staffName || '-'}</td>
+					</tr>
+				`).join('');
+			}
+		}
+
+		function getStatusColor(status) {
+			switch (status.toLowerCase()) {
+				case 'đơn chốt': return '#6366f1';
+				case 'hoàn thành': return '#22c55e';
+				case 'đang xử lý': return '#fbbf24';
+				case 'đã hủy': return '#ef4444';
+				default: return '#94a3b8';
+			}
+		}
+
+		async function runWeeklyReportTest() {
+			if (!confirm("Hệ thống sẽ quét doanh thu 'Đơn chốt' tuần trước và gửi mail cho những người đã được cấu hình. Tiếp tục?")) return;
+
+			const btn = document.getElementById('btnWeeklyTest');
+			btn.disabled = true;
+			btn.innerHTML = "⌛ Đang xử lý...";
+
+			try {
+				const res = await fetch(MASTER_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('runWeeklyReports')
+				});
+				const data = await res.json();
+				if (data.success) {
+					showToast('✅ ' + data.message, 'success');
+				} else {
+					showToast('❌ Lỗi: ' + data.message, 'error');
+				}
+			} catch (e) {
+				showToast('❌ Lỗi kết nối Master!', 'error');
+			} finally {
+				btn.disabled = false;
+				btn.innerHTML = "🚀 Test Báo Cáo Tuần";
+			}
+		}
+
+		async function sendReport() {
+			const start = document.getElementById('reportStart').value;
+			const end = document.getElementById('reportEnd').value;
+			if (!start || !end) return showToast("Vui lòng chọn ngày", "error");
+
+			if (!confirm("Hệ thống sẽ tổng hợp báo cáo chi tiết và gửi email cho bạn. Xác nhận?")) return;
+
+			const btn = document.getElementById('btnSendReport');
+			const originalHTML = btn.innerHTML;
+			btn.disabled = true;
+			btn.innerHTML = "⌛ Đang gửi...";
+
+			try {
+				const res = await fetch(REPORT_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('sendReportByDate', {
+						startDate: start,
+						endDate: end,
+						requesterEmail: currentUser.email
+					})
+				});
+				const data = await res.json();
+				if (data.success) {
+					showToast('✅ ' + data.message, 'success');
+				} else {
+					showToast('❌ Lỗi: ' + data.message, 'error');
+				}
+			} catch (e) {
+				showToast('❌ Lỗi kết nối!', 'error');
+			} finally {
+				btn.disabled = false;
+				btn.innerHTML = originalHTML;
+			}
+		}
+		// ...
+
+		let allPermsCache = [];
+		let masterLogsCache = {}; // Lưu lịch sử khóa từ Super Admin
+
+		async function loadPermissions() {
+			try {
+				const response = await fetch(SCRIPT_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('get_phan_quyen', {
+						adminEmail: currentUser.adminEmail || currentUser.email
+					})
+				});
+				const data = await response.json();
+				if (data.success) {
+					allPermsCache = data.data;
+					masterLogsCache = data.masterLogs || {};
+
+					// UPDATE CURRENT USER FEATURES FROM SERVER
+					if (data.features) {
+						currentUser.features = data.features;
+						SecurityProvider.saveSession(currentUser, session.permissions);
+					}
+
+					renderPermissions(allPermsCache);
+				} else {
+					showToast('Lỗi tải quyền: ' + (data.message || 'Không có phản hồi'), 'error');
+				}
+			} catch (err) {
+				console.error("Failed to load permissions", err);
+				showToast('Lỗi kết nối tải quyền', 'error');
+			}
+		}
+
+		function renderPermissions(perms) {
+			const tbody = document.getElementById('permissionTableBody');
+			const f = currentUser.features || {};
+
+			// Update Header Tooltips based on masterLogs
+			const logMap = {
+				'mailStaff': ['th_mail_staff', 'lock_mail_staff'],
+				'mailAdmin': ['th_mail_admin', 'lock_mail_admin'],
+				'checkinMaster': ['th_checkin_summary', 'lock_checkin_summary'],
+				'debtMaster': ['th_cong_no', 'lock_cong_no'],
+				'hrMaster': ['th_hr_new', 'lock_hr_new'],
+				'priceAnalysisMaster': ['th_price_analysis', 'lock_price_analysis'],
+				'inventoryMaster': ['th_inventory', ''],
+				'warehouseMaster': ['th_warehouse', ''],
+				'deliveryMaster': ['th_delivery', '']
+			};
+
+			Object.keys(logMap).forEach(key => {
+				const [thId, lockId] = logMap[key];
+				const th = document.getElementById(thId);
+				const log = masterLogsCache[key];
+				if (th && f[key] === false) {
+					th.style.color = '#ef4444';
+					const lockIcon = document.getElementById(lockId);
+					if (lockIcon) lockIcon.className = 'fas fa-lock';
+					th.title = log ? `[KHÓA TỔNG] lúc ${log.time}\n${log.details}` : "Đã bị Khóa bởi Super Admin";
+				}
+			});
+
+			// Fix Special case for Check-in label colors
+			const labelCheckin = document.getElementById('label_checkin_summary');
+			if (labelCheckin) {
+				if (f.checkinMaster === false) {
+					labelCheckin.innerText = 'KHÓA';
+					labelCheckin.style.background = 'rgba(239, 68, 68, 0.2)';
+					labelCheckin.style.color = '#ef4444';
+				} else {
+					labelCheckin.innerText = 'MỞ';
+					labelCheckin.style.background = 'rgba(34, 197, 94, 0.2)';
+					labelCheckin.style.color = '#22c55e';
+				}
+			}
+
+			// HR New indicator logic
+			const labelHr = document.getElementById('label_hr_new');
+			if (labelHr) {
+				if (f.hrMaster === false) {
+					labelHr.innerText = 'KHÓA';
+					labelHr.style.background = 'rgba(239, 68, 68, 0.2)';
+					labelHr.style.color = '#ef4444';
+					const lockIcon = document.getElementById('lock_hr_new');
+					if (lockIcon) { lockIcon.style.opacity = '1'; lockIcon.style.color = '#ef4444'; }
+				} else {
+					labelHr.innerText = 'MỞ';
+					labelHr.style.background = 'rgba(34, 197, 94, 0.2)';
+					labelHr.style.color = '#22c55e';
+					const lockIcon = document.getElementById('lock_hr_new');
+					if (lockIcon) { lockIcon.style.opacity = '0.3'; lockIcon.style.color = 'inherit'; }
+				}
+			}
+
+			tbody.innerHTML = perms.map(p => {
+				const getLockInfo = (key) => {
+					const log = masterLogsCache[key];
+					if (f[key] === false) {
+						return log ? `[KHÓA TỔNG] lúc ${log.time}\n${log.details}` : "Bị khóa bởi Super Admin";
+					}
+					return "";
+				};
+				const isLocked = (key) => f[key] === false;
+
+				return `
+				<tr>
+					<td>
+						<div style="font-weight: 600;">${p.ten_vai_tro}</div>
+						<div style="font-size: 0.75rem; color: var(--accent-purple);">${p.id_vai_tro}</div>
+					</td>
+					<td style="font-size: 0.8rem; color: var(--text-muted);">${p.email_quan_ly === 'all' ? 'Toàn hệ thống' : p.email_quan_ly}</td>
+					<td style="text-align:center">
+						<label class="perm-toggle">
+							<input type="checkbox" id="v_${p.id_vai_tro}_${p.email_quan_ly}" ${p.checkin_sales ? 'checked' : ''} ${isLocked('crm') ? 'disabled' : ''}>
+							<span class="perm-slider" title="${getLockInfo('crm')}"></span>
+						</label>
+					</td>
+					<td style="text-align:center">
+						<label class="perm-toggle">
+							<input type="checkbox" id="c_${p.id_vai_tro}_${p.email_quan_ly}" ${p.quan_ly_san_pham ? 'checked' : ''} ${isLocked('prod') ? 'disabled' : ''}>
+							<span class="perm-slider" title="${getLockInfo('prod')}"></span>
+						</label>
+					</td>
+					<td style="text-align:center">
+						<label class="perm-toggle">
+							<input type="checkbox" id="d_${p.id_vai_tro}_${p.email_quan_ly}" ${p.danh_sach_don_hang ? 'checked' : ''} ${isLocked('order') ? 'disabled' : ''}>
+							<span class="perm-slider" title="${getLockInfo('order')}"></span>
+						</label>
+					</td>
+					<td style="text-align:center">
+						<label class="perm-toggle">
+							<input type="checkbox" id="m_${p.id_vai_tro}_${p.email_quan_ly}" ${p.quan_ly_nhan_vien ? 'checked' : ''} ${isLocked('hr') ? 'disabled' : ''}>
+							<span class="perm-slider" title="${getLockInfo('hr')}"></span>
+						</label>
+					</td>
+					<td style="text-align:center">
+						<label class="perm-toggle">
+							<input type="checkbox" id="x_${p.id_vai_tro}_${p.email_quan_ly}" ${p.xem_bang_gia ? 'checked' : ''} ${isLocked('price') ? 'disabled' : ''}>
+							<span class="perm-slider" title="${getLockInfo('price')}"></span>
+						</label>
+					</td>
+					<td style="text-align:center">
+						<label class="perm-toggle">
+							<input type="checkbox" id="k_${p.id_vai_tro}_${p.email_quan_ly}" ${p.quan_ly_kho ? 'checked' : ''}>
+							<span class="perm-slider"></span>
+						</label>
+					</td>
+					<td style="text-align:center">
+						<label class="perm-toggle">
+							<input type="checkbox" id="inv_${p.id_vai_tro}_${p.email_quan_ly}" ${p.nhap_kho ? 'checked' : ''} ${isLocked('inventoryMaster') ? 'disabled' : ''}>
+							<span class="perm-slider" title="${getLockInfo('inventoryMaster')}"></span>
+						</label>
+					</td>
+					<td style="text-align:center">
+						<label class="perm-toggle">
+							<input type="checkbox" id="wh_${p.id_vai_tro}_${p.email_quan_ly}" ${p.kho_xuat_hang ? 'checked' : ''} ${isLocked('warehouseMaster') ? 'disabled' : ''}>
+							<span class="perm-slider" title="${getLockInfo('warehouseMaster')}"></span>
+						</label>
+					</td>
+					<td style="text-align:center">
+						<label class="perm-toggle">
+							<input type="checkbox" id="dl_${p.id_vai_tro}_${p.email_quan_ly}" ${p.giao_hang ? 'checked' : ''} ${isLocked('deliveryMaster') ? 'disabled' : ''}>
+							<span class="perm-slider" title="${getLockInfo('deliveryMaster')}"></span>
+						</label>
+					</td>
+					<td style="text-align:center">
+						<label class="perm-toggle">
+							<input type="checkbox" id="ns_${p.id_vai_tro}_${p.email_quan_ly}" ${p.notify_staff ? 'checked' : ''} ${isLocked('mailStaff') ? 'disabled' : ''}>
+							<span class="perm-slider" title="${getLockInfo('mailStaff')}"></span>
+						</label>
+					</td>
+					<td style="text-align:center">
+						<label class="perm-toggle">
+							<input type="checkbox" id="na_${p.id_vai_tro}_${p.email_quan_ly}" ${p.notify_admin ? 'checked' : ''} ${isLocked('mailAdmin') ? 'disabled' : ''}>
+							<span class="perm-slider" title="${getLockInfo('mailAdmin')}"></span>
+						</label>
+					</td>
+					<td style="text-align:center">
+						<label class="perm-toggle">
+							<input type="checkbox" id="cs_${p.id_vai_tro}_${p.email_quan_ly}" ${p.checkin_summary ? 'checked' : ''} ${isLocked('checkinMaster') ? 'disabled' : ''}>
+							<span class="perm-slider" title="${getLockInfo('checkinMaster')}"></span>
+						</label>
+					</td>
+					<td style="text-align:center">
+						<label class="perm-toggle">
+							<input type="checkbox" id="cn_${p.id_vai_tro}_${p.email_quan_ly}" ${p.quan_ly_cong_no ? 'checked' : ''} ${isLocked('debtMaster') ? 'disabled' : ''}>
+							<span class="perm-slider" title="${getLockInfo('debtMaster')}"></span>
+						</label>
+					</td>
+
+					<td style="text-align:center">
+						<label class="perm-toggle">
+							<input type="checkbox" id="hrn_${p.id_vai_tro}_${p.email_quan_ly}" ${p.quan_ly_nhan_su ? 'checked' : ''} ${isLocked('hrMaster') ? 'disabled' : ''}>
+							<span class="perm-slider" title="${getLockInfo('hrMaster')}"></span>
+						</label>
+					</td>
+					<td style="text-align:center">
+						<label class="perm-toggle">
+							<input type="checkbox" id="mu_${p.id_vai_tro}_${p.email_quan_ly}" ${p.price_analysis ? 'checked' : ''} ${isLocked('priceAnalysisMaster') ? 'disabled' : ''}>
+							<span class="perm-slider" title="${getLockInfo('priceAnalysisMaster')}"></span>
+						</label>
+					</td>
+					<td style="text-align:center">
+						<label class="perm-toggle">
+							<input type="checkbox" id="pf_${p.id_vai_tro}_${p.email_quan_ly}" ${p.profit_analysis ? 'checked' : ''} ${isLocked('profitMaster') ? 'disabled' : ''}>
+							<span class="perm-slider" title="${getLockInfo('profitMaster')}"></span>
+						</label>
+					</td>
+					<td style="text-align:center">
+						<label class="perm-toggle">
+							<input type="checkbox" id="hrs_${p.id_vai_tro}_${p.email_quan_ly}" ${p.hr_setup ? 'checked' : ''} ${isLocked('hrMaster') ? 'disabled' : ''}>
+							<span class="perm-slider" title="${getLockInfo('hrMaster')}"></span>
+						</label>
+					</td>
+					<td style="text-align:center">
+						<label class="perm-toggle">
+							<input type="checkbox" id="tsp_${p.id_vai_tro}_${p.email_quan_ly}" ${p.tra_cuu_san_pham ? 'checked' : ''}>
+							<span class="perm-slider"></span>
+						</label>
+					</td>
+					<td style="text-align:center">
+						<button class="btn-edit" onclick="savePerm('${p.id_vai_tro}', '${p.ten_vai_tro}', '${p.email_quan_ly}', this)">LƯU</button>
+					</td>
+				</tr>
+				`}).join('');
+
+			updateCheckinMenuVisibility(perms);
+		}
+
+		function updateCheckinMenuVisibility(perms) {
+			const f = currentUser.features || {};
+			const adminPerm = perms.find(p => p.id_vai_tro === 'R001');
+			const btn = document.getElementById('nav_checkin');
+			if (!btn) return;
+
+			// Nút bị ẩn nếu: Master Lock bị đóng HOẶC quyền Admin bị tắt
+			if (f.checkinMaster === false || (adminPerm && adminPerm.checkin_summary === false)) {
+				btn.style.display = 'none';
+			} else {
+				btn.style.display = 'inline-block';
+			}
+		}
+
+		async function savePerm(roleId, name, emailAdmin, btn) {
+			const payload = {
+				action: 'save_phan_quyen',
+				id_vai_tro: roleId,
+				ten_vai_tro: name,
+				email_quan_ly: emailAdmin,
+				checkin_sales: document.getElementById(`v_${roleId}_${emailAdmin}`).checked,
+				quan_ly_san_pham: document.getElementById(`c_${roleId}_${emailAdmin}`).checked,
+				danh_sach_don_hang: document.getElementById(`d_${roleId}_${emailAdmin}`).checked,
+				quan_ly_nhan_vien: document.getElementById(`m_${roleId}_${emailAdmin}`).checked,
+				xem_bang_gia: document.getElementById(`x_${roleId}_${emailAdmin}`).checked,
+				quan_ly_kho: document.getElementById(`k_${roleId}_${emailAdmin}`).checked,
+				nhap_kho: document.getElementById(`inv_${roleId}_${emailAdmin}`).checked,
+				kho_xuat_hang: document.getElementById(`wh_${roleId}_${emailAdmin}`).checked,
+				giao_hang: document.getElementById(`dl_${roleId}_${emailAdmin}`).checked,
+				notify_staff: document.getElementById(`ns_${roleId}_${emailAdmin}`).checked,
+				notify_admin: document.getElementById(`na_${roleId}_${emailAdmin}`).checked,
+				checkin_summary: document.getElementById(`cs_${roleId}_${emailAdmin}`).checked,
+				quan_ly_cong_no: document.getElementById(`cn_${roleId}_${emailAdmin}`).checked,
+				tao_san_pham: document.getElementById(`c_${roleId}_${emailAdmin}`).checked,
+
+				quan_ly_nhan_su: document.getElementById(`hrn_${roleId}_${emailAdmin}`).checked,
+				price_analysis: document.getElementById(`mu_${roleId}_${emailAdmin}`).checked,
+				profit_analysis: document.getElementById(`pf_${roleId}_${emailAdmin}`).checked,
+				hr_setup: document.getElementById(`hrs_${roleId}_${emailAdmin}`).checked,
+				tra_cuu_san_pham: document.getElementById(`tsp_${roleId}_${emailAdmin}`).checked
+			};
+
+			const originalHtml = btn.innerHTML;
+			btn.disabled = true;
+			btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> LƯU...';
+			showLoader(true);
+
+			try {
+				const response = await fetch(SCRIPT_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('save_phan_quyen', payload)
+				});
+				const data = await response.json();
+				if (data.success) {
+					showToast('Đã lưu quyền thành công!', 'success');
+					// Nếu Admin đang sửa cho chính Role của mình, hãy cập nhật LocalStorage ngay để thấy thay đổi ở Menu
+					if (roleId === currentUser.roleId) {
+						const updatedPerms = {
+							checkinSales: payload.checkin_sales,
+							quanLySanPham: payload.quan_ly_san_pham,
+							danhSachDonHang: payload.danh_sach_don_hang,
+							quanLyNhanVien: payload.quan_ly_nhan_vien,
+							xemBangGia: payload.xem_bang_gia,
+							quanLyKho: payload.quan_ly_kho,
+							checkinSummary: payload.checkin_summary,
+							quanLyCongNo: payload.quan_ly_cong_no,
+							taoSanPham: payload.tao_san_pham,
+
+							quanLyNhanSu: payload.quan_ly_nhan_su,
+							priceAnalysis: payload.price_analysis,
+							hrSetup: payload.hr_setup,
+							traCuuSanPham: payload.tra_cuu_san_pham
+						};
+						localStorage.setItem('permissions', JSON.stringify(updatedPerms));
+					}
+					showToast('Đã lưu quyền thành công! Hệ thống sẽ tải lại...', 'success');
+					setTimeout(() => {
+						window.location.reload();
+					}, 1000);
+				} else {
+					showToast(data.message, 'error');
+				}
+			} catch (err) {
+				showToast('Lỗi kết nối', 'error');
+			} finally {
+				showLoader(false);
+				btn.disabled = false;
+				btn.innerHTML = originalHtml;
+			}
+		}
+
+		async function loadRoles() {
+			try {
+				const response = await fetch(SCRIPT_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('getRoles')
+				});
+				const data = await response.json();
+				if (data.success && data.roles && data.roles.length > 0) {
+					const options = data.roles.map(r =>
+						`<option value="${r.id}">${r.name}</option>`
+					).join('');
+
+					document.getElementById('roleSelect').innerHTML = options;
+					document.getElementById('newRoleSelect').innerHTML = options;
+				} else {
+					console.warn("No roles found in sheet, using default list.", data.message);
+					const defaults = [
+						{ id: 'R001', name: 'Admin' }, // Added Admin to default list
+						{ id: 'R002', name: 'Sale' },
+						{ id: 'R003', name: 'Kho' },
+						{ id: 'R004', name: 'Kế toán' },
+						{ id: 'R005', name: 'Khách' }
+					];
+					const options = defaults.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+					document.getElementById('roleSelect').innerHTML = options;
+					document.getElementById('newRoleSelect').innerHTML = options;
+				}
+			} catch (err) {
+				console.error("Failed to load roles from API", err);
+				showToast('Lỗi tải danh sách Vai trò', 'error');
+			}
+		}
+
+		async function syncSystem() {
+			if (!confirm("Bạn có muốn đồng bộ lại cấu trúc Sheet và các vai trò mặc định không?")) return;
+			showLoader(true);
+			try {
+				const response = await fetch(SCRIPT_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('setup')
+				});
+				const data = await response.json();
+				if (data.success) {
+					showToast('Đã đồng bộ hệ thống thành công!', 'success');
+					loadRoles(); // Reload list
+				}
+			} catch (err) {
+				showToast('Lỗi đồng bộ', 'error');
+			} finally {
+				showLoader(false);
+			}
+		}
+
+		async function loadUsers() {
+			showLoader(true);
+			try {
+				const isDunvexMaster = currentUser.email.toLowerCase().includes('dunvex');
+				const targetUrl = isDunvexMaster ? MASTER_URL : SCRIPT_URL;
+				const action = isDunvexMaster ? 'getMasterAllAccounts' : 'getUsers';
+
+				const response = await fetch(targetUrl, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest(action, {
+						adminEmail: currentUser.email
+					})
+				});
+				const data = await response.json();
+
+				if (data.success) {
+					allUsersCache = data.users; // Save for report filter
+					renderUsers(data.users);
+				} else {
+					showToast('Lỗi tải danh sách người dùng', 'error');
+				}
+			} catch (err) {
+				showToast('Lỗi kết nối máy chủ', 'error');
+			} finally {
+				showLoader(false);
+			}
+		}
+
+		function renderUsers(users) {
+			const tbody = document.getElementById('userTableBody');
+
+			if (!users || users.length === 0) {
+				tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 40px; color: var(--text-muted);">Không tìm thấy tài khoản nào.</td></tr>`;
+				return;
+			}
+
+			tbody.innerHTML = users.map(user => `
+				<tr>
+                    <td style="color: var(--accent-purple); font-weight: bold; font-size: 0.8rem;">${user.id || '...'}</td>
+                    <td style="font-weight: 600;">${user.fullName}</td>
+                    <td style="color: var(--text-muted); font-size: 0.85rem;">${user.email}</td>
+                    <td>
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <span style="font-size: 0.85rem; color: var(--primary); font-weight: 600;">
+                                ${(!user.owner || user.owner === 'all') ? 'Toàn hệ thống' : user.owner.split(',').map(m => m.split('@')[0]).join(', ')}
+                            </span>
+                            <small style="font-size: 0.7rem; color: var(--text-muted); font-style: italic;">(Nhóm nhận báo cáo)</small>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="status-dot ${user.status === 'Hoạt động' ? 'status-active' : 'status-locked'}"></span>
+                        ${user.status}
+                    </td>
+                    <td>
+                        ${user.email !== currentUser.email ? `
+                            <button class="btn-edit" onclick="quickEdit('${user.email}', '${user.roleId}')">Sửa Quyền</button>
+                            <button class="btn-edit" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2); margin-left: 5px;" onclick="deleteUser('${user.email}')">Xóa</button>
+                        ` : '<span style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">(Tài khoản của bạn)</span>'}
+                    </td>
+                </tr>
+				`).join('');
+		}
+
+		function getRoleDisplayName(roleId) {
+			const names = {
+				'R001': 'ADMIN',
+				'R002': 'SALE',
+				'R003': 'KHO',
+				'R004': 'KẾ TOÁN',
+				'R005': 'GUEST'
+			};
+			return names[roleId] || roleId;
+		}
+
+		function cleanOwner(ownerText) {
+			// (Hàm này đã được tự động hóa bên trong renderUsers, giữ lại rỗng để tránh lỗi nếu có nơi nào gọi tạm)
+			return ownerText;
+		}
+
+		function quickEdit(email, roleId) {
+			document.getElementById('targetEmail').value = email;
+			document.getElementById('roleSelect').value = roleId;
+			// Scroll to the update form
+			document.getElementById('updateRoleForm').scrollIntoView({ behavior: 'smooth' });
+			// Highlight the input briefly
+			const input = document.getElementById('targetEmail');
+			input.style.borderColor = 'var(--primary)';
+			setTimeout(() => input.style.borderColor = '', 1000);
+		}
+
+		document.getElementById('createUserForm').addEventListener('submit', async (e) => {
+			e.preventDefault();
+			const fullName = document.getElementById('newFullName').value;
+			const email = document.getElementById('newEmail').value;
+			const roleId = document.getElementById('newRoleSelect').value;
+
+			showLoader(true);
+			try {
+				const response = await fetch(SCRIPT_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('createUser', {
+						fullName: fullName,
+						email: email,
+						roleId: roleId,
+						adminEmail: currentUser.email
+					})
+				});
+				const data = await response.json();
+
+				if (data.success) {
+					showToast('Đã tạo nhân viên thành công!', 'success');
+					loadUsers();
+					document.getElementById('createUserForm').reset();
+				} else {
+					showToast(data.message, 'error');
+				}
+			} catch (err) {
+				showToast('Lỗi kết nối máy chủ', 'error');
+			} finally {
+				showLoader(false);
+			}
+		});
+
+		document.getElementById('updateRoleForm').addEventListener('submit', async (e) => {
+			e.preventDefault();
+			const targetEmail = document.getElementById('targetEmail').value;
+			const newRoleId = document.getElementById('roleSelect').value;
+
+			showLoader(true);
+			try {
+				const response = await fetch(SCRIPT_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('updateRole', {
+						userEmail: targetEmail,
+						newRoleId: newRoleId,
+						adminEmail: currentUser.email
+					})
+				});
+				const data = await response.json();
+
+				if (data.success) {
+					showToast('Đã cập nhật vai trò thành công', 'success');
+					loadUsers(); // Refresh list
+					document.getElementById('updateRoleForm').reset();
+				} else {
+					showToast(data.message, 'error');
+				}
+			} catch (err) {
+				showToast('Lỗi kết nối máy chủ', 'error');
+			} finally {
+				showLoader(false);
+			}
+		});
+
+		async function deleteUser(email) {
+			if (!confirm(`Bạn có chắc chắn muốn XÓA nhân viên ${email} khỏi hệ thống ?\nDữ liệu này không thể khôi phục và tài khoản này sẽ mất quyền truy cập ngay lập tức.`)) return;
+
+			showLoader(true);
+			try {
+				const response = await fetch(SCRIPT_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('deleteUser', {
+						userEmail: email,
+						adminEmail: currentUser.email
+					})
+				});
+				const data = await response.json();
+				if (data.success) {
+					showToast('Đã xóa nhân viên thành công!', 'success');
+					loadUsers();
+				} else {
+					showToast(data.message, 'error');
+				}
+			} catch (err) {
+				showToast('Lỗi kết nối', 'error');
+			} finally {
+				showLoader(false);
+			}
+		}
+
+		function showToast(msg, type) {
+			const toast = document.getElementById('toast');
+			toast.innerText = msg;
+			toast.style.borderLeft = type === 'success' ? '4px solid #22c55e' : '4px solid #ef4444';
+			toast.classList.add('show');
+			setTimeout(() => toast.classList.remove('show'), 3000);
+		}
+
+		function showLoader(show) {
+			document.getElementById('loader').style.display = show ? 'flex' : 'none';
+		}
+
+		function logout() {
+			localStorage.clear();
+			window.location.href = 'auth.html';
+		}
+	</script>
+	<script src="chatbot.js"></script>
+	<script src="floating-menu.js"></script>
+</body>
+
+</html>

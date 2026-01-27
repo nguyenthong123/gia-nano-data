@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Dunvex | Phân Tích & Định Giá Thông Minh</title>
+	<link rel="icon" type="image/svg+xml"
+		href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23FACC15'/><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' fill='white' font-size='60' font-family='sans-serif' font-weight='800'>DV</text></svg>">
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;800&display=swap"
+		rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+	<script src="security-utils.js"></script>
+	<script src="assets/theme-toggle.js"></script>
+	<script>
+		const session = SecurityProvider.validateAccess();
+		const currentUser = session ? session.user : null;
+	</script>
+
+	<!-- Libraries -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<link rel="stylesheet" href="assets/theme.css">
+
+	<style>
+		/* Variables now handled in theme.css */
+
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			font-family: 'Inter', sans-serif;
+		}
+
+		body {
+			/* Min-height and general styles from theme.css */
+			min-height: 100vh;
+			padding-top: 80px;
+			/* Space for fixed nav */
+		}
+
+		/* Reusing Nav from Index */
+		nav {
+			position: fixed;
+			top: 0;
+			width: 100%;
+			padding: 20px 5%;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			z-index: 1000;
+			background: white;
+			border-bottom: 2px solid #e2e8f0;
+			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+		}
+
+		.logo-box {
+			font-weight: 800;
+			font-size: 1.5rem;
+			letter-spacing: -1px;
+			color: #0f172a;
+			font-family: 'Outfit', sans-serif;
+		}
+
+		.logo-box span {
+			background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+			background-clip: text;
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+		}
+
+		.nav-actions .btn-glass {
+			background: var(--card-bg);
+			border: 1px solid var(--glass-border);
+			color: var(--text-main);
+			padding: 8px 20px;
+			border-radius: 12px;
+			text-decoration: none;
+			font-weight: 600;
+			font-size: 0.9rem;
+			transition: 0.3s;
+		}
+
+		.nav-actions .btn-glass:hover {
+			background: rgba(var(--primary), 0.1);
+		}
+
+		/* Main Config */
+		.container {
+			max-width: 1400px;
+			margin: 40px auto;
+			padding: 0 5%;
+		}
+
+		.section-header {
+			margin-bottom: 30px;
+			text-align: center;
+		}
+
+		.section-header h1 {
+			font-size: 2.5rem;
+			font-weight: 800;
+			margin-bottom: 10px;
+			color: #0f172a;
+			font-family: 'Outfit', sans-serif;
+		}
+
+		.section-header p {
+			color: #64748b;
+			font-weight: 600;
+		}
+
+		/* Cards */
+		.glass-card {
+			background: white;
+			border: 1px solid #e2e8f0;
+			border-radius: 24px;
+			padding: 30px;
+			margin-bottom: 30px;
+			transition: 0.3s;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+		}
+
+		.glass-card:hover {
+			border-color: var(--primary-light);
+		}
+
+		/* Input Zone */
+		.input-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 30px;
+		}
+
+		.drop-zone {
+			border: 2.5px dashed #cbd5e1;
+			border-radius: 16px;
+			padding: 40px;
+			text-align: center;
+			color: #64748b;
+			cursor: pointer;
+			transition: 0.3s;
+			height: 100%;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			background: #f8fafc;
+		}
+
+		.drop-zone:hover,
+		.drop-zone.dragover {
+			border-color: var(--primary);
+			background: rgba(99, 102, 241, 0.1);
+		}
+
+		.drop-zone i {
+			font-size: 3rem;
+			margin-bottom: 15px;
+			color: var(--primary);
+		}
+
+		.url-input-box {
+			display: flex;
+			flex-direction: column;
+			gap: 15px;
+			justify-content: center;
+		}
+
+		input[type="text"] {
+			background: white !important;
+			border: 1.5px solid #cbd5e1 !important;
+			padding: 15px;
+			border-radius: 12px;
+			color: #0f172a !important;
+			width: 100%;
+			outline: none;
+			transition: 0.3s;
+			font-size: 1rem;
+			font-weight: 600;
+		}
+
+		input[type="text"]:focus {
+			border-color: var(--primary) !important;
+			box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.15);
+		}
+
+		.btn-action {
+			background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+			border: none;
+			color: white;
+			padding: 15px 30px;
+			border-radius: 12px;
+			font-weight: 700;
+			cursor: pointer;
+			transition: 0.3s;
+			display: inline-flex;
+			align-items: center;
+			gap: 10px;
+			justify-content: center;
+		}
+
+		.btn-action:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+		}
+
+		.btn-action:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+			transform: none;
+		}
+
+		/* Data Preview Table */
+		.table-container {
+			overflow-x: auto;
+			max-height: 450px;
+			margin-top: 20px;
+			border-radius: 20px;
+			border: 1px solid #e2e8f0;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			background: white;
+		}
+
+		table {
+			width: 100%;
+			border-collapse: separate;
+			border-spacing: 0;
+			font-size: 0.9rem;
+		}
+
+		th,
+		td {
+			padding: 14px 16px;
+			text-align: left;
+			border-bottom: 1px solid #f1f5f9;
+			white-space: nowrap;
+			vertical-align: middle;
+		}
+
+		th {
+			background: #f8fafc;
+			position: sticky;
+			top: 0;
+			color: #0f172a;
+			font-weight: 800;
+			white-space: normal;
+			min-width: 120px;
+			word-wrap: break-word;
+			line-height: 1.4;
+			border-bottom: 2px solid #e2e8f0;
+			z-index: 10;
+			text-transform: uppercase;
+			font-size: 0.75rem;
+		}
+
+		tr:hover td {
+			background: #f8fafc;
+		}
+
+		/* Enhanced Controls Bar */
+		.controls-bar {
+			display: flex;
+			gap: 25px;
+			flex-wrap: wrap;
+			margin: 25px 0;
+			padding: 20px;
+			background: #f8fafc;
+			border-radius: 16px;
+			border: 1px solid #e2e8f0;
+			align-items: center;
+		}
+
+		.toggle-label {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			color: #334155;
+			cursor: pointer;
+			font-weight: 600;
+			font-size: 0.9rem;
+			transition: 0.2s;
+		}
+
+		.toggle-label:hover {
+			color: #4f46e5;
+		}
+
+		.toggle-switch {
+			width: 44px;
+			height: 22px;
+			background: #cbd5e1;
+			border-radius: 20px;
+			position: relative;
+			transition: 0.3s;
+		}
+
+		input[type="checkbox"]:checked+.toggle-switch {
+			background: #4f46e5;
+		}
+
+		.toggle-switch::after {
+			content: '';
+			position: absolute;
+			left: 3px;
+			top: 3px;
+			width: 16px;
+			height: 16px;
+			background: white;
+			border-radius: 50%;
+			transition: 0.3s;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		}
+
+		input[type="checkbox"]:checked+.toggle-switch::after {
+			transform: translateX(22px);
+		}
+
+		/* Premium Tabs Navigation */
+		.tabs-nav {
+			display: flex;
+			gap: 8px;
+			margin-bottom: 25px;
+			background: #f1f5f9;
+			padding: 6px;
+			border-radius: 14px;
+			width: fit-content;
+		}
+
+		.tab-btn {
+			padding: 12px 28px;
+			border-radius: 10px;
+			border: none;
+			background: transparent;
+			color: #64748b;
+			font-weight: 700;
+			cursor: pointer;
+			transition: 0.3s;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+		}
+
+		.tab-btn.active {
+			background: white;
+			color: #0f172a;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+		}
+
+		.tab-btn:hover:not(.active) {
+			background: rgba(255, 255, 255, 0.5);
+			color: #0f172a;
+		}
+
+		/* Price Actions Bar (Selector Buttons) */
+		.price-actions-bar {
+			display: flex;
+			gap: 12px;
+			margin-bottom: 20px;
+			flex-wrap: wrap;
+		}
+
+		.btn-price-type {
+			background: white;
+			border: 1.5px solid #e2e8f0;
+			color: #475569;
+			padding: 10px 20px;
+			border-radius: 12px;
+			font-size: 0.85rem;
+			font-weight: 700;
+			cursor: pointer;
+			transition: 0.2s;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+		}
+
+		.btn-price-type.active {
+			background: #4f46e5;
+			border-color: #4f46e5;
+			color: white;
+			box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+		}
+
+		.btn-price-type:hover:not(.active) {
+			border-color: #4f46e5;
+			color: #4f46e5;
+			background: #f5f3ff;
+		}
+
+		/* Net Table Specifics - Specialized for Field Negotiation */
+		.net-table-container {
+			max-height: 75vh;
+			overflow: auto;
+			border-radius: 20px;
+			border: 1px solid #e2e8f0;
+			box-shadow: 0 12px 40px rgba(15, 23, 42, 0.12);
+			background: white;
+			margin-top: 15px;
+		}
+
+		.net-table th {
+			background: #1e293b;
+			color: #f8fafc;
+			font-size: 0.75rem;
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			padding: 16px 12px;
+			font-weight: 800;
+			z-index: 50;
+			border-bottom: 2px solid #334155;
+		}
+
+		.net-table td {
+			padding: 14px 12px;
+			border-bottom: 1px solid #f1f5f9;
+			font-size: 0.85rem;
+			color: #334155;
+			font-weight: 600;
+		}
+
+		/* Sticky Column for Product Name - Crucial for Mobile Negotiation */
+		.net-table .sticky-col {
+			position: sticky;
+			left: 0;
+			z-index: 40;
+			background: white;
+			border-right: 2px solid #f1f5f9 !important;
+		}
+
+		.net-table th.sticky-col {
+			z-index: 60;
+			background: #1e293b;
+		}
+
+		.net-table td.sticky-col {
+			white-space: normal;
+			min-width: 150px;
+			max-width: 220px;
+			line-height: 1.4;
+			font-weight: 800;
+			color: #0f172a;
+		}
+
+		.net-table tr:hover td.sticky-col {
+			background: #f8fafc;
+		}
+
+		.price-cell {
+			font-family: 'Outfit', sans-serif !important;
+			font-weight: 800 !important;
+			color: #4f46e5 !important;
+			text-align: right !important;
+			background: #fdfdfd;
+		}
+
+		.price-tag {
+			background: #e0e7ff;
+			color: #4338ca;
+			padding: 3px 8px;
+			border-radius: 6px;
+			font-size: 0.65rem;
+			margin-right: 8px;
+			font-weight: 800;
+		}
+
+		/* Visualization Grid */
+		.viz-grid {
+			display: grid;
+			grid-template-columns: 2.5fr 1fr;
+			gap: 30px;
+			margin-top: 30px;
+		}
+
+		.chart-box {
+			height: 500px;
+			position: relative;
+		}
+
+		.side-panel {
+			display: flex;
+			flex-direction: column;
+			gap: 20px;
+		}
+
+		.stat-card {
+			background: white;
+			padding: 20px;
+			border-radius: 16px;
+			border: 1px solid #e2e8f0;
+			box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+		}
+
+		.stat-val {
+			font-size: 1.8rem;
+			font-weight: 800;
+			color: var(--accent-blue);
+			margin: 5px 0;
+		}
+
+		.stat-label {
+			font-size: 0.9rem;
+			color: var(--text-muted);
+		}
+
+		.saved-list {
+			max-height: 400px;
+			overflow-y: auto;
+		}
+
+		.saved-item {
+			padding: 15px;
+			border-radius: 12px;
+			background: #f8fafc;
+			margin-bottom: 10px;
+			cursor: pointer;
+			transition: 0.2s;
+			border: 1.5px solid #e2e8f0;
+			color: #1e293b;
+		}
+
+		.saved-item:hover {
+			border-color: var(--primary);
+			background: white;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+		}
+
+		.saved-item h4 {
+			font-size: 0.95rem;
+			margin-bottom: 4px;
+		}
+
+		.saved-item span {
+			font-size: 0.8rem;
+			color: var(--text-muted);
+		}
+
+		.loading-overlay {
+			position: fixed;
+			inset: 0;
+			background: rgba(15, 23, 42, 0.9);
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			z-index: 2000;
+			flex-direction: column;
+			gap: 20px;
+		}
+
+		.spinner {
+			width: 50px;
+			height: 50px;
+			border: 4px solid var(--glass-border);
+			border-top-color: var(--primary);
+			border-radius: 50%;
+			animation: spin 1s linear infinite;
+		}
+
+		@keyframes spin {
+			to {
+				transform: rotate(360deg);
+			}
+		}
+
+		.hidden {
+			display: none !important;
+		}
+
+		@media (max-width: 900px) {
+
+			.input-grid,
+			.viz-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		@media (max-width: 600px) {
+			nav {
+				padding: 10px 15px;
+				height: 60px;
+			}
+
+			body {
+				padding-top: 60px;
+			}
+
+			.logo-box {
+				font-size: 1rem;
+			}
+
+			.logo-box span {
+				display: block;
+				font-size: 0.7rem;
+				margin-bottom: -5px;
+			}
+
+			.nav-actions .btn-glass {
+				padding: 8px 12px;
+				font-size: 0.75rem;
+				border-radius: 10px;
+			}
+
+			.container {
+				padding: 0 12px;
+				margin: 15px auto;
+			}
+
+			.section-header h1 {
+				font-size: 1.6rem;
+				letter-spacing: -0.5px;
+			}
+
+			.section-header p {
+				font-size: 0.85rem;
+			}
+
+			.glass-card {
+				padding: 18px 12px;
+				border-radius: 18px;
+				margin-bottom: 20px;
+			}
+
+			.btn-action {
+				width: 100%;
+				padding: 14px 20px;
+				font-size: 0.95rem;
+			}
+
+			/* Better Summary Table for Mobile */
+			.summary-table-container th:nth-child(2),
+			.summary-table-container td:nth-child(2),
+			.summary-table-container th:nth-child(3),
+			.summary-table-container td:nth-child(3) {
+				display: none;
+				/* Hide creator and date on tiny screens to avoid squishing */
+			}
+
+			.summary-table-container td {
+				padding: 12px 8px;
+				font-size: 0.85rem;
+			}
+
+			/* Fix Buttons in Step 3 Header */
+			#stepViz>div:first-child {
+				flex-direction: column;
+				align-items: stretch !important;
+				gap: 12px;
+			}
+
+			#stepViz>div:first-child h2 {
+				font-size: 1.2rem;
+			}
+
+			#stepViz>div:first-child div {
+				width: 100%;
+				display: grid !important;
+				grid-template-columns: 1fr 1fr;
+				gap: 8px;
+			}
+
+			/* Tabs responsive */
+			.tabs-nav {
+				width: 100%;
+				overflow-x: auto;
+				padding: 4px;
+				display: flex;
+				scrollbar-width: none;
+			}
+
+			.tabs-nav::-webkit-scrollbar {
+				display: none;
+			}
+
+			.tab-btn {
+				flex: 1;
+				min-width: 140px;
+				padding: 10px 12px;
+				font-size: 0.8rem;
+				justify-content: center;
+			}
+
+			/* Price Column Selectors */
+			.price-actions-bar {
+				overflow-x: auto;
+				white-space: nowrap;
+				flex-wrap: nowrap;
+				padding-bottom: 8px;
+				margin-bottom: 15px;
+				scrollbar-width: none;
+			}
+
+			.price-actions-bar::-webkit-scrollbar {
+				display: none;
+			}
+
+			.btn-price-type {
+				padding: 8px 14px;
+				font-size: 0.8rem;
+			}
+
+			/* Stat Cards */
+			.viz-grid {
+				gap: 12px;
+			}
+
+			.chart-box {
+				height: 300px;
+				margin-bottom: 10px;
+			}
+
+			.side-panel {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 10px;
+			}
+
+			.stat-card {
+				padding: 12px;
+			}
+
+			.stat-val {
+				font-size: 1.25rem;
+			}
+
+			.stat-label {
+				font-size: 0.75rem;
+			}
+
+			/* Table Styles for Mobile */
+			.net-table th {
+				font-size: 0.7rem;
+				padding: 12px 8px;
+				min-width: 80px;
+			}
+
+			.net-table td {
+				padding: 10px 8px;
+				font-size: 0.8rem;
+			}
+
+			.net-table .sticky-col {
+				min-width: 110px;
+				max-width: 140px;
+				font-size: 0.8rem;
+			}
+
+			.price-cell {
+				font-size: 0.9rem !important;
+			}
+
+			.price-tag {
+				padding: 2px 4px;
+				font-size: 0.6rem;
+				margin-right: 4px;
+			}
+		}
+
+		/* Column selection chips */
+		.col-chip {
+			padding: 6px 14px;
+			border-radius: 20px;
+			background: #f1f5f9;
+			border: 1.5px solid #cbd5e1;
+			color: #475569;
+			font-size: 0.8rem;
+			font-weight: 600;
+			cursor: pointer;
+			transition: 0.2s;
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			user-select: none;
+		}
+
+		.col-chip.active {
+			background: rgba(99, 102, 241, 0.1);
+			border-color: var(--primary);
+			color: #0f172a;
+		}
+
+		.col-chip:hover {
+			border-color: var(--primary);
+		}
+
+		.col-chip i {
+			font-size: 0.7rem;
+		}
+
+		.config-label {
+			font-size: 0.75rem;
+			text-transform: uppercase;
+			color: var(--text-muted);
+			font-weight: 800;
+			margin-bottom: 8px;
+			display: block;
+			letter-spacing: 0.5px;
+		}
+
+		/* Portfolio Summary Table */
+		.summary-table-container {
+			margin-top: 15px;
+			max-height: 350px;
+			overflow-y: auto;
+		}
+
+		.analysis-tag {
+			padding: 4px 10px;
+			border-radius: 6px;
+			font-size: 0.7rem;
+			font-weight: 700;
+			text-transform: uppercase;
+		}
+
+		.tag-excel {
+			background: rgba(16, 185, 129, 0.2);
+			color: #10b981;
+		}
+
+		.tag-sheet {
+			background: rgba(56, 189, 248, 0.2);
+			color: #38bdf8;
+		}
+
+		.btn-view-sm {
+			padding: 6px 14px;
+			border-radius: 8px;
+			font-size: 0.8rem;
+			background: var(--primary);
+			color: white;
+			border: none;
+			cursor: pointer;
+			transition: 0.2s;
+		}
+
+		.btn-delete-sm {
+			padding: 6px 14px;
+			border-radius: 8px;
+			font-size: 0.8rem;
+			background: rgba(239, 68, 68, 0.1);
+			color: #ef4444;
+			border: 1px solid rgba(239, 68, 68, 0.2);
+			cursor: pointer;
+			transition: 0.2s;
+			margin-left: 5px;
+		}
+
+		.btn-delete-sm:hover {
+			background: rgba(239, 68, 68, 0.2);
+			border-color: #ef4444;
+		}
+	</style>
+</head>
+
+<body>
+
+	<nav>
+		<div class="logo-box">
+			<span>DUNVEX</span> PRICE ANALYZER
+		</div>
+		<div class="nav-actions">
+			<a href="index.html" class="btn btn-glass">
+				<i class="fa-solid fa-house"></i> Trang chủ
+			</a>
+		</div>
+	</nav>
+
+	<div class="container">
+
+		<header class="section-header">
+			<h1>Phân Tích & Định Giá Thông Minh</h1>
+			<p>Nhập dữ liệu từ Excel hoặc Google Sheet để tự động phân tích và trực quan hóa.</p>
+		</header>
+
+		<!-- SUMMARY PORTFOLIO (NEW) -->
+		<div class="glass-card" id="summarPortfolio">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+				<h2 style="display: flex; align-items: center; gap: 10px;">🗂️ Danh Mục Phân Tích Tổng Hợp</h2>
+				<button class="btn-glass" onclick="loadSavedAnalyses()" style="font-size: 0.8rem; padding: 6px 12px;">
+					🔄 Làm mới
+				</button>
+			</div>
+			<div class="summary-table-container">
+				<table>
+					<thead>
+						<tr>
+							<th>Tên Bản Phân Tích</th>
+							<th>Người Tạo</th>
+							<th>Ngày Giờ</th>
+							<th>Nguồn</th>
+							<th style="text-align: center;">Thao Tác</th>
+						</tr>
+					</thead>
+					<tbody id="summaryTableBody">
+						<tr>
+							<td colspan="5" style="text-align:center; padding: 40px; color: var(--text-muted);">Đang tải
+								dữ liệu...</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+
+		<!-- STEP 1: INPUT -->
+		<div class="glass-card" id="stepInput">
+			<h2 style="margin-bottom: 20px;">1. Nhập Dữ Liệu Nguồn</h2>
+			<div class="input-grid">
+				<div class="drop-zone" id="dropZone">
+					<div style="font-size: 3rem;">📂</div>
+					<h3>Kèo thả file Excel vào đây</h3>
+					<p>Hoặc click để chọn file (.xlsx, .xls)</p>
+					<input type="file" id="fileInput" accept=".xlsx, .xls" hidden>
+				</div>
+				<div class="url-input-box">
+					<h3>Hoặc nhập Link Google Sheet</h3>
+					<p style="font-size: 0.85rem; color: var(--text-muted);">Yêu cầu quyền truy cập Public hoặc chia sẻ
+						quyền cho Service Account.</p>
+					<input type="text" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/...">
+					<button class="btn-action" onclick="fetchFromSheet()">
+						<span>Tải Dữ Liệu Cloud</span>
+					</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- STEP 2: CLEANING & PREVIEW -->
+		<div class="glass-card hidden" id="stepCleaning">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+				<h2>2. Làm Sạch & Chuẩn Hóa</h2>
+				<button class="btn-action" onclick="processAnalysis()">
+					<span>Phân Tích & Vẽ Biểu Đồ ➔</span>
+				</button>
+			</div>
+
+			<div class="controls-bar">
+				<label class="toggle-label">
+					<input type="checkbox" id="checkHeader" checked onchange="previewData()">
+					<div class="toggle-switch"></div> Hàng đầu tiên là tiêu đề
+				</label>
+				<label class="toggle-label">
+					<input type="checkbox" id="checkEmpty" checked onchange="previewData()">
+					<div class="toggle-switch"></div> Loại bỏ dòng trống/Total
+				</label>
+				<label class="toggle-label hidden">
+					<input type="checkbox" id="checkCurrency" onchange="previewData()">
+					<div class="toggle-switch"></div> Chuẩn hóa tiền tệ (VNĐ)
+				</label>
+			</div>
+
+			<div class="table-container" id="previewTable">
+				<!-- Javascript will populate this -->
+			</div>
+		</div>
+
+		<!-- STEP 3: VISUALIZATION & NET PRICE LIST -->
+		<div class="glass-card hidden" id="stepViz">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+				<h2>3. Trình Bày Dữ Liệu</h2>
+				<div style="display: flex; gap: 10px;">
+					<button class="btn-glass" onclick="resetApp()">Nhập lại</button>
+					<button class="btn-action" onclick="saveToDrive()">Lưu vào Drive</button>
+				</div>
+			</div>
+
+			<!-- Tabs Navigation -->
+			<div class="tabs-nav">
+				<button class="tab-btn active" onclick="switchVizTab('analysis')" id="tabBtnAnalysis">
+					<span>📊 Biểu đồ Phân tích</span>
+				</button>
+				<button class="tab-btn" onclick="switchVizTab('netPrice')" id="tabBtnNet">
+					<span>💰 Bảng giá NET</span>
+				</button>
+			</div>
+
+			<!-- Tab 1: Analysis Chart -->
+			<div id="vizAnalysis">
+				<div class="viz-grid">
+					<div class="chart-box">
+						<canvas id="mainChart"></canvas>
+					</div>
+					<div class="side-panel">
+						<div class="stat-card">
+							<div class="stat-label">Tổng Dòng Dữ Liệu</div>
+							<div class="stat-val" id="statRows">0</div>
+						</div>
+						<div class="stat-card">
+							<div class="stat-label">Cột Phân Tích</div>
+							<div class="stat-val" id="statCols">0</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Tab 2: Net Price List -->
+			<div id="vizNetPrice" class="hidden">
+				<div id="priceColumnSelectors" class="price-actions-bar">
+					<!-- Dynamic Buttons -->
+				</div>
+
+				<div style="margin-bottom: 20px;">
+					<span class="config-label">Cột thông tin hiển thị:</span>
+					<div id="infoColumnSelectors" style="display: flex; flex-wrap: wrap; gap: 8px;">
+						<!-- Dynamic Column Chips -->
+					</div>
+				</div>
+
+				<div
+					style="margin-bottom: 15px; display: flex; justify-content: flex-end; gap: 10px; align-items: center;">
+					<span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;"
+						id="colCountStatus"></span>
+					<button class="btn-action" onclick="exportNetPriceToExcel()"
+						style="padding: 8px 16px; font-size: 0.85rem; background: #10b981;">
+						<i class="fa-solid fa-file-excel"></i> Xuất Excel (.xlsx)
+					</button>
+				</div>
+				<div class="net-table-container">
+					<table class="net-table">
+						<thead id="netTableHeader"></thead>
+						<tbody id="netTableBody"></tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+	<!-- Loading -->
+	<div class="loading-overlay hidden" id="loader">
+		<div class="spinner"></div>
+		<h3 id="loaderText">Đang xử lý...</h3>
+	</div>
+
+	<script src="security-utils.js"></script>
+	<script>
+		const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzKXXoAMmx2sz4QbFBwYt8gx7LB2LRQCYkcDIV4DtOJNU5Nsy5Bzw0lWGfgrkSZgI_2/exec';
+		const ANALYZE_URL = 'https://script.google.com/macros/s/AKfycbzKXXoAMmx2sz4QbFBwYt8gx7LB2LRQCYkcDIV4DtOJNU5Nsy5Bzw0lWGfgrkSZgI_2/exec';
+
+		// currentUser defined in head
+		let RAW_DATA = [];
+		let CLEAN_DATA = [];
+		let CHART_INSTANCE = null;
+		let CURRENT_HEADER = [];
+		let RAW_FILE_DATA = null;
+		let SOURCE_NAME = ""; // Filename or Sheet name
+
+
+		// --- DOM ELEMENTS ---
+		const dropZone = document.getElementById('dropZone');
+		const fileInput = document.getElementById('fileInput');
+		const loader = document.getElementById('loader');
+
+		// --- EVENT LISTENERS ---
+		dropZone.addEventListener('click', () => fileInput.click());
+		dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+		dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+		dropZone.addEventListener('drop', handleDrop);
+		fileInput.addEventListener('change', handleFileSelect);
+
+		// --- CORE FUNCTIONS ---
+
+		function showLoader(msg) {
+			document.getElementById('loaderText').innerText = msg;
+			loader.classList.remove('hidden');
+		}
+		function hideLoader() { loader.classList.add('hidden'); }
+
+		// 1. INPUT HANDLING
+		function handleFileSelect(e) {
+			const file = e.target.files[0];
+			if (file) processExcelFile(file);
+		}
+
+		function handleDrop(e) {
+			e.preventDefault();
+			dropZone.classList.remove('dragover');
+			const file = e.dataTransfer.files[0];
+			if (file) processExcelFile(file);
+		}
+
+		function processExcelFile(file) {
+			showLoader("Đang đọc file Excel...");
+			const reader = new FileReader();
+			reader.onload = (e) => {
+				const data = new Uint8Array(e.target.result);
+				const workbook = XLSX.read(data, { type: 'array' });
+				const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+
+				// Store base64 for upload later
+				const binary = e.target.result;
+				const bytes = new Uint8Array(binary);
+				let binaryString = "";
+				for (let i = 0; i < bytes.length; i++) {
+					binaryString += String.fromCharCode(bytes[i]);
+				}
+				SOURCE_NAME = file.name;
+				RAW_FILE_DATA = {
+					fileName: file.name,
+					base64: "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," + btoa(binaryString)
+				};
+
+				RAW_DATA = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+				if (RAW_DATA.length > 0) {
+					showCleaningStep();
+				} else {
+					alert("File không có dữ liệu!");
+				}
+				hideLoader();
+			};
+			reader.readAsArrayBuffer(file);
+		}
+
+		async function fetchFromSheet() {
+			const url = document.getElementById('sheetUrl').value.trim();
+			if (!url) return alert("Vui lòng nhập Link Google Sheet");
+
+			showLoader("Đang tải dữ liệu từ Google Server...");
+			RAW_FILE_DATA = null; // reset raw file if using sheet
+
+			try {
+				const res = await fetch(ANALYZE_URL, {
+					method: "POST",
+					body: SecurityProvider.prepareRequest("PA_fetchSheetData", { url: url })
+				});
+				const json = await res.json();
+
+				if (json.success) {
+					RAW_DATA = json.data;
+					SOURCE_NAME = json.name || "Dữ liệu Cloud";
+					showCleaningStep();
+				} else {
+					alert(json.message);
+				}
+			} catch (e) {
+				alert("Lỗi kết nối: " + e.message);
+			}
+			hideLoader();
+		}
+
+		function showCleaningStep() {
+			document.getElementById('stepInput').classList.add('hidden');
+			document.getElementById('stepCleaning').classList.remove('hidden');
+			previewData();
+		}
+
+		// 2. CLEANING LOGIC
+		function previewData() {
+			const useHeader = document.getElementById('checkHeader').checked;
+			const removeEmpty = document.getElementById('checkEmpty').checked;
+			const normalizeCurrency = document.getElementById('checkCurrency').checked;
+
+			let data = [...RAW_DATA]; // Clone
+
+			// A. Header Detection
+			if (useHeader && data.length > 0) {
+				CURRENT_HEADER = data[0].map(c => c ? c.toString().trim() : "Unknown");
+				data = data.slice(1);
+			} else {
+				CURRENT_HEADER = data[0]?.map((_, i) => `Col ${i + 1}`) || [];
+			}
+
+			// B. Filter Empty & Total
+			if (removeEmpty) {
+				data = data.filter(row => {
+					const str = row.join("").toLowerCase();
+					// Basic heuristic: check if row is empty or contains "total"/"tổng"
+					if (str.trim() === "") return false;
+					if (str.includes("total") || str.includes("tổng")) return false;
+					return true;
+				});
+			}
+
+			// C. Normalize Data (Mutable) & Preview Generation
+			let html = `<thead><tr>${CURRENT_HEADER.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>`;
+
+			// Limit preview to 10 rows
+			const previewLimit = Math.min(data.length, 100);
+
+			// Prepare Clean Data for Viz
+			CLEAN_DATA = [];
+
+			for (let i = 0; i < data.length; i++) {
+				let row = data[i];
+				let cleanRow = {};
+
+				// Map to Object based on Header
+				for (let j = 0; j < CURRENT_HEADER.length; j++) {
+					let val = row[j];
+					const head = CURRENT_HEADER[j];
+
+					// Preserving raw value as requested by user to maintain text formats like "18,45 kg"
+					cleanRow[head] = val;
+				}
+				CLEAN_DATA.push(cleanRow);
+
+				// Render Preview (only first 10)
+				if (i < 10) {
+					html += `<tr>${CURRENT_HEADER.map((_, j) => `<td>${row[j] || ''}</td>`).join('')}</tr>`;
+				}
+			}
+			html += `</tbody>`;
+
+			if (data.length > 10) {
+				html += `<tfoot><tr><td colspan="${CURRENT_HEADER.length}" style="text-align:center; color: var(--text-muted);">... và ${data.length - 10} dòng khác ...</td></tr></tfoot>`;
+			}
+
+			document.getElementById('previewTable').innerHTML = `<table>${html}</table>`;
+		}
+
+		// 3. VISUALIZATION
+		function processAnalysis() {
+			// Hide Home & Pre-process
+			document.getElementById('summarPortfolio')?.classList.add('hidden');
+			document.getElementById('stepInput').classList.add('hidden');
+			document.getElementById('stepCleaning').classList.add('hidden');
+
+			// Show Results
+			document.getElementById('stepViz').classList.remove('hidden');
+
+			document.getElementById('statRows').innerText = CLEAN_DATA.length;
+			document.getElementById('statCols').innerText = CURRENT_HEADER.length;
+
+			renderChartAuto();
+			initNetPriceList();
+			switchVizTab('analysis');
+			loadSavedAnalyses();
+		}
+
+		function switchVizTab(tab) {
+			document.getElementById('vizAnalysis').classList.add('hidden');
+			document.getElementById('vizNetPrice').classList.add('hidden');
+			document.getElementById('tabBtnAnalysis').classList.remove('active');
+			document.getElementById('tabBtnNet').classList.remove('active');
+
+			if (tab === 'analysis') {
+				document.getElementById('vizAnalysis').classList.remove('hidden');
+				document.getElementById('tabBtnAnalysis').classList.add('active');
+				if (CHART_INSTANCE) CHART_INSTANCE.resize();
+			} else {
+				document.getElementById('vizNetPrice').classList.remove('hidden');
+				document.getElementById('tabBtnNet').classList.add('active');
+				renderNetPriceTable();
+			}
+		}
+
+		function formatCurrency(val) {
+			if (val === undefined || val === null || val === "") return "-";
+			let num = val;
+			if (typeof val === 'string') {
+				// Strip non-numeric but keep decimal indicators if they look like raw numbers
+				let clean = val.replace(/[^0-9.,-]/g, '');
+				if (clean.includes(',') && !clean.includes('.')) clean = clean.replace(',', '.');
+				num = parseFloat(clean);
+			}
+			if (isNaN(num)) return val;
+			// Round to handle long decimals from formulas and format with dots
+			return new Intl.NumberFormat('vi-VN').format(Math.round(num)) + " đ";
+		}
+
+		// --- NET PRICE LIST LOGIC ---
+		let PRICE_COLUMNS = [];
+		let ACTIVE_PRICE_COL = "";
+		let SELECTED_INFO_COLS = [];
+
+		const PREFS_KEY = 'dunvex_price_analyzer_cols';
+
+		function saveColumnPrefs() {
+			const prefs = JSON.parse(localStorage.getItem(PREFS_KEY) || '{}');
+			// Save by source name or globally if no source
+			const key = SOURCE_NAME || 'global_default';
+			prefs[key] = {
+				activePrice: ACTIVE_PRICE_COL,
+				selectedInfo: SELECTED_INFO_COLS
+			};
+			// Also save a global default for new files
+			prefs['global_default'] = {
+				activePrice: ACTIVE_PRICE_COL,
+				selectedInfo: SELECTED_INFO_COLS
+			};
+			localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+		}
+
+		function loadColumnPrefs() {
+			const prefs = JSON.parse(localStorage.getItem(PREFS_KEY) || '{}');
+			const saved = prefs[SOURCE_NAME] || prefs['global_default'];
+
+			if (saved) {
+				// Only apply if the columns actually exist in the current data
+				if (PRICE_COLUMNS.includes(saved.activePrice)) {
+					ACTIVE_PRICE_COL = saved.activePrice;
+				}
+
+				// For info columns, only keep those that exist
+				const validInfo = saved.selectedInfo.filter(c => CURRENT_HEADER.includes(c) && c !== ACTIVE_PRICE_COL);
+				if (validInfo.length > 0) {
+					SELECTED_INFO_COLS = validInfo;
+				}
+			}
+		}
+
+		function initNetPriceList() {
+			// Find all columns that look like prices
+			const priceKeywords = ['giá', 'phụ thu', 'tiền', 'cước'];
+			const negativeKeywords = ['chênh lệch', '%', 'số tiền'];
+
+			PRICE_COLUMNS = CURRENT_HEADER.filter(h => {
+				const low = h.toLowerCase();
+				return priceKeywords.some(k => low.includes(k)) && !negativeKeywords.some(nk => low.includes(nk));
+			});
+
+			if (PRICE_COLUMNS.length > 0) {
+				ACTIVE_PRICE_COL = PRICE_COLUMNS.find(c => c.toLowerCase().includes('tại kho')) || PRICE_COLUMNS[0];
+			}
+
+			// Initialize default selected info columns based on keywords
+			const INFO_KEYWORDS = ['stt', 'tên', 'phân loại', 'mô tả', 'kích thước', 'độ dày', 'đóng gói', 'khối lượng', 'mã', 'kg', 'tấm', 'kiện', 'quy cách', 'đơn vị'];
+			SELECTED_INFO_COLS = CURRENT_HEADER.filter(h =>
+				h !== ACTIVE_PRICE_COL &&
+				(INFO_KEYWORDS.some(k => h.toLowerCase().includes(k)) || !PRICE_COLUMNS.includes(h))
+			);
+
+			// Overlay saved preferences
+			loadColumnPrefs();
+
+			renderPriceColumnButtons();
+			renderInfoColumnConfig();
+		}
+
+		function renderPriceColumnButtons() {
+			const container = document.getElementById('priceColumnSelectors');
+			container.innerHTML = `
+				<span class="config-label">Chọn cột làm Giá NET:</span>
+				<div style="display: flex; flex-wrap: wrap; gap: 8px;">
+					${PRICE_COLUMNS.map(col => `
+						<button class="btn-price-type ${col === ACTIVE_PRICE_COL ? 'active' : ''}" onclick="changeNetPriceCol('${col}')">
+							${col}
+						</button>
+					`).join('')}
+				</div>
+			`;
+		}
+
+		function renderInfoColumnConfig() {
+			const container = document.getElementById('infoColumnSelectors');
+			container.innerHTML = CURRENT_HEADER.map(h => {
+				if (h === ACTIVE_PRICE_COL) return '';
+				const isActive = SELECTED_INFO_COLS.includes(h);
+				return `
+					<div class="col-chip ${isActive ? 'active' : ''}" onclick="toggleInfoCol('${h}')">
+						<i class="fa-solid ${isActive ? 'fa-check-circle' : 'fa-circle-dot'}"></i>
+						${h}
+					</div>
+				`;
+			}).join('');
+
+			document.getElementById('colCountStatus').innerText = `Hiện có ${SELECTED_INFO_COLS.length + 1} cột được hiển thị`;
+		}
+
+		function toggleInfoCol(col) {
+			if (SELECTED_INFO_COLS.includes(col)) {
+				SELECTED_INFO_COLS = SELECTED_INFO_COLS.filter(c => c !== col);
+			} else {
+				SELECTED_INFO_COLS.push(col);
+			}
+			saveColumnPrefs();
+			renderInfoColumnConfig();
+			renderNetPriceTable();
+		}
+
+		function changeNetPriceCol(col) {
+			ACTIVE_PRICE_COL = col;
+			// Remove from info cols if it was there
+			SELECTED_INFO_COLS = SELECTED_INFO_COLS.filter(c => c !== col);
+
+			saveColumnPrefs();
+			renderPriceColumnButtons();
+			renderInfoColumnConfig();
+			renderNetPriceTable();
+		}
+
+		function renderNetPriceTable() {
+			const headerEl = document.getElementById('netTableHeader');
+			const bodyEl = document.getElementById('netTableBody');
+
+			if (SELECTED_INFO_COLS.length === 0 && !ACTIVE_PRICE_COL) {
+				bodyEl.innerHTML = '<tr><td colspan="100%" style="text-align:center; padding: 40px;">Vui lòng chọn ít nhất một cột để hiển thị.</td></tr>';
+				return;
+			}
+
+			// Render Header
+			let headerHtml = `<tr>`;
+			SELECTED_INFO_COLS.forEach((h, index) => {
+				const isFirst = index === 0;
+				headerHtml += `<th class="${isFirst ? 'sticky-col' : ''}">${h}</th>`;
+			});
+			if (ACTIVE_PRICE_COL) {
+				headerHtml += `<th style="text-align: right;">${ACTIVE_PRICE_COL}</th>`;
+			}
+			headerHtml += `</tr>`;
+			headerEl.innerHTML = headerHtml;
+
+			// Render Body
+			let bodyHtml = "";
+			CLEAN_DATA.forEach(row => {
+				bodyHtml += `<tr>`;
+				SELECTED_INFO_COLS.forEach((h, index) => {
+					const isFirst = index === 0;
+					let val = row[h];
+					bodyHtml += `<td class="${isFirst ? 'sticky-col' : ''}">${val === undefined || val === null ? '-' : val}</td>`;
+				});
+
+				if (ACTIVE_PRICE_COL) {
+					let priceVal = row[ACTIVE_PRICE_COL];
+					bodyHtml += `<td class="price-cell"><span class="price-tag">NET</span>${priceVal === undefined || priceVal === null ? '-' : priceVal}</td>`;
+				}
+				bodyHtml += `</tr>`;
+			});
+			bodyEl.innerHTML = bodyHtml;
+		}
+
+		function exportNetPriceToExcel() {
+			if (CLEAN_DATA.length === 0) return alert("Không có dữ liệu để xuất!");
+
+			const exportData = CLEAN_DATA.map(row => {
+				const obj = {};
+				SELECTED_INFO_COLS.forEach(h => {
+					let val = row[h];
+					obj[h] = val === undefined || val === null ? '-' : val;
+				});
+
+				obj[ACTIVE_PRICE_COL] = row[ACTIVE_PRICE_COL] || '-';
+				return obj;
+			});
+
+			const ws = XLSX.utils.json_to_sheet(exportData);
+			const wb = XLSX.utils.book_new();
+			XLSX.utils.book_append_sheet(wb, ws, "BangGiaNET");
+
+			const fileName = `Dunvex_BangGiaNET_${SOURCE_NAME.split('.')[0]}_${new Date().getTime()}.xlsx`;
+			XLSX.writeFile(wb, fileName);
+		}
+
+		function renderChartAuto() {
+			const ctx = document.getElementById('mainChart').getContext('2d');
+
+			// Heuristic to pick Axis
+			// X-Axis: Look for "Date", "Tháng", "Ngày", "Name", "Tên" OR First Column
+			// Y-Axis: Look for "Price", "Tiền", "Doanh thu", "Giá", "Value", "Quantity", "Số lượng"
+
+			let xKey = CURRENT_HEADER[0];
+			let yKeys = [];
+
+			// Try to find better X
+			const timeKeywords = ['tháng', 'ngày', 'date', 'time', 'thời gian', 'năm', 'tuần'];
+			const nameKeywords = ['tên', 'name', 'sản phẩm', 'item', 'mặt hàng', 'khách'];
+
+			const potentialX = CURRENT_HEADER.find(h => timeKeywords.some(k => h.toLowerCase().includes(k)))
+				|| CURRENT_HEADER.find(h => nameKeywords.some(k => h.toLowerCase().includes(k)));
+			if (potentialX) xKey = potentialX;
+
+			// Try to find Y (Numeric columns)
+			// Check first 5 rows to see if values are numbers
+			const moneyKeywords = ['tiền', 'price', 'giá', 'doanh thu', 'amount', 'cost', 'total', 'vnđ'];
+			const qtyKeywords = ['số lượng', 'quantity', 'sl', 'tồn'];
+
+			CURRENT_HEADER.forEach(h => {
+				if (h === xKey) return;
+				// Check content logic
+				const isNum = CLEAN_DATA.slice(0, 5).every(row => {
+					const v = row[h];
+					return !isNaN(parseFloat(v)) && isFinite(v);
+				});
+				if (isNum) yKeys.push(h);
+			});
+
+			// If no Y found, force 2nd col
+			if (yKeys.length === 0 && CURRENT_HEADER.length > 1) yKeys.push(CURRENT_HEADER[1]);
+
+			// Determine Chart Type
+			let chartType = 'bar';
+			if (timeKeywords.some(k => xKey.toLowerCase().includes(k))) chartType = 'line';
+			if (yKeys.length === 1 && CURRENT_HEADER.length === 2 && nameKeywords.some(k => xKey.toLowerCase().includes(k))) chartType = 'pie';
+
+			// Prepare Datasets
+			const datasets = yKeys.map((key, index) => {
+				const color = index === 0 ? '#6366f1' : (index === 1 ? '#c084fc' : '#38bdf8');
+				return {
+					label: key,
+					data: CLEAN_DATA.map(r => typeof r[key] === 'string' ? parseFloat(r[key].replace(/[^0-9]/g, '')) : r[key]),
+					backgroundColor: color,
+					borderColor: color,
+					borderWidth: 2,
+					tension: 0.3
+				};
+			});
+
+			if (CHART_INSTANCE) CHART_INSTANCE.destroy();
+
+			CHART_INSTANCE = new Chart(ctx, {
+				type: chartType,
+				data: {
+					labels: CLEAN_DATA.map(r => r[xKey]),
+					datasets: datasets
+				},
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					plugins: {
+						legend: { position: 'bottom', labels: { color: '#cbd5e1' } },
+						title: { display: true, text: `Phân tích: ${xKey}`, color: '#fff' }
+					},
+					scales: {
+						x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+						y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+					}
+				}
+			});
+		}
+
+		// 4. SAVE & LOAD
+		async function saveToDrive() {
+			// Find a descriptive mnemonic from data
+			let mnemonic = "";
+			if (CLEAN_DATA.length > 0) {
+				// Search for a cell that looks like a product name (not too short, not just a number)
+				const nameKeys = CURRENT_HEADER.filter(h =>
+					h.toLowerCase().includes('tên') ||
+					h.toLowerCase().includes('sản phẩm') ||
+					h.toLowerCase().includes('mô tả') ||
+					h.toLowerCase().includes('phân loại')
+				);
+
+				// Try first few rows for a good name
+				for (let i = 0; i < Math.min(5, CLEAN_DATA.length); i++) {
+					for (let key of nameKeys) {
+						let val = CLEAN_DATA[i][key];
+						if (val && val.toString().trim().length > 5) {
+							mnemonic = val.toString().trim().substring(0, 25);
+							break;
+						}
+					}
+					if (mnemonic) break;
+				}
+
+				// Fallback to first cell if still empty
+				if (!mnemonic) mnemonic = CLEAN_DATA[0][CURRENT_HEADER[0]] || "";
+
+				// Clean mnemonic
+				mnemonic = mnemonic.toString().replace(/[^a-zA-Z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđĐ\s]/g, "").trim();
+			}
+
+			const dateStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-');
+			const base = SOURCE_NAME ? SOURCE_NAME.split('.')[0] : "Phân tích";
+			const defaultName = (mnemonic ? mnemonic + " - " : "") + base + " (" + dateStr + ")";
+
+			const name = prompt("Nhập tên gợi nhớ cho bản phân tích này:", defaultName);
+			if (!name) return;
+
+			showLoader("Đang lưu phân tích...");
+			const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+			try {
+				let rawFileId = "";
+				// Step A: Upload raw file if exists
+				if (RAW_FILE_DATA) {
+					const resRaw = await fetch(ANALYZE_URL, {
+						method: "POST",
+						body: SecurityProvider.prepareRequest("PA_uploadRawFile", { ...RAW_FILE_DATA })
+					});
+					const jsonRaw = await resRaw.json();
+					if (jsonRaw.success) rawFileId = jsonRaw.fileId;
+				}
+
+				// Step B: Save Analysis JSON
+				const res = await fetch(ANALYZE_URL, {
+					method: "POST",
+					body: SecurityProvider.prepareRequest("PA_saveAnalysis", {
+						name: name,
+						userEmail: currentUser.email,
+						adminEmail: currentUser.adminEmail || currentUser.email,
+						rawFileId: rawFileId,
+						header: CURRENT_HEADER,
+						content: CLEAN_DATA
+					})
+				});
+				const json = await res.json();
+
+				if (json.success) {
+					alert("✅ " + json.message);
+					loadSavedAnalyses();
+				} else {
+					alert("❌ " + json.message);
+				}
+			} catch (e) {
+				alert("Lỗi kết nối: " + e.message);
+			}
+			hideLoader();
+		}
+
+		async function loadSavedAnalyses() {
+			const user = JSON.parse(localStorage.getItem('user') || '{}');
+			try {
+				const res = await fetch(ANALYZE_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('PA_listAnalyses', { userEmail: currentUser.email, adminEmail: currentUser.adminEmail || currentUser.email })
+				});
+				const json = await res.json();
+				if (json.success) {
+					renderSummaryTable(json.list);
+				}
+			} catch (e) { console.error(e); }
+		}
+
+		function renderSummaryTable(list) {
+			const tbody = document.getElementById('summaryTableBody');
+			if (!list || list.length === 0) {
+				tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 40px;">Chưa có dữ liệu nào được phân tích.</td></tr>';
+				return;
+			}
+
+			tbody.innerHTML = list.map(f => {
+				const date = new Date(f.created).toLocaleString('vi-VN');
+				const tag = f.rawFile ? '<span class="analysis-tag tag-excel"><i class="fa-solid fa-file-excel"></i> EXCEL</span>' : '<span class="analysis-tag tag-sheet"><i class="fa-solid fa-file-invoice"></i> SHEET</span>';
+
+				return `
+					<tr>
+						<td style="font-weight: 700; color: #0f172a;">${f.name}</td>
+						<td style="font-size: 0.85rem; color: #64748b; font-weight: 600;">${f.createdBy}</td>
+						<td style="font-size: 0.85rem; color: #334155; font-weight: 600;">${date}</td>
+						<td>${tag}</td>
+						<td style="text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">
+							<button class="btn-view-sm" onclick="openAnalysis('${f.id}')" style="background: #4f46e5; font-weight: 700;">
+								<i class="fa-solid fa-folder-open"></i> Mở
+							</button>
+							<button class="btn-delete-sm" onclick="deleteAnalysis('${f.id}')" title="Xóa bản phân tích" style="font-weight: 700;">
+								<i class="fa-solid fa-trash-can"></i>
+							</button>
+						</td>
+					</tr>
+				`;
+			}).join('');
+		}
+
+		async function openAnalysis(fileId) {
+			console.log("Opening Analysis ID:", fileId);
+			showLoader("Đang tải dữ liệu lưu trữ...");
+			try {
+				const res = await fetch(ANALYZE_URL, {
+					method: "POST",
+					cache: "no-store", // Prevent caching
+					body: SecurityProvider.prepareRequest("PA_getAnalysis", { fileId: fileId })
+				});
+				const json = await res.json();
+				if (json.success && json.data) {
+					console.log("Loaded Data Successfully. Name:", json.data.name);
+					CURRENT_HEADER = json.data.header || [];
+					CLEAN_DATA = json.data.data || [];
+
+					if (CLEAN_DATA.length === 0) {
+						alert("Cảnh báo: Bản phân tích này không có dữ liệu!");
+					}
+
+					processAnalysis();
+				} else {
+					alert("Không lấy được dữ liệu: " + (json.message || "Lỗi không xác định"));
+				}
+			} catch (e) {
+				console.error("Open Error:", e);
+				alert("Lỗi mở file: " + e.message);
+			}
+			hideLoader();
+		}
+
+		async function deleteAnalysis(fileId) {
+			if (!confirm("Bạn có chắc chắn muốn xóa bản phân tích này không? Dữ liệu gốc (Excel) đi kèm cũng sẽ bị xóa.")) return;
+
+			showLoader("Đang xóa dữ liệu...");
+			const user = JSON.parse(localStorage.getItem('user') || '{}');
+			try {
+				const res = await fetch(ANALYZE_URL, {
+					method: 'POST',
+					body: SecurityProvider.prepareRequest('PA_deleteAnalysis', {
+						fileId: fileId,
+						userEmail: currentUser.email,
+						adminEmail: currentUser.adminEmail || currentUser.email
+					})
+				});
+				const json = await res.json();
+				if (json.success) {
+					alert("✅ " + json.message);
+					loadSavedAnalyses();
+				} else {
+					alert("❌ " + json.message);
+				}
+			} catch (e) { alert("Lỗi: " + e.message); }
+			hideLoader();
+		}
+
+		function resetApp() {
+			RAW_DATA = [];
+			CLEAN_DATA = [];
+			RAW_FILE_DATA = null;
+			if (CHART_INSTANCE) CHART_INSTANCE.destroy();
+			document.getElementById('summarPortfolio')?.classList.remove('hidden');
+			document.getElementById('stepInput').classList.remove('hidden');
+			document.getElementById('stepCleaning').classList.add('hidden');
+			document.getElementById('stepViz').classList.add('hidden');
+		}
+
+		// Init
+		window.onload = loadSavedAnalyses;
+	</script>
+</body>
+
+</html>

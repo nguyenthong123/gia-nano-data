@@ -1,0 +1,220 @@
+const API_SECRET = 'dv_api_secret_2025_prod_v2';
+/**
+ * GAS_PriceAnalysis_Script.txt
+ * Script backend cho tính năng Phân tích Giá (Price Analysis) & Visualization
+ * 
+ * PHẠM VI QUYỀN: DriveApp, SpreadsheetApp
+ */
+
+const PA_JSON_FOLDER_ID = '1tRhiE2WjQDxKXCl_E8dYe1X6vr2MIKyJ'; // Thư mục lưu JSON kết quả
+const PA_EXCEL_FOLDER_ID = '1pJtUChmyz14KH_pcS0RytEVF2qe8b3Sh'; // Thư mục lưu File Excel gốc
+const XOR_SECRET = 'dunvex_secure_key_2025_custom';
+
+function doPost(e) {
+  let result;
+  try {
+    const contents = e.postData ? e.postData.contents : "";
+    if (!contents) return ContentService.createTextOutput(JSON.stringify({ success: false, message: 'Data empty' })).setMimeType(ContentService.MimeType.JSON);
+    
+    const data = JSON.parse(contents);
+
+    // --- API SECURITY CHECK ---
+    if (data.apiKey !== API_SECRET) {
+      return ContentService.createTextOutput(JSON.stringify({ 
+        success: false, 
+        message: 'Unauthorized Analysis Access' 
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const action = data.action;
+
+    switch (action) {
+      case 'PA_fetchSheetData':
+        result = PA_fetchSheetData(data.url);
+        break;
+      case 'PA_saveAnalysis':
+        result = PA_saveAnalysis(data);
+        break;
+      case 'PA_uploadRawFile':
+        result = PA_uploadRawFile(data);
+        break;
+      case 'PA_listAnalyses':
+        result = PA_listAnalyses(data.userEmail, data.adminEmail);
+        break;
+      case 'PA_getAnalysis':
+        result = PA_getAnalysis(data.fileId);
+        break;
+      case 'PA_deleteAnalysis':
+        result = PA_deleteAnalysis(data.fileId, data.userEmail, data.adminEmail);
+        break;
+      default:
+        result = { success: false, message: 'Hành động không hợp lệ: ' + action };
+    }
+  } catch (error) {
+    result = { success: false, message: 'Backend Error: ' + error.toString() };
+  }
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+}
+
+/** 
+ * Encryption Utility (Standardized with Auth Script)
+ */
+function encryptData(text) {
+  if (!text) return "";
+  const inputBytes = Utilities.newBlob(text.toString()).getBytes();
+  const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+  const outputBytes = [];
+  for (let i = 0; i < inputBytes.length; i++) {
+    outputBytes.push(inputBytes[i] ^ keyBytes[i % keyBytes.length]);
+  }
+  return Utilities.base64Encode(outputBytes);
+}
+
+function decryptData(text) {
+  if (!text || text === 'n/a') return "";
+  const cleanText = text.toString().trim();
+  try {
+    const bytes = Utilities.base64Decode(cleanText);
+    const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+    let result = "";
+    for (let i = 0; i < bytes.length; i++) {
+        result += String.fromCharCode(bytes[i] ^ keyBytes[i % keyBytes.length]);
+    }
+    return result;
+  } catch (e) { return text; }
+}
+
+/**
+ * Lấy dữ liệu từ Google Sheet
+ */
+function PA_fetchSheetData(url) {
+  try {
+    const ss = SpreadsheetApp.openByUrl(url);
+    const sheet = ss.getSheets()[0];
+    const data = sheet.getDataRange().getValues();
+    return { success: true, data: data, name: ss.getName() };
+  } catch (e) {
+    return { success: false, message: 'Lỗi đọc Sheet: ' + e.toString() };
+  }
+}
+
+/**
+ * Lưu File Excel gốc lên Drive
+ */
+function PA_uploadRawFile(d) {
+  try {
+    const folder = DriveApp.getFolderById(PA_EXCEL_FOLDER_ID);
+    const fileName = `RAW_${new Date().getTime()}_${d.fileName}`;
+    const contentType = d.base64.split(",")[0].split(":")[1].split(";")[0];
+    const bytes = Utilities.base64Decode(d.base64.split(",")[1]);
+    const file = folder.createFile(fileName, bytes, contentType);
+    return { success: true, fileId: file.getId(), url: file.getUrl() };
+  } catch (e) {
+    return { success: false, message: 'Lỗi tải file gốc: ' + e.toString() };
+  }
+}
+
+/**
+ * Lưu kết quả phân tích JSON
+ */
+function PA_saveAnalysis(d) {
+  try {
+    const folder = DriveApp.getFolderById(PA_JSON_FOLDER_ID);
+    const time = new Date().getTime();
+    const fileName = `PA_${time}_${d.name}.json`;
+    
+    const payload = {
+        name: d.name,
+        created_at: new Date(),
+        user_enc: d.userEmail,   // Mail NV (Đã mã hóa từ client)
+        admin_enc: d.adminEmail, // Mail Admin (Đã mã hóa từ client)
+        raw_file_id: d.rawFileId || "",
+        header: d.header,
+        data: d.content
+    };
+    
+    const file = folder.createFile(fileName, JSON.stringify(payload), MimeType.PLAIN_TEXT);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    
+    return { success: true, message: 'Đã lưu kết quả phân tích!', fileId: file.getId() };
+  } catch (e) {
+    return { success: false, message: 'Lỗi lưu JSON: ' + e.toString() };
+  }
+}
+
+/**
+ * Liệt kê (Có lọc theo phân quyền Mail)
+ */
+function PA_listAnalyses(userEnc, adminEnc) {
+  try {
+    const folder = DriveApp.getFolderById(PA_JSON_FOLDER_ID);
+    const files = folder.getFiles();
+    const list = [];
+    
+    const targetUser = (userEnc || "").trim();
+    const targetAdmin = (adminEnc || "").trim();
+
+    while (files.hasNext()) {
+      const file = files.next();
+      const fName = file.getName();
+      if (fName.startsWith('PA_') && fName.endsWith('.json')) {
+        try {
+          const content = JSON.parse(file.getBlob().getDataAsString());
+          
+          // Lọc: Chỉ thấy file của mình hoặc file thuộc Admin của mình
+          // userEnc và adminEnc truyền từ Client đã được mã hóa
+          const isOwner = (content.user_enc === targetUser);
+          const isSameOrg = (content.admin_enc === targetAdmin);
+          const isSuperAdmin = (targetUser === encryptData('dunvex.green@gmail.com'));
+
+          if (isOwner || isSameOrg || isSuperAdmin) {
+            list.push({
+              id: file.getId(),
+              name: content.name,
+              createdBy: decryptData(content.user_enc),
+              created: file.getDateCreated(),
+              rawFile: content.raw_file_id
+            });
+          }
+        } catch(err) { continue; }
+      }
+    }
+    list.sort((a, b) => b.created - a.created);
+    return { success: true, list: list };
+  } catch (e) {
+    return { success: false, message: 'Lỗi truy xuất: ' + e.toString() };
+  }
+}
+
+function PA_getAnalysis(fileId) {
+    try {
+        const file = DriveApp.getFileById(fileId);
+        return { success: true, data: JSON.parse(file.getBlob().getDataAsString()) };
+    } catch (e) {
+        return { success: false, message: 'Lỗi đọc file: ' + e.toString() };
+    }
+}
+
+function PA_deleteAnalysis(fileId, userEnc, adminEnc) {
+  try {
+    const file = DriveApp.getFileById(fileId);
+    const content = JSON.parse(file.getBlob().getDataAsString());
+    
+    const targetUser = (userEnc || "").trim();
+    const isOwner = (content.user_enc === targetUser);
+    const isSuperAdmin = (targetUser === encryptData('dunvex.green@gmail.com'));
+
+    if (isOwner || isSuperAdmin) {
+      // If there's a raw file, delete it too
+      if (content.raw_file_id) {
+        try { DriveApp.getFileById(content.raw_file_id).setTrashed(true); } catch(e) {}
+      }
+      file.setTrashed(true);
+      return { success: true, message: 'Đã xóa bản phân tích thành công!' };
+    } else {
+      return { success: false, message: 'Bạn không có quyền xóa bản phân tích này.' };
+    }
+  } catch (e) {
+    return { success: false, message: 'Lỗi xóa file: ' + e.toString() };
+  }
+}

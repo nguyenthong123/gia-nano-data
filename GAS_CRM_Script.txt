@@ -1,0 +1,840 @@
+/**
+ * DUNVEX CRM & SALES CHECK-IN SYSTEM
+ * Spreadsheet ID: 15niaoQ7FozkRCushPGNtq4zj6pwA0UQ5Wel61ksv8L8
+ */
+
+const CRM_SS_ID = '15niaoQ7FozkRCushPGNtq4zj6pwA0UQ5Wel61ksv8L8';
+const AUTH_SS_ID = '1rhP1UCiMLi8yNVvcd56SsZIJAm09Yxu6WpjxuHKYKb0';
+const API_SECRET = 'dv_api_secret_2025_prod_v2';
+
+function getOrgEmails(adminEmail) {
+  try {
+    const ss = SpreadsheetApp.openById(AUTH_SS_ID);
+    const sheet = ss.getSheetByName('use');
+    if (!sheet) return [adminEmail.toLowerCase()];
+    const rows = sheet.getDataRange().getValues();
+    const emails = [adminEmail.toLowerCase()];
+    for (let i = 1; i < rows.length; i++) {
+      const owner = decryptCRM(rows[i][5]).toLowerCase();
+      if (owner === adminEmail.toLowerCase() || owner === adminEmail.split('@')[0].toLowerCase()) {
+        emails.push(decryptCRM(rows[i][1]).toLowerCase());
+      }
+    }
+    return emails;
+  } catch (e) { return [adminEmail.toLowerCase()]; }
+}
+
+
+
+
+function doPost(e) {
+  let result;
+  try {
+    const contents = e.postData ? e.postData.contents : "";
+    if (!contents) return ContentService.createTextOutput(JSON.stringify({ success: false, message: 'Data empty' })).setMimeType(ContentService.MimeType.JSON);
+    const data = JSON.parse(contents);
+
+    // --- API SECURITY CHECK ---
+    if (data.apiKey !== API_SECRET) {
+      return ContentService.createTextOutput(JSON.stringify({ 
+        success: false, 
+        message: 'Unauthorized CRM Access' 
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const action = data.action;
+
+    // --- SERVER-SIDE RATE LIMITING ---
+    const identifier = data.email || data.salesId || 'anonymous';
+    const limitResult = checkRateLimit(action, identifier);
+    if (!limitResult.success) {
+      return ContentService.createTextOutput(JSON.stringify(limitResult)).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    switch (action) {
+      case 'setup': result = initCRM(); break;
+      case 'getCustomers': result = getCustomers(data); break;
+      case 'getAreas': result = getAreas(data); break;
+      case 'createCustomer': result = handleCreateCustomer(data); break;
+      case 'updateCustomer': result = handleUpdateCustomer(data); break;
+      case 'deleteCustomer': result = handleDeleteCustomer(data); break;
+      case 'handleCheckin': result = handleCheckin(data); break;
+      case 'getCheckinHistory': result = getCheckinHistory(data); break;
+      case 'updateCheckinNote': result = updateCheckinNote(data); break;
+      case 'addDoc': result = handleAddDoc(data); break;
+      case 'getDocs': result = handleGetDocs(data); break;
+      case 'updateDoc': result = handleUpdateDoc(data); break;
+      case 'deleteDoc': result = handleDeleteDoc(data); break;
+      case 'uploadFile': result = handleFileUpload(data); break;
+      case 'updateCustomerLocation': result = handleUpdateCustomerLocation(data); break;
+      case 'getAreaFromCoords': result = getAreaFromCoords(data); break;
+      case 'sendMonthlyReport': result = sendMonthlyAdminReport(); break;
+      default: result = { success: false, message: 'Hành động [' + action + '] không hợp lệ tại CRM Script' };
+    }
+  } catch (e) {
+    result = { success: false, message: 'Lỗi Backend CRM: ' + e.toString() };
+  }
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+}
+
+// --- SECURITY UTILS ---
+function checkRateLimit(action, identifier) {
+  const cache = CacheService.getScriptCache();
+  const safeId = identifier.toString().replace(/[^a-zA-Z0-9]/g, '');
+  const key = 'rl_' + action + '_' + safeId;
+  
+  // Basic Rule: Max 1 request every 1.5 seconds for same action
+  const lastRequest = cache.get(key);
+  if (lastRequest) {
+    return { success: false, message: 'Thao tác quá nhanh. Vui lòng chờ 2 giây.' };
+  }
+  cache.put(key, '1', 2);
+  
+  // Stricter rule for creating customers and check-ins: Max 10 per 10 minutes
+  if (action === 'createCustomer' || action === 'handleCheckin') {
+    const burstKey = 'burst_' + action + '_' + safeId;
+    let count = parseInt(cache.get(burstKey) || '0');
+    if (count >= 15) {
+      return { success: false, message: 'Bạn đã thực hiện hành động này quá giới hạn cho phép. Thử lại sau 10 phút.' };
+    }
+    cache.put(burstKey, (count + 1).toString(), 600);
+  }
+
+  return { success: true };
+}
+
+// --- SECURITY CONFIG ---
+// Custom XOR Cipher for 100% Reliability (Bypassing GAS/AES Constraints)
+const XOR_SECRET = 'dunvex_secure_key_2025_custom';
+
+function encryptCRM(text) {
+  if (!text) return "";
+  try {
+    const inputBytes = Utilities.newBlob(text.toString()).getBytes();
+    const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+    const outputBytes = [];
+    
+    for (let i = 0; i < inputBytes.length; i++) {
+        outputBytes.push(inputBytes[i] ^ keyBytes[i % keyBytes.length]);
+    }
+    
+    return Utilities.base64Encode(outputBytes);
+  } catch (e) { return "ENC_ERR: " + e.toString(); }
+}
+
+function decryptCRM(base64Text) {
+  if (!base64Text || base64Text.length < 5 || base64Text.startsWith("ENC_ERR")) return base64Text;
+  try {
+    const inputBytes = Utilities.base64Decode(base64Text);
+    const keyBytes = Utilities.newBlob(XOR_SECRET).getBytes();
+    const outputBytes = [];
+    
+    for (let i = 0; i < inputBytes.length; i++) {
+        outputBytes.push(inputBytes[i] ^ keyBytes[i % keyBytes.length]);
+    }
+    
+    return Utilities.newBlob(outputBytes).getDataAsString();
+  } catch (e) { return base64Text; }
+}
+
+function getSheet(name) {
+  const ss = SpreadsheetApp.openById(CRM_SS_ID);
+  return ss.getSheetByName(name) || ss.insertSheet(name);
+}
+
+/**
+ * KHỞI TẠO CẤU TRÚC 3 BẢNG + BẢNG CẤU HÌNH KHU VỰC
+ */
+function initCRM() {
+  const ss = SpreadsheetApp.openById(CRM_SS_ID);
+  const configs = {
+    'data_khach_hang': ['customer_id', 'ten_khach_hang', 'nguoi_lien_he_chinh', 'so_dien_thoai', 'email', 'dia_chi_kho_cua_hang', 'vi_tri', 'ma_sales_phu_trach', 'khu_vuc_thi_truong', 'phan_loai', 'ngay_tao', 'trang_thai'],
+    'data_checkin': ['checkin_id', 'customer_id', 'ma_sales_checkin', 'thoi_gian_checkin', 'vi_tri_checkin', 'khoang_cach', 'muc_dich_gap_mat', 'ghi_chu_ket_qua', 'anh_minh_chung'],
+    'thong_tin_khach': ['customer_id', 'ten_tai_lieu', 'loai_tai_lieu', 'link_file', 'ngay_cap_nhat', 'ghi_chu', 'nguoi_nhap', 'ma_admin_quan_ly'],
+    'config_khu_vuc': ['TÊN KHU VỰC', 'EMAIL SALES', 'MÔ TẢ']
+  };
+  for (let name in configs) {
+    let sheet = ss.getSheetByName(name);
+    if (!sheet) sheet = ss.insertSheet(name);
+    sheet.getRange(1, 1, 1, configs[name].length).setValues([configs[name]]);
+    
+    // Thêm dữ liệu mẫu cho khu vực nếu bảng trống
+    if (name === 'config_khu_vuc' && sheet.getLastRow() < 2) {
+      sheet.appendRow(['Miền Nam', 'ALL', 'Khu vực phía Nam']);
+      sheet.appendRow(['Miền Trung', 'ALL', 'Khu vực Miền Trung']);
+      sheet.appendRow(['Miền Bắc', 'ALL', 'Khu vực phía Bắc']);
+    }
+  }
+  return { success: true, message: 'Hệ thống CRM & Cấu hình khu vực đã sẵn sàng!' };
+}
+
+/**
+ * Hàm hỗ trợ xóa cột theo tên (Dùng để dọn dẹp sheet theo yêu cầu)
+ */
+function removeColumnsByName(sheetName, columnNames) {
+  const sheet = getSheet(sheetName);
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  
+  // Xóa từ phải sang trái để tránh lệch index
+  for (let i = headers.length - 1; i >= 0; i--) {
+    if (columnNames.includes(headers[i])) {
+      sheet.deleteColumn(i + 1);
+    }
+  }
+}
+
+function getAreas(data) {
+  const sheet = getSheet('config_khu_vuc');
+  const rows = sheet.getDataRange().getValues();
+  const salesIdEnc = encryptCRM(data.salesId);
+  const allEnc = encryptCRM('all');
+  const isAdmin = data.isAdmin === true;
+  const viewAll = data.viewAll === true;
+  
+  const areas = [];
+  for (let i = 1; i < rows.length; i++) {
+    const assignedSalesEnc = (rows[i][1] || "").toString();
+    
+    let hasAccess = (assignedSalesEnc === allEnc || assignedSalesEnc === salesIdEnc);
+    if (isAdmin && viewAll) hasAccess = true;
+
+    if (hasAccess) {
+      if (rows[i][0]) areas.push(rows[i][0]);
+    }
+  }
+  return { success: true, areas: areas };
+}
+
+/**
+ * HELPER: Lấy map index cột dựa trên header (Case-insensitive)
+ */
+function getColumnIndexMap(sheet) {
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const map = {};
+  const searchKeys = {
+    id: 'customer_id',
+    name: 'ten_khach_hang',
+    contact: 'nguoi_lien_he_chinh',
+    phone: 'so_dien_thoai',
+    email: 'email',
+    address: 'dia_chi_kho_cua_hang',
+    location: 'vi_tri',
+    sales: 'ma_sales_phu_trach',
+    area: 'khu_vuc_thi_truong',
+    type: 'phan_loai',
+    date: 'ngay_tao',
+    status: 'trang_thai'
+  };
+
+  for (let key in searchKeys) {
+    const target = searchKeys[key].toLowerCase();
+    map[key] = headers.findIndex(h => h.toString().toLowerCase().trim() === target);
+  }
+  return map;
+}
+
+function handleCreateCustomer(data) {
+  try {
+    const sheet = getSheet('data_khach_hang');
+    const idx = getColumnIndexMap(sheet);
+    if (idx.id === -1) return { success: false, message: 'Lỗi cấu trúc file (Thiếu customer_id)' };
+
+    // ROBUST ID GENERATION
+    const rows = sheet.getDataRange().getValues();
+    let maxId = 0;
+    for (let i = 1; i < rows.length; i++) {
+      const currentId = (rows[i][idx.id] || "").toString();
+      if (currentId.startsWith("KH")) {
+        const num = parseInt(currentId.substring(2)) || 0;
+        if (num > maxId) maxId = num;
+      }
+    }
+    const id = "KH" + (maxId + 1).toString().padStart(5, '0');
+    
+    // Tự động thêm khu vực mới (Mã hóa email sales)
+    const areaName = (data.area || "Chưa phân loại").toString().trim();
+    if (areaName) {
+      const areaSheet = getSheet('config_khu_vuc');
+      const areaData = areaSheet.getDataRange().getValues();
+      const existingAreas = areaData.map(r => r[0].toString().toLowerCase());
+      if (!existingAreas.includes(areaName.toLowerCase())) {
+         areaSheet.appendRow([areaName, encryptCRM(data.salesId || 'all'), 'Tự động tạo từ Form']);
+      }
+    }
+
+    // Chuẩn bị hàng dữ liệu
+    const lastCol = Math.max(sheet.getLastColumn(), 12);
+    const newRowData = new Array(lastCol).fill("");
+    
+    if (idx.id !== -1) newRowData[idx.id] = id;
+    if (idx.name !== -1) newRowData[idx.name] = data.name || "";
+    if (idx.contact !== -1) newRowData[idx.contact] = data.contact || "";
+    
+    // Encrypt phone directly (Base64 result preserves format, so no need for ' prefix)
+    let phoneStr = (data.phone || "").toString().trim();
+    if (idx.phone !== -1) newRowData[idx.phone] = phoneStr ? encryptCRM(phoneStr) : "";
+
+    if (idx.email !== -1) newRowData[idx.email] = encryptCRM(data.email);
+    if (idx.address !== -1) newRowData[idx.address] = data.address || "";
+    if (idx.location !== -1) newRowData[idx.location] = data.location || "";
+    if (idx.sales !== -1) newRowData[idx.sales] = encryptCRM(data.salesId || 'all');
+    if (idx.area !== -1) newRowData[idx.area] = areaName;
+    if (idx.type !== -1) newRowData[idx.type] = (data.type || data.phan_loai || "Khác").toString().trim();
+    if (idx.date !== -1) newRowData[idx.date] = new Date();
+    if (idx.status !== -1) newRowData[idx.status] = 'Đang hoạt động';
+
+    sheet.appendRow(newRowData);
+    return { success: true, customerId: id };
+  } catch (e) {
+    return { success: false, message: "Lỗi tạo KH: " + e.toString() };
+  }
+}
+
+function handleUpdateCustomer(data) {
+  try {
+    const sheet = getSheet('data_khach_hang');
+    const rows = sheet.getDataRange().getValues();
+    const idx = getColumnIndexMap(sheet);
+    
+    if (idx.id === -1) return { success: false, message: 'Lỗi cấu trúc file' };
+
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i][idx.id] === data.id) {
+        const rowNum = i + 1;
+        
+        if (idx.name !== -1) sheet.getRange(rowNum, idx.name + 1).setValue(data.name || "");
+        if (idx.contact !== -1) sheet.getRange(rowNum, idx.contact + 1).setValue(data.contact || "");
+        
+        let phoneStr = (data.phone || "").toString().trim();
+        if (idx.phone !== -1) sheet.getRange(rowNum, idx.phone + 1).setValue(phoneStr ? encryptCRM(phoneStr) : "");
+
+        if (idx.email !== -1) sheet.getRange(rowNum, idx.email + 1).setValue(encryptCRM(data.email));
+        if (idx.address !== -1) sheet.getRange(rowNum, idx.address + 1).setValue(data.address || "");
+        if (idx.location !== -1) sheet.getRange(rowNum, idx.location + 1).setValue(data.location || "");
+        if (idx.sales !== -1) sheet.getRange(rowNum, idx.sales + 1).setValue(encryptCRM(data.salesId || 'all'));
+        if (idx.area !== -1) sheet.getRange(rowNum, idx.area + 1).setValue(data.area || "");
+        if (idx.type !== -1) sheet.getRange(rowNum, idx.type + 1).setValue(data.type || data.phan_loai || "");
+        
+        return { success: true };
+      }
+    }
+    return { success: false, message: 'Không tìm thấy khách hàng' };
+  } catch (e) {
+    return { success: false, message: "Lỗi cập nhật KH: " + e.toString() };
+  }
+}
+
+function handleUpdateCustomerLocation(data) {
+  try {
+    const sheet = getSheet('data_khach_hang');
+    const rows = sheet.getDataRange().getValues();
+    const idx = getColumnIndexMap(sheet);
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i][idx.id] === data.customerId) {
+        sheet.getRange(i + 1, idx.location + 1).setValue(data.location);
+        
+        // Auto update area if missing or requested
+        if (data.location && idx.area !== -1) {
+          const areaResult = getAreaFromCoords({ location: data.location });
+          if (areaResult.success && areaResult.area) {
+             sheet.getRange(i + 1, idx.area + 1).setValue(areaResult.area);
+          }
+        }
+        return { success: true };
+      }
+    }
+    return { success: false, message: 'Không tìm thấy KH' };
+  } catch (e) { return { success: false, message: e.toString() }; }
+}
+
+function getAreaFromCoords(data) {
+  if (!data.location || !data.location.includes(',')) return { success: false, message: "Thiếu tọa độ" };
+  try {
+    const response = Maps.newGeocoder().reverseGeocode(
+       data.location.split(',')[0].trim(), 
+       data.location.split(',')[1].trim()
+    );
+    if (response.status === 'OK' && response.results.length > 0) {
+      const addr = response.results[0].address_components;
+      let ward = "";
+      let district = "";
+      let province = "";
+      
+      for (let i = 0; i < addr.length; i++) {
+        const types = addr[i].types;
+        if (types.includes("sublocality_level_1") || types.includes("locality")) {
+           ward = addr[i].long_name;
+        }
+        if (types.includes("administrative_area_level_2")) {
+           district = addr[i].long_name;
+        }
+        if (types.includes("administrative_area_level_1")) {
+           province = addr[i].long_name;
+        }
+      }
+      // Ưu tiên định dạng: Phường/Xã, Quận/Huyện
+      let area = "";
+      if (ward && district) area = ward + ", " + district;
+      else area = district || province || "Khu vực mới";
+
+      return { success: true, area: area };
+    }
+    return { success: false, message: "Không tìm thấy địa danh" };
+  } catch (e) {
+    return { success: false, message: e.toString() };
+  }
+}
+
+function handleDeleteCustomer(data) {
+  const sheet = getSheet('data_khach_hang');
+  const rows = sheet.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][0] === data.id) {
+      sheet.deleteRow(i + 1);
+      return { success: true };
+    }
+  }
+  return { success: false, message: 'Không tìm thấy khách hàng' };
+}
+
+function handleCheckin(data) {
+  const sheet = getSheet('data_checkin');
+  const checkinId = "CI" + new Date().getTime();
+  
+  let imageUrl = data.imageUrl || '';
+  
+  // Tối ưu: Chỉ upload nếu có dữ liệu ảnh thực sự
+  if (data.imageBase64 && data.imageBase64.length > 100) {
+    try {
+      const uploadResult = handleFileUpload({
+        base64: data.imageBase64,
+        filename: data.imageFilename || (checkinId + ".jpg"),
+        type: 'image'
+      });
+      if (uploadResult.success) {
+        imageUrl = uploadResult.url;
+      }
+    } catch (e) {
+      // Nếu lỗi ảnh, vẫn cho checkin thành công nhưng không có ảnh
+      imageUrl = "UPLOAD_ERROR";
+    }
+  }
+
+  // Tính khoảng cách
+  let distance = 0;
+  if (data.customerLocation && data.checkinLocation) {
+     distance = calculateDistance(data.customerLocation, data.checkinLocation);
+  }
+  
+  // Ghi xuống sheet 1 lần duy nhất
+  const row = [
+    checkinId, 
+    data.customerId, 
+    encryptCRM(data.salesId), 
+    new Date(), 
+    data.checkinLocation, 
+    distance, 
+    data.purpose, 
+    data.note, 
+    imageUrl, 
+    encryptCRM(data.adminId || '')
+  ];
+  sheet.appendRow(row);
+  return { success: true, checkinId: checkinId, distance: distance, imageUrl: imageUrl };
+}
+
+function getCheckinHistory(data) {
+  try {
+    // 1. Tự động dọn dẹp cột thừa nếu còn tồn tại
+    removeColumnsByName('data_checkin', ['thoi_gian_checkout', 'da_duyet']);
+
+    const sheet = getSheet('data_checkin');
+    const custSheet = getSheet('data_khach_hang');
+    
+    // Đảm bảo cột ma_admin_quan_ly tồn tại
+    const currentHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    if (currentHeaders.findIndex(h => h.toString().toLowerCase().trim() === 'ma_admin_quan_ly') === -1) {
+      sheet.getRange(1, currentHeaders.length + 1).setValue('ma_admin_quan_ly');
+    }
+
+    if (sheet.getLastRow() < 2) return { success: true, history: [] };
+    
+    const rows = sheet.getDataRange().getValues();
+    const headers = rows[0];
+    const custRows = custSheet.getDataRange().getValues();
+    const salesIdEnc = encryptCRM(data.salesId);
+    const isAdmin = data.isAdmin === true;
+    const viewAll = data.viewAll === true;
+    
+    // Tìm index cột để đảm bảo lấy đúng data kể cả khi sheet bị xáo trộn
+    const idx = {
+      id: headers.findIndex(h => h.toString().toLowerCase().trim() === 'checkin_id'),
+      custId: headers.findIndex(h => h.toString().toLowerCase().trim() === 'customer_id'),
+      salesId: headers.findIndex(h => h.toString().toLowerCase().trim() === 'ma_sales_checkin'),
+      time: headers.findIndex(h => h.toString().toLowerCase().trim() === 'thoi_gian_checkin'),
+      location: headers.findIndex(h => h.toString().toLowerCase().trim() === 'vi_tri_checkin'),
+      dist: headers.findIndex(h => h.toString().toLowerCase().trim() === 'khoang_cach'),
+      purpose: headers.findIndex(h => h.toString().toLowerCase().trim() === 'muc_dich_gap_mat'),
+      note: headers.findIndex(h => h.toString().toLowerCase().trim() === 'ghi_chu_ket_qua'),
+      image: headers.findIndex(h => h.toString().toLowerCase().trim() === 'anh_minh_chung'),
+      adminId: headers.findIndex(h => h.toString().toLowerCase().trim() === 'ma_admin_quan_ly')
+    };
+
+    const custMap = {};
+    for (let j = 1; j < custRows.length; j++) {
+      custMap[custRows[j][0]] = custRows[j][1];
+    }
+
+    const adminEmail = (data.adminEmail || data.salesId || "").toLowerCase().trim();
+    const adminEmailEnc = encryptCRM(adminEmail);
+    
+    // Automatically get all staff emails for this admin's organization
+    const orgEmailsEnc = (isAdmin && viewAll) ? getOrgEmails(adminEmail).map(em => encryptCRM(em)) : [salesIdEnc];
+    
+    const history = [];
+    for (let i = 1; i < rows.length; i++) {
+      const assignedSalesEnc = (rows[i][idx.salesId] || "").toString();
+      const assignedAdminEnc = idx.adminId !== -1 ? (rows[i][idx.adminId] || "").toString() : "";
+      
+      // Strict filtering logic
+      let hasAccess = (assignedSalesEnc === salesIdEnc) || 
+                      (assignedAdminEnc === salesIdEnc) || 
+                      (assignedAdminEnc === adminEmailEnc) ||
+                      (orgEmailsEnc.indexOf(assignedSalesEnc) !== -1);
+      
+      // Super Admin (dunvex.green@gmail.com) see all only if explicitly requested
+      if (isAdmin && viewAll && data.salesId === 'dunvex.green@gmail.com') {
+        hasAccess = data.viewAllSuper === true;
+      }
+      // Access granted if managed by the same admin or if record creator is in my organization
+      else if (isAdmin && viewAll && (assignedAdminEnc === salesIdEnc || assignedAdminEnc === adminEmailEnc || orgEmailsEnc.indexOf(assignedSalesEnc) !== -1)) {
+        hasAccess = true;
+      }
+
+      if (hasAccess) {
+        history.push({
+          id: rows[i][idx.id],
+          customerId: rows[i][idx.custId],
+          customerName: custMap[rows[i][idx.custId]] || 'N/A',
+          salesId: decryptCRM(rows[i][idx.salesId]),
+          time: rows[i][idx.time],
+          location: rows[i][idx.location],
+          distance: rows[i][idx.dist],
+          purpose: rows[i][idx.purpose],
+          note: rows[i][idx.note],
+          image: rows[i][idx.image],
+          adminId: idx.adminId !== -1 ? decryptCRM(rows[i][idx.adminId]) : ''
+        });
+      }
+    }
+    return { success: true, history: history.reverse() };
+  } catch (e) { return { success: false, message: e.toString() }; }
+}
+
+function handleAddDoc(data) {
+  const sheet = getSheet('thong_tin_khach');
+  sheet.appendRow([
+    data.customerId, 
+    data.docName, 
+    data.type, 
+    data.fileUrl, 
+    new Date(), 
+    data.note || '',
+    encryptCRM(data.submitter || ''),
+    encryptCRM(data.adminId || '')
+  ]);
+  return { success: true };
+}
+
+function setupDocHeaders() {
+  const sheet = getSheet('thong_tin_khach');
+  sheet.getRange(1, 1, 1, 8).setValues([[
+    'customer_id', 
+    'ten_tai_lieu', 
+    'loai_tai_lieu', 
+    'link_file', 
+    'ngay_cap_nhat', 
+    'ghi_chu', 
+    'nguoi_nhap', 
+    'ma_admin_quan_ly'
+  ]]);
+  return "Đã cập nhật tiêu đề thành công!";
+}
+
+function handleUpdateDoc(data) {
+  try {
+    const sheet = getSheet('thong_tin_khach');
+    const rows = sheet.getDataRange().getValues();
+    // Assuming we use (customerId + time) or just row index? 
+    // Usually it's better to have a doc_id. Let's find by customerId and docName for simplicity if id not present, or just use the index if provided.
+    // However, index might shift. Let's add an ID column to thong_tin_khach in next step?
+    // User didn't ask for ID column, but it's safer. Let's try matching by row if we can.
+    
+    // For now, let's match by docName and customerId (weak match) OR better, add doc_id.
+    // Let's check headers first. 
+    const headers = rows[0];
+    const docIdIdx = headers.indexOf('doc_id');
+
+    for (let i = 1; i < rows.length; i++) {
+       // Using a combination of customer_id, ten_tai_lieu and link_file as a pseudo-identifier if doc_id doesn't exist
+       if (rows[i][0] === data.customerId && rows[i][1] === data.oldDocName) {
+         const rowNum = i + 1;
+         sheet.getRange(rowNum, 2).setValue(data.docName);
+         sheet.getRange(rowNum, 3).setValue(data.type);
+         if (data.fileUrl) sheet.getRange(rowNum, 4).setValue(data.fileUrl);
+         sheet.getRange(rowNum, 5).setValue(new Date());
+         sheet.getRange(rowNum, 6).setValue(data.note);
+         sheet.getRange(rowNum, 7).setValue(encryptCRM(data.submitter || ''));
+         sheet.getRange(rowNum, 8).setValue(encryptCRM(data.adminId || ''));
+         return { success: true };
+       }
+    }
+    return { success: false, message: 'Không tìm thấy tài liệu để cập nhật' };
+  } catch (e) { return { success: false, message: e.toString() }; }
+}
+
+function handleDeleteDoc(data) {
+  try {
+    const sheet = getSheet('thong_tin_khach');
+    const rows = sheet.getDataRange().getValues();
+    for (let i = 1; i < rows.length; i++) {
+       if (rows[i][0] === data.customerId && rows[i][1] === data.docName) {
+         sheet.deleteRow(i + 1);
+         return { success: true };
+       }
+    }
+    return { success: false, message: 'Không tìm thấy tài liệu để xóa' };
+  } catch (e) { return { success: false, message: e.toString() }; }
+}
+
+function handleGetDocs(data) {
+  try {
+    const sheet = getSheet('thong_tin_khach');
+    const custSheet = getSheet('data_khach_hang');
+    if (sheet.getLastRow() < 2) return { success: true, docs: [] };
+    
+    const rows = sheet.getDataRange().getValues();
+    const headers = rows[0];
+    const custRows = custSheet.getDataRange().getValues();
+    const salesIdEnc = encryptCRM(data.salesId);
+    const isAdmin = data.isAdmin === true;
+    const viewAll = data.viewAll === true;
+
+    // Find indices
+    const idx = {
+      custId: headers.indexOf('customer_id'),
+      name: headers.indexOf('ten_tai_lieu'),
+      type: headers.indexOf('loai_tai_lieu'),
+      url: headers.indexOf('link_file'),
+      time: headers.indexOf('ngay_cap_nhat'),
+      note: headers.indexOf('ghi_chu'),
+      submitter: headers.indexOf('nguoi_nhap'),
+      adminId: headers.indexOf('ma_admin_quan_ly')
+    };
+
+    const custMap = {};
+    for (let j = 1; j < custRows.length; j++) {
+      custMap[custRows[j][0]] = custRows[j][1];
+    }
+
+    const adminEmail = (data.adminEmail || data.salesId || "").toLowerCase().trim();
+    const adminEmailEnc = encryptCRM(adminEmail);
+    const orgEmailsEnc = (isAdmin && viewAll) ? getOrgEmails(adminEmail).map(em => encryptCRM(em)) : [salesIdEnc];
+
+    const docs = [];
+    for (let i = 1; i < rows.length; i++) {
+      const submitterEnc = rows[i][idx.submitter] || '';
+      const adminEnc = rows[i][idx.adminId] || '';
+      
+      const submitterEmail = submitterEnc ? decryptCRM(submitterEnc) : '';
+      const adminEmailDec = adminEnc ? decryptCRM(adminEnc) : '';
+
+      let canView = false;
+      if (isAdmin && viewAll) {
+        if (data.salesId === 'dunvex.green@gmail.com') {
+          canView = true;
+        } else if (orgEmailsEnc.indexOf(submitterEnc) !== -1 || adminEnc === adminEmailEnc || adminEnc === salesIdEnc) {
+          canView = true;
+        }
+      } else {
+        canView = (submitterEmail === data.salesId);
+      }
+      
+      if (canView) {
+        docs.push({
+          customerId: rows[i][idx.custId],
+          customerName: custMap[rows[i][idx.custId]] || 'N/A',
+          docName: rows[i][idx.name],
+          type: rows[i][idx.type],
+          fileUrl: rows[i][idx.url],
+          time: rows[i][idx.time],
+          note: rows[i][idx.note],
+          submitter: submitterEmail,
+          adminId: adminEmailDec
+        });
+      }
+    }
+    return { success: true, docs: docs.reverse() };
+  } catch (e) { return { success: false, message: e.toString() }; }
+}
+
+function getCustomers(data) {
+  try {
+    const sheet = getSheet('data_khach_hang');
+    if (sheet.getLastRow() < 2) return { success: true, customers: [] };
+    
+    const rows = sheet.getDataRange().getValues();
+    const headers = rows[0];
+    const salesIdEnc = encryptCRM(data.salesId);
+    const allEnc = encryptCRM('all');
+    const isAdmin = data.isAdmin === true;
+
+    // Sử dụng helper để lấy index chính xác, không phân biệt hoa thường
+    const idx = getColumnIndexMap(sheet);
+
+    if (idx.id === -1) return { success: false, message: "Không tìm thấy cột customer_id trong bảng khách hàng." };
+
+    // Org-level filtering
+    const adminEmail = (data.adminEmail || data.salesId || "").toLowerCase().trim();
+    const adminEmailEnc = encryptCRM(adminEmail);
+    const orgEmailsEnc = (isAdmin && viewAll) ? getOrgEmails(adminEmail).map(em => encryptCRM(em)) : [salesIdEnc];
+
+    const customers = [];
+    for (let i = 1; i < rows.length; i++) {
+      const assignedSalesEnc = idx.sales !== -1 ? (rows[i][idx.sales] || "").toString() : "";
+      const viewAllFlag = data.viewAll === true;
+      
+      let hasAccess = (assignedSalesEnc === allEnc) || (assignedSalesEnc === salesIdEnc);
+      
+      // Admin in their org or Super Admin
+      if (isAdmin && viewAllFlag) {
+        if (data.salesId === 'dunvex.green@gmail.com') {
+          hasAccess = true; // Super Admin sees all
+        } else if (orgEmailsEnc.indexOf(assignedSalesEnc) !== -1 || assignedSalesEnc === adminEmailEnc) {
+          hasAccess = true; // Normal Admin sees their org's customers
+        }
+      }
+
+      if (hasAccess) {
+        customers.push({ 
+          id: rows[i][idx.id], 
+          name: idx.name !== -1 ? rows[i][idx.name] : "N/A", 
+          contact: idx.contact !== -1 ? rows[i][idx.contact] : "",
+          phone: idx.phone !== -1 ? decryptCRM(rows[i][idx.phone]) : "",
+          email: idx.email !== -1 ? decryptCRM(rows[i][idx.email]) : "",
+          location: idx.location !== -1 ? rows[i][idx.location] : "",
+          address: idx.address !== -1 ? rows[i][idx.address] : "",
+          area: idx.area !== -1 ? rows[i][idx.area] : "",
+          phanLoai: idx.type !== -1 ? rows[i][idx.type] : "Chưa phân loại",
+          salesOwner: idx.sales !== -1 ? decryptCRM(rows[i][idx.sales]) : "N/A",
+          status: idx.status !== -1 ? rows[i][idx.status] : "N/A",
+          ngay_tao: idx.date !== -1 ? rows[i][idx.date] : ""
+        });
+      }
+    }
+    return { success: true, customers: customers };
+  } catch (e) {
+    return { success: false, message: "Lỗi getCustomers: " + e.toString() };
+  }
+}
+
+/**
+ * TÍNH KHOẢNG CÁCH GIỮA 2 TỌA ĐỘ (HA VERSINE FORMULA)
+ */
+function calculateDistance(loc1, loc2) {
+  if (!loc1 || !loc2) return 0;
+  try {
+    const [lat1, lon1] = loc1.split(',').map(Number);
+    const [lat2, lon2] = loc2.split(',').map(Number);
+    const R = 6371e3; // metres
+    const φ1 = lat1 * Math.PI/180;
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lon2-lon1) * Math.PI/180;
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return Math.round(R * c);
+  } catch(e) { return 0; }
+}
+
+function handleFileUpload(data) {
+  try {
+    // Phân loại folder theo loại file
+    let folderId = '1mXYw6XeOFVxSjmQnZXKqoKOTeKXN_x6L'; // Thư mục tập trung mới của khách hàng
+    
+    const folder = DriveApp.getFolderById(folderId);
+    const byteCharacters = Utilities.base64Decode(data.base64);
+    const mimeType = data.type === 'pdf' ? MimeType.PDF : MimeType.JPEG;
+    const blob = Utilities.newBlob(byteCharacters, mimeType, data.filename);
+    const file = folder.createFile(blob).setName(data.filename);
+    
+    if (data.type !== 'pdf') {
+       file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+       return { success: true, url: 'https://lh3.googleusercontent.com/d/' + file.getId() };
+    }
+    
+    return { success: true, url: file.getUrl() };
+  } catch (e) {
+    return { success: false, message: e.toString() };
+  }
+}
+
+// --- MIGRATION UTILITY (RUN ONCE TO SECURE EXISTING DATA) ---
+function migrateCRMEmailsToEncrypted() {
+  const configs = [
+    { sheet: 'data_khach_hang', cols: ['so_dien_thoai', 'email', 'ma_sales_phu_trach'] },
+    { sheet: 'data_checkin', cols: ['ma_sales_checkin'] },
+    { sheet: 'config_khu_vuc', cols: ['EMAIL SALES'] }
+  ];
+
+  configs.forEach(conf => {
+    const sheet = getSheet(conf.sheet);
+    if (!sheet || sheet.getLastRow() < 2) return;
+    const rows = sheet.getDataRange().getValues();
+    const headers = rows[0];
+    const colIndices = conf.cols.map(c => headers.findIndex(h => h.toString().toLowerCase().trim() === c.toLowerCase().trim()));
+
+    for (let i = 1; i < rows.length; i++) {
+      colIndices.forEach(idx => {
+        if (idx !== -1) {
+          const val = (rows[i][idx] || "").toString();
+          if (val && !val.includes('+')) {
+             if (val.includes('@') || val.match(/^\d+$/) || val.toLowerCase() === 'all' || val.toLowerCase() === 'n/a') {
+               sheet.getRange(i + 1, idx + 1).setValue(encryptCRM(val.toLowerCase()));
+             }
+          }
+        }
+      });
+    }
+  });
+  return "CRM Migration Complete!";
+}
+function updateCheckinNote(data) {
+  try {
+    const sheet = getSheet('data_checkin');
+    const rows = sheet.getDataRange().getValues();
+    const idIdx = rows[0].findIndex(h => h.toString().toLowerCase().trim() === 'checkin_id');
+    const noteIdx = rows[0].findIndex(h => h.toString().toLowerCase().trim() === 'ghi_chu_ket_qua');
+    const adminIdx = rows[0].findIndex(h => h.toString().toLowerCase().trim() === 'ma_admin_quan_ly');
+    
+    if (idIdx === -1 || noteIdx === -1) return { success: false, message: "Sheet structure error" };
+
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i][idIdx] === data.checkinId) {
+        // Update note
+        sheet.getRange(i + 1, noteIdx + 1).setValue(data.note || "");
+        
+        // Update adminId if missing or if the requester is the correct admin
+        if (adminIdx !== -1 && data.adminId) {
+          const currentAdmin = rows[i][adminIdx];
+          // Fill if empty, or if specifically requested by an Admin to "take ownership"
+          if (!currentAdmin || currentAdmin === "" || data.overwriteAdmin === true) {
+            sheet.getRange(i + 1, adminIdx + 1).setValue(encryptCRM(data.adminId));
+          }
+        }
+        return { success: true };
+      }
+    }
+    return { success: false, message: "Not found" };
+  } catch (e) { return { success: false, message: e.toString() }; }
+}
