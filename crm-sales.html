@@ -125,6 +125,8 @@
 		.ss-input-wrap i {
 			position: absolute;
 			left: 15px;
+			top: 50%;
+			transform: translateY(-50%);
 			color: #64748b;
 			z-index: 5;
 		}
@@ -1780,11 +1782,13 @@
 						<div class="ss-input-wrap">
 							<i class="fas fa-search"></i>
 							<input type="text" id="ss_ci_search" placeholder="Nhập tên khách hàng để tìm..."
-								autocomplete="off" onfocus="this.select()" oninput="filterSS('ci')">
+								autocomplete="off" onfocus="this.select()" oninput="filterSS('ci')"
+								style="padding-left: 40px !important;">
 						</div>
 						<div class="ss-dropdown" id="ss_ci_dropdown"></div>
-						<!-- Hidden select for compatibility -->
-						<select id="ci_customer" class="hidden" required onchange="updateDistance()"></select>
+						<!-- Native select hidden - values updated via selectSSItem -->
+						<select id="ci_customer" style="display: none !important;" required
+							onchange="updateDistance()"></select>
 					</div>
 				</div>
 				<div class="form-group">
@@ -1856,12 +1860,15 @@
 
 			<div id="checkinHistoryContainer">
 				<div class="history-list">
-					<div class="filter-group">
-						<div class="purpose-btn active" onclick="filterHistory('Tất cả', this)">Tất cả</div>
-						<div class="purpose-btn" onclick="filterHistory('Thăm hỏi định kỳ', this)">Thăm hỏi</div>
-						<div class="purpose-btn" onclick="filterHistory('Chào mới', this)">Chào mới</div>
-						<div class="purpose-btn" onclick="filterHistory('Xử lý khiếu nại', this)">Khiếu nại</div>
-						<div class="purpose-btn" onclick="filterHistory('Thu nợ', this)">Thu nợ</div>
+					<div class="filter-group" style="padding: 0; margin-bottom: 20px;">
+						<select id="historyFilterSelect" onchange="filterHistory(this.value, this)"
+							style="width: 100%; padding: 10px 15px !important; background: #f8fafc !important; border-radius: 12px; font-weight: 700; color: #1e293b;">
+							<option value="Tất cả">🎯 Tất cả mục đích</option>
+							<option value="Thăm hỏi định kỳ">👥 Thăm hỏi định kỳ</option>
+							<option value="Chào mới">✨ Chào mới</option>
+							<option value="Xử lý khiếu nại">⚠️ Xử lý khiếu nại</option>
+							<option value="Thu nợ">💰 Thu nợ</option>
+						</select>
 					</div>
 					<div id="checkinHistoryBody" style="min-height: 200px; padding-right: 5px;">
 						<p style="text-align: center; color: var(--text-muted); padding: 20px;">Đang tải lịch sử...</p>
@@ -1957,11 +1964,11 @@
 							<div class="ss-input-wrap">
 								<i class="fas fa-search"></i>
 								<input type="text" id="ss_doc_search" placeholder="Nhập tên khách hàng để tìm..."
-									autocomplete="off" onfocus="this.select()" oninput="filterSS('doc')">
+									autocomplete="off" onfocus="this.select()" oninput="filterSS('doc')"
+									style="padding-left: 40px !important;">
 							</div>
 							<div class="ss-dropdown" id="ss_doc_dropdown"></div>
-							<!-- Hidden select for compatibility -->
-							<select id="doc_customer" class="hidden" required></select>
+							<select id="doc_customer" style="display: none !important;" required></select>
 						</div>
 					</div>
 					<div
@@ -2978,8 +2985,11 @@
 
 		function filterHistory(purpose, el) {
 			currentPurposeFilter = purpose;
-			document.querySelectorAll('.purpose-btn').forEach(b => b.classList.remove('active'));
-			el.classList.add('active');
+			// Adapt to both button click (old) and select change (new)
+			if (el && el.classList) {
+				document.querySelectorAll('.purpose-btn').forEach(b => b.classList.remove('active'));
+				el.classList.add('active');
+			}
 			applyHistoryFilters();
 		}
 
