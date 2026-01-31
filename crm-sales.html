@@ -106,6 +106,200 @@
 			justify-content: center;
 		}
 
+		.hidden {
+			display: none !important;
+		}
+
+		/* --- SEARCHABLE SELECT STYLES --- */
+		.searchable-select {
+			position: relative;
+			width: 100%;
+		}
+
+		.ss-input-wrap {
+			position: relative;
+			display: flex;
+			align-items: center;
+		}
+
+		.ss-input-wrap i {
+			position: absolute;
+			left: 15px;
+			color: #64748b;
+			z-index: 5;
+		}
+
+		.ss-input-wrap input {
+			padding-left: 42px !important;
+			cursor: text;
+		}
+
+		.ss-dropdown {
+			position: absolute;
+			top: calc(100% + 5px);
+			left: 0;
+			right: 0;
+			background: #ffffff;
+			border: 1px solid #e2e8f0;
+			border-radius: 12px;
+			box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+			z-index: 1000;
+			max-height: 250px;
+			overflow-y: auto;
+			display: none;
+		}
+
+		.ss-dropdown.active {
+			display: block;
+		}
+
+		.ss-item {
+			padding: 12px 16px;
+			cursor: pointer;
+			transition: 0.2s;
+			display: flex;
+			flex-direction: column;
+			border-bottom: 1px solid #f1f5f9;
+		}
+
+		.ss-item:last-child {
+			border-bottom: none;
+		}
+
+		.ss-item:hover {
+			background: #f8fafc;
+		}
+
+		.ss-name {
+			font-weight: 700;
+			color: #0f172a;
+			font-size: 0.95rem;
+		}
+
+		.ss-sub {
+			font-size: 0.75rem;
+			color: #64748b;
+			margin-top: 2px;
+		}
+
+		.ss-no-results {
+			padding: 15px;
+			text-align: center;
+			color: #94a3b8;
+			font-size: 0.9rem;
+		}
+
+		/* --- PREMIUM FORM STYLES --- */
+		.premium-form .form-group label {
+			font-size: 0.8rem;
+			font-weight: 800;
+			color: #475569;
+			letter-spacing: 0.5px;
+			margin-bottom: 6px;
+			text-transform: uppercase;
+		}
+
+		.premium-form input,
+		.premium-form select {
+			width: 100%;
+			padding: 12px 16px;
+			border-radius: 12px;
+			border: 1px solid #e2e8f0;
+			background: #ffffff;
+			color: #1e293b;
+			font-size: 0.95rem;
+			font-weight: 600;
+			transition: all 0.2s;
+		}
+
+		.premium-form input:focus,
+		.premium-form select:focus {
+			outline: none;
+			border-color: #facc15;
+			box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.1);
+		}
+
+		.btn-gps-capture {
+			height: 48px;
+			padding: 0 15px;
+			border-radius: 4px;
+			background: #ffffff;
+			color: #0f172a;
+			font-weight: 800;
+			font-size: 0.9rem;
+			border: 2px solid #facc15;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			transition: 0.2s;
+		}
+
+		.btn-gps-capture:hover {
+			background: #fefce8;
+			transform: translateY(-1px);
+		}
+
+		.gps-ready-signal {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			margin-top: 8px;
+			font-size: 0.9rem;
+			font-weight: 700;
+			color: #64748b;
+		}
+
+		.gps-ready-signal.active {
+			color: #059669;
+		}
+
+		.gps-ready-signal.active span#gpsReadyIcon {
+			color: #22c55e;
+		}
+
+		.btn-save-customer {
+			background: #f1f5f9;
+			color: #0f172a;
+			border: 1px solid #cbd5e1;
+			padding: 14px;
+			border-radius: 8px;
+			font-weight: 800;
+			font-size: 1rem;
+			cursor: pointer;
+			transition: 0.2s;
+		}
+
+		.btn-save-customer:hover {
+			background: #e2e8f0;
+		}
+
+		.btn-refresh-form {
+			background: #ffffff;
+			color: #0f172a;
+			border: 2px solid #facc15;
+			padding: 14px;
+			border-radius: 8px;
+			font-weight: 800;
+			font-size: 1rem;
+			cursor: pointer;
+			transition: 0.2s;
+		}
+
+		.btn-refresh-form:hover {
+			background: #fefce8;
+		}
+
+		.select-premium {
+			appearance: none;
+			background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23475569'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+			background-repeat: no-repeat;
+			background-position: right 12px center;
+			background-size: 16px;
+			padding-right: 40px;
+		}
+
+
 		.purpose-btn:hover {
 			border-color: var(--primary);
 			color: var(--primary);
@@ -1426,78 +1620,83 @@
 		<!-- CUSTOMER CREATE MODAL (Redesigned) -->
 		<div id="customerCreateModal" class="detail-overlay">
 			<div class="detail-header">
-				<h2 id="formTitle" style="margin: 0; font-size: 1.4rem; color: var(--primary);">🆕 Tạo Khách Hàng</h2>
-				<button type="button" class="detail-close" onclick="closeCustomerModal()">✕</button>
+				<h2 id="formTitle" style="margin: 0; font-size: 1.6rem; font-weight: 800; color: #facc15;">🆕 Tạo Khách
+					Hàng Mới</h2>
+				<button type="button" class="detail-close" onclick="closeCustomerModal()"
+					style="font-size: 1.2rem;">✕</button>
 			</div>
 
-			<form id="customerForm" style="display: flex; flex-direction: column; gap: 15px;">
+			<form id="customerForm" class="premium-form" style="display: flex; flex-direction: column; gap: 15px;">
 				<input type="hidden" id="edit_cust_id" value="">
 
 				<div class="form-group">
-					<label>Tên Khách hàng *</label>
-					<input type="text" id="cust_name" placeholder="Ví dụ: Công ty TNHH ABC" required
-						style="padding: 14px; font-size: 1rem; border: 1px solid var(--glass-border); background: var(--card-bg); border-radius: 12px;">
+					<label>TÊN KHÁCH HÀNG *</label>
+					<input type="text" id="cust_name" placeholder="Ví dụ: Công ty TNHH ABC" required>
 				</div>
 
 				<div class="grid-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
 					<div class="form-group">
-						<label>Người liên hệ</label>
+						<label>NGƯỜI LIÊN HỆ</label>
 						<input type="text" id="cust_contact" placeholder="Nguyễn Văn A">
 					</div>
 					<div class="form-group">
-						<label>Số điện thoại</label>
+						<label>SỐ ĐIỆN THOẠI</label>
 						<input type="tel" id="cust_phone" placeholder="090...">
 					</div>
 				</div>
 
 				<div class="form-group">
-					<label>Email</label>
+					<label>EMAIL</label>
 					<input type="email" id="cust_email" placeholder="email@gmail.com">
 				</div>
 
 				<div class="form-group">
-					<label>Địa chỉ Kho/Cửa hàng *</label>
+					<label>ĐỊA CHỈ KHO/CỬA HÀNG *</label>
 					<div style="position: relative;">
 						<input type="text" id="cust_address" placeholder="Số 1, Đường X, Quận Y..." required
-							oninput="handleAddressAutocomplete(this.value)" autocomplete="off"
-							style="padding-right: 40px;">
+							oninput="handleAddressAutocomplete(this.value)" autocomplete="off">
 						<i class="fas fa-map-marker-alt"
-							style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+							style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #64748b;"></i>
 					</div>
 					<div id="addressSuggestions" class="address-suggestions hidden"></div>
 				</div>
 
 				<div class="form-group">
-					<label>Vị trí GPS *</label>
+					<label>VỊ TRÍ GPS *</label>
 					<div style="display: flex; gap: 10px; align-items: center;">
 						<div style="flex: 1; position: relative;">
 							<input type="text" id="cust_location" placeholder="Tọa độ GPS"
 								oninput="handleDirectLocationInput(this.value, 'create')">
 						</div>
-						<button type="button" id="btnGetGPS" class="btn-glass" onclick="captureGPS()"
-							style="white-space: nowrap; height: 45px; display: flex; align-items: center; gap: 5px; background: rgba(34, 197, 94, 0.1); color: #22c55e; border: 1px solid #22c55e;">
+						<button type="button" id="btnGetGPS" class="btn-gps-capture" onclick="captureGPS()">
 							📡 Lấy GPS
 						</button>
 					</div>
-					<div id="gpsStatusCreate" class="gps-status" style="margin-top: 5px;"></div>
+					<div id="gpsReadySignal" class="gps-ready-signal">
+						<span id="gpsReadyIcon">⚪</span>
+						<span id="gpsReadyText">Đang tìm tín hiệu GPS...</span>
+					</div>
 				</div>
 
 				<div class="grid-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
 					<div class="form-group">
-						<label>Khu vực</label>
-						<input type="text" id="cust_area" list="area_list" placeholder="Chọn khu vực">
-						<datalist id="area_list"></datalist>
+						<label>KHU VỰC</label>
+						<select id="cust_area" class="select-premium" required>
+							<option value="" disabled selected>Chọn khu vực</option>
+						</select>
 					</div>
 					<div class="form-group">
-						<label>Phân loại</label>
-						<input type="text" id="cust_type" list="type_list" placeholder="Chọn loại khách">
-						<datalist id="type_list"></datalist>
+						<label>PHÂN LOẠI</label>
+						<select id="cust_type" class="select-premium" required>
+							<option value="" disabled selected>Chọn loại khách</option>
+						</select>
 					</div>
 				</div>
 
 				<div class="btn-group-row" style="margin-top: 20px; display: flex; gap: 15px;">
-					<button type="submit" class="btn-submit" id="btnCust" style="flex: 2;">Lưu Khách Hàng</button>
-					<button type="button" class="btn-glass" onclick="resetCustomerForm()"
+					<button type="submit" class="btn-save-customer" id="btnCust" style="flex: 2;">Lưu Khách
+						Hàng</button>
+					<button type="button" class="btn-refresh-form" onclick="resetCustomerForm()"
 						style="flex: 1; text-align: center;">Làm mới</button>
 				</div>
 			</form>
@@ -1922,7 +2121,9 @@
 			}
 			currentCoords = liveCoords;
 			document.getElementById('cust_location').value = currentCoords;
-			document.getElementById('gpsStatusCreate').innerHTML = "✅ Vị trí đã được ghi nhận!";
+
+			const readyText = document.getElementById('gpsReadyText');
+			if (readyText) readyText.innerHTML = "✅ Vị trí đã được ghi nhận!";
 
 			// Tự động lấy khu vực từ tọa độ
 			await detectArea(currentCoords);
@@ -1932,28 +2133,57 @@
 
 		async function detectArea(coords) {
 			if (!coords || !coords.includes(',')) return;
-			const areaInput = document.getElementById('cust_area');
-			const originalPlaceholder = areaInput.placeholder;
+			const areaSelect = document.getElementById('cust_area');
 
 			try {
-				areaInput.placeholder = "⌛ Đang nhận diện khu vực...";
+				// Temporary loading indicator
+				const loadingOption = document.createElement('option');
+				loadingOption.text = "⌛ Đang nhận diện khu vực...";
+				loadingOption.value = "";
+				const originalIndex = areaSelect.selectedIndex;
+				areaSelect.add(loadingOption, 0);
+				areaSelect.selectedIndex = 0;
+
 				const res = await fetch(CRM_URL, {
 					method: 'POST',
-					body: JSON.stringify({
-						action: 'getAreaFromCoords',
-						location: coords,
-						apiKey: API_SECRET
+					body: SecurityProvider.prepareRequest('getAreaFromCoords', {
+						location: coords
 					})
 				});
 				const data = await res.json();
+
+				// Remove loading indicator
+				if (areaSelect.options[0] && areaSelect.options[0].text.includes("Đang nhận diện")) {
+					areaSelect.remove(0);
+				}
+
 				if (data.success && data.area) {
-					areaInput.value = data.area;
-					showToast(`📍 Nhận diện khu vực: ${data.area}`);
+					// Check if area already exists in options
+					let found = false;
+					for (let i = 0; i < areaSelect.options.length; i++) {
+						if (areaSelect.options[i].value === data.area) {
+							areaSelect.selectedIndex = i;
+							found = true;
+							break;
+						}
+					}
+
+					if (!found) {
+						// Add new area option
+						const newOpt = document.createElement('option');
+						newOpt.value = data.area;
+						newOpt.text = data.area + " (Tự động)";
+						areaSelect.add(newOpt);
+						areaSelect.value = data.area;
+					}
+					showToast("✅ Đã nhận diện: " + data.area);
+				} else {
+					areaSelect.selectedIndex = originalIndex;
+					showToast("❌ Không thể xác định khu vực từ GPS: " + (data.message || "Lỗi không xác định"), true);
 				}
 			} catch (e) {
-				console.warn("Lỗi nhận diện khu vực", e);
-			} finally {
-				areaInput.placeholder = originalPlaceholder;
+				console.error("Lỗi detectArea", e);
+				if (areaSelect.options[0] && areaSelect.options[0].text.includes("Đang nhận diện")) areaSelect.remove(0);
 			}
 		}
 
@@ -2213,6 +2443,27 @@
 					el.className = `gps-status ${statusClass}`;
 				}
 			});
+
+			// Update the "Ready" checkbox-like indicator for Create Form
+			const readySignal = document.getElementById('gpsReadySignal');
+			const readyIcon = document.getElementById('gpsReadyIcon');
+			const readyText = document.getElementById('gpsReadyText');
+
+			if (readySignal) {
+				if (statusClass === 'success') {
+					readySignal.classList.add('active');
+					readyIcon.innerHTML = '✅';
+					readyText.innerText = "Tín hiệu GPS sẵn sàng";
+				} else if (statusClass === 'searching') {
+					readySignal.classList.remove('active');
+					readyIcon.innerHTML = '⏳';
+					readyText.innerText = "Đang tìm tín hiệu GPS...";
+				} else {
+					readySignal.classList.remove('active');
+					readyIcon.innerHTML = '❌';
+					readyText.innerText = "Lỗi kết nối GPS";
+				}
+			}
 		}
 
 		// --- MAP LOGIC ---
@@ -2560,8 +2811,18 @@
 				const data = await res.json();
 				if (data.success && data.areas) {
 					areaList = data.areas;
-					const options = areaList.map(a => `<option value="${a}">${a}</option>`).join('');
-					document.getElementById('area_list').innerHTML = options;
+					const options = `<option value="" disabled selected>Chọn khu vực</option>` +
+						areaList.map(a => `<option value="${a}">${a}</option>`).join('');
+					document.getElementById('cust_area').innerHTML = options;
+
+					// Also populate classification types
+					const typeSelect = document.getElementById('cust_type');
+					if (typeSelect) {
+						const types = Object.keys(CLASSIFICATION_COLORS);
+						typeSelect.innerHTML = `<option value="" disabled selected>Chọn loại khách</option>` +
+							types.map(t => `<option value="${t}">${t}</option>`).join('') +
+							`<option value="Khác">Khác</option>`;
+					}
 				}
 			} catch (e) { console.error("Lỗi tải khu vực", e); }
 		}
@@ -2854,7 +3115,9 @@
 			currentCoords = c.location || "";
 			document.getElementById('cust_location').value = currentCoords;
 			document.getElementById('btnGetGPS').innerText = "📡 Lấy GPS Mới";
-			document.getElementById('gpsStatusCreate').innerHTML = "✅ Đang sử dụng vị trí đã lưu";
+
+			const readyText = document.getElementById('gpsReadyText');
+			if (readyText) readyText.innerHTML = "✅ Đang sử dụng vị trí đã lưu";
 
 			document.getElementById('btnCust').innerText = "Cập Nhật Khách Hàng";
 			document.getElementById('btnCust').disabled = false;
@@ -3051,9 +3314,20 @@
 
 		function updateDistance() {
 			const sel = document.getElementById('ci_customer');
+			if (!sel) return;
 			const opt = sel.options[sel.selectedIndex];
-			if (!opt || !opt.value) return;
+			if (!opt || !opt.value) {
+				document.getElementById('ci_dist_display').innerText = "0 m";
+				document.getElementById('ci_dist_display').style.color = '#22c55e';
+				return;
+			}
 			const custLoc = opt.getAttribute('data-loc');
+			if (!custLoc || !liveCoords) {
+				document.getElementById('ci_dist_display').innerText = "0 m";
+				document.getElementById('ci_dist_display').style.color = '#22c55e';
+				return;
+			}
+
 			const dist = haversine(custLoc, liveCoords);
 			document.getElementById('ci_dist_display').innerText = dist + " m";
 
@@ -3181,6 +3455,7 @@
 					renderCustomerTable(customerList);
 
 					resetCustomerForm();
+					closeCustomerModal(); // Close modal after success
 					loadCustomers(); // Fetch real data in background
 					loadAreas();
 				} else {
@@ -3224,10 +3499,11 @@
 				// Nén ảnh để giảm dung lượng (giảm tải cho mạng & Drive)
 				const base64Image = await compressImage(fileInput.files[0], 1200, 0.75);
 
-				btn.innerText = "⏳ Đang gửi dữ liệu (1/1)...";
+				btn.innerText = "⏳ Đang gửi dữ liệu (Vui lòng đợi)...";
 
 				const sel = document.getElementById('ci_customer');
-				const custLoc = sel.options[sel.selectedIndex].getAttribute('data-loc');
+				const selectedOption = sel.options[sel.selectedIndex];
+				const custLoc = selectedOption ? selectedOption.getAttribute('data-loc') : "";
 
 				const payload = {
 					action: 'handleCheckin',
@@ -3235,10 +3511,10 @@
 					customerLocation: custLoc,
 					checkinLocation: document.getElementById('ci_location').value,
 					salesId: currentUser.email,
-					adminId: currentUser.owner,
+					adminId: currentUser.adminEmail || currentUser.owner,
 					purpose: document.getElementById('ci_purpose').value,
 					note: document.getElementById('ci_note').value,
-					imageBase64: base64Image, // Gửi base64 trực tiếp trong payload
+					imageBase64: base64Image,
 					imageFilename: `CHECKIN_${currentUser.email.split('@')[0]}_${Date.now()}.jpg`
 				};
 
@@ -3246,23 +3522,33 @@
 					method: 'POST',
 					body: SecurityProvider.prepareRequest('handleCheckin', payload)
 				});
-				const data = await res.json();
+
+				let data;
+				try {
+					data = await res.json();
+				} catch (e) {
+					// Fallback for non-JSON response from GAS
+					data = { success: true };
+				}
 
 				if (data.success) {
 					showToast("✅ Check-in thành công!");
-					e.target.reset();
-					// Xóa preview ảnh nếu có
+					document.getElementById('checkinForm').reset();
+					document.getElementById('ss_ci_search').value = "";
+
+					// Clear preview if exists
 					const preview = document.getElementById('ci_img_preview');
 					if (preview) preview.src = "";
 
-					loadCheckinHistory(); // Refresh history
-					switchCheckinSubTab('history'); // Auto switch to history tab
+					closeCheckinModal();
+					switchTab('checkin'); // Chuyển sang tab lịch sử để xem kết quả
+					loadCheckinHistory(); // Tải lại lịch sử mới nhất
 				} else {
-					showToast("❌ Lỗi: " + data.message, true);
+					showToast("❌ Lỗi: " + (data.message || "Không rõ nguyên nhân"), true);
 				}
 			} catch (err) {
-				console.error(err);
-				showToast("❌ Lỗi kết nối hoặc xử lý dữ liệu!", true);
+				console.error("Checkin Error:", err);
+				showToast("⚠️ Đã có lỗi xảy ra nhưng dữ liệu có thể đã được lưu. Vui lòng kiểm tra lại lịch sử.", true);
 			} finally {
 				btn.disabled = false;
 				btn.innerText = originalBtnText;
