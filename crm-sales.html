@@ -302,20 +302,56 @@
 		}
 
 
-		.purpose-btn:hover {
-			border-color: var(--primary);
-			color: var(--primary);
-			background: #fefce8;
+		/* Unified Button Groups */
+		.btn-group {
+			display: flex;
+			gap: 0;
+			border-radius: 12px;
+			overflow: hidden;
+			border: 1px solid var(--glass-border);
 		}
 
-		.purpose-btn.active {
+		.btn-group .btn-item {
+			flex: 1;
+			padding: 10px;
+			border: none;
+			border-right: 1px solid var(--glass-border);
+			background: #ffffff;
+			color: #475569;
+			font-size: 0.85rem;
+			font-weight: 700;
+			cursor: pointer;
+			transition: 0.2s;
+			white-space: nowrap;
+		}
+
+		.btn-group .btn-item:last-child {
+			border-right: none;
+		}
+
+		.btn-group .btn-item.active {
 			background: var(--primary);
 			color: #0f172a;
-			border-color: var(--primary);
-			box-shadow: 0 4px 12px rgba(250, 204, 21, 0.4);
 		}
 
-		/* History List Items */
+		.btn-group .btn-item:hover:not(.active) {
+			background: #f8fafc;
+		}
+
+		.form-row {
+			display: flex;
+			grid-template-columns: 1fr 1fr;
+			gap: 15px;
+			margin-bottom: 20px;
+		}
+
+		@media (max-width: 600px) {
+			.form-row {
+				flex-direction: column;
+				gap: 12px;
+			}
+		}
+
 		.history-item {
 			display: flex;
 			gap: 15px;
@@ -1771,60 +1807,74 @@
 			</div>
 
 			<form id="checkinForm">
-				<div class="form-group">
-					<label>Thời gian Check-in</label>
-					<input type="text" id="ci_time" readonly
-						style="background: rgba(255,255,255,0.02); color: var(--text-muted);">
-				</div>
-				<div class="form-group">
-					<label>Chọn Khách hàng *</label>
-					<div class="searchable-select">
-						<div class="ss-input-wrap">
-							<i class="fas fa-search"></i>
-							<input type="text" id="ss_ci_search" placeholder="Nhập tên khách hàng để tìm..."
-								autocomplete="off" onfocus="this.select()" oninput="filterSS('ci')"
-								style="padding-left: 40px !important;">
+				<div class="form-row">
+					<div class="form-group" style="flex: 1;">
+						<label>Thời gian</label>
+						<input type="text" id="ci_time" readonly
+							style="background: #f8fafc !important; color: #64748b !important; border-style: dashed !important;">
+					</div>
+					<div class="form-group" style="flex: 1;">
+						<label>Khách hàng *</label>
+						<div class="searchable-select">
+							<div class="ss-input-wrap">
+								<i class="fas fa-search"></i>
+								<input type="text" id="ss_ci_search" placeholder="Nhập tên..." autocomplete="off"
+									onfocus="this.select()" oninput="filterSS('ci')"
+									style="padding-left: 40px !important;">
+							</div>
+							<div class="ss-dropdown" id="ss_ci_dropdown"></div>
+							<!-- Native select hidden -->
+							<select id="ci_customer" style="display: none !important;" required
+								onchange="updateDistance()"></select>
 						</div>
-						<div class="ss-dropdown" id="ss_ci_dropdown"></div>
-						<!-- Native select hidden - values updated via selectSSItem -->
-						<select id="ci_customer" style="display: none !important;" required
-							onchange="updateDistance()"></select>
 					</div>
 				</div>
+
 				<div class="form-group">
 					<label>Mục đích Gặp mặt</label>
-					<select id="ci_purpose">
-						<option value="Thăm hỏi định kỳ">Thăm hỏi định kỳ</option>
-						<option value="Chào mới">Chào mới</option>
-						<option value="Xử lý khiếu nại">Xử lý khiếu nại</option>
-						<option value="Thu nợ">Thu nợ</option>
-					</select>
+					<div class="btn-group" id="ci_purpose_group">
+						<button type="button" class="btn-item active"
+							onclick="setCiPurpose('Thăm hỏi định kỳ', this)">Thăm hỏi</button>
+						<button type="button" class="btn-item" onclick="setCiPurpose('Chào mới', this)">Chào
+							mới</button>
+						<button type="button" class="btn-item" onclick="setCiPurpose('Xử lý khiếu nại', this)">Khiếu
+							nại</button>
+						<button type="button" class="btn-item" onclick="setCiPurpose('Thu nợ', this)">Thu nợ</button>
+					</div>
+					<input type="hidden" id="ci_purpose" value="Thăm hỏi định kỳ">
 				</div>
+
 				<div class="form-group">
 					<label>Ghi chú kết quả</label>
-					<textarea id="ci_note" rows="3" placeholder="Khách chưa lấy hàng vì..."></textarea>
+					<textarea id="ci_note" rows="2" placeholder="Ví dụ: Khách chưa lấy hàng vì..."></textarea>
 				</div>
-				<div class="form-group">
-					<label>Ảnh minh chứng (Chụp ảnh/Tải lên) *</label>
-					<input type="file" id="ci_file" accept="image/*">
-				</div>
-				<div class="form-group">
-					<label>Vị trí Check-in</label>
-					<div style="display: flex; gap: 10px;">
-						<input type="text" id="ci_location" placeholder="Tự động lấy vị trí hoặc dán thủ công..."
-							oninput="handleDirectLocationInput(this.value, 'checkin')">
+
+				<div class="form-row">
+					<div class="form-group" style="flex: 1;">
+						<label>Ảnh thực tế *</label>
+						<input type="file" id="ci_file" accept="image/*"
+							style="font-size: 0.8rem !important; padding: 8px !important;">
 					</div>
-					<div id="gpsStatusCheckin" class="gps-status"></div>
+					<div class="form-group" style="flex: 1;">
+						<label>Khoảng cách</label>
+						<div id="ci_dist_display" style="font-weight: 800; color: #059669; font-size: 1.2rem;">0 m</div>
+					</div>
 				</div>
+
 				<div class="form-group">
-					<label style="font-size: 0.95rem; font-weight: 700; color: #0f172a;">Khoảng cách ước tính</label>
-					<div id="ci_dist_display"
-						style="font-weight: 900; color: #059669; font-size: 1.5rem; letter-spacing: -0.5px;">
-						0 m</div>
+					<input type="text" id="ci_location" placeholder="Tọa độ tự động..."
+						oninput="handleDirectLocationInput(this.value, 'checkin')"
+						style="font-size: 0.8rem !important; padding: 10px !important; background: #f8fafc !important;">
+					<div id="gpsStatusCheckin" class="gps-status" style="margin-top: 5px;"></div>
 				</div>
-				<div style="margin-top: 20px; display: flex; gap: 15px;">
-					<button type="submit" class="btn-submit" id="btnCI" style="flex: 2;">Xác Nhận Check-in</button>
-					<button type="button" class="btn-glass" onclick="closeCheckinModal()" style="flex: 1;">Đóng</button>
+
+				<div style="margin-top: 25px;">
+					<div class="btn-group" style="border: none;">
+						<button type="submit" class="btn-primary" id="btnCI"
+							style="flex: 3; border-radius: 12px 0 0 12px; height: 50px;">XÁC NHẬN CHECK-IN</button>
+						<button type="button" class="btn-glass" onclick="closeCheckinModal()"
+							style="flex: 1; border-radius: 0 12px 12px 0; height: 50px; border-left: none !important;">HỦY</button>
+					</div>
 				</div>
 			</form>
 		</div>
@@ -1834,8 +1884,19 @@
 				document.getElementById('checkinForm').reset();
 				document.getElementById('ci_dist_display').innerText = "0 m";
 				document.getElementById('ss_ci_search').value = "";
+				// Reset purpose group
+				document.querySelectorAll('#ci_purpose_group .btn-item').forEach(b => b.classList.remove('active'));
+				document.querySelector('#ci_purpose_group .btn-item').classList.add('active');
+				document.getElementById('ci_purpose').value = "Thăm hỏi định kỳ";
+
 				document.getElementById('checkinModal').classList.add('active');
-				initGPS(); // Ensure GPS is ready for checkin
+				initGPS();
+			}
+
+			function setCiPurpose(val, el) {
+				document.getElementById('ci_purpose').value = val;
+				document.querySelectorAll('#ci_purpose_group .btn-item').forEach(b => b.classList.remove('active'));
+				el.classList.add('active');
 			}
 
 			function closeCheckinModal() {
@@ -1844,32 +1905,27 @@
 		</script>
 		<!-- FORM 2: CHECK-IN HISTORY -->
 		<div id="formCheckin" class="form-card">
-			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-				<div style="display: flex; align-items: center; gap: 10px;">
-					<div
-						style="width: 40px; height: 40px; border-radius: 12px; background: rgba(250, 204, 21, 0.1); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.2rem;">
-						<i class="fas fa-history"></i>
-					</div>
-					<h2 style="font-size: 1.2rem; margin: 0; color: #0f172a;">Lịch sử Check-in</h2>
+			<div
+				style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 20px; background: #f8fafc; padding: 10px; border-radius: 16px;">
+				<div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+					<h2 style="font-size: 1.1rem; margin: 0; color: #0f172a; font-weight: 800;">📋 LỊCH SỬ</h2>
+					<select id="historyFilterSelect" onchange="filterHistory(this.value, this)"
+						style="flex: 1; padding: 8px !important; background: transparent !important; border: 1px solid #e2e8f0 !important; font-size: 0.85rem !important;">
+						<option value="Tất cả">🎯 Tất cả mục đích</option>
+						<option value="Thăm hỏi định kỳ">👥 Thăm hỏi</option>
+						<option value="Chào mới">✨ Chào mới</option>
+						<option value="Xử lý khiếu nại">⚠️ Khiếu nại</option>
+						<option value="Thu nợ">💰 Thu nợ</option>
+					</select>
 				</div>
 				<button class="btn-primary" onclick="openCheckinModal()"
-					style="padding: 10px 20px; border-radius: 12px; display: flex; align-items: center; gap: 8px;">
-					<i class="fas fa-plus"></i> Check-in
+					style="padding: 10px 15px; border-radius: 10px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
+					<i class="fas fa-plus"></i> CHECK-IN
 				</button>
 			</div>
 
 			<div id="checkinHistoryContainer">
 				<div class="history-list">
-					<div class="filter-group" style="padding: 0; margin-bottom: 20px;">
-						<select id="historyFilterSelect" onchange="filterHistory(this.value, this)"
-							style="width: 100%; padding: 10px 15px !important; background: #f8fafc !important; border-radius: 12px; font-weight: 700; color: #1e293b;">
-							<option value="Tất cả">🎯 Tất cả mục đích</option>
-							<option value="Thăm hỏi định kỳ">👥 Thăm hỏi định kỳ</option>
-							<option value="Chào mới">✨ Chào mới</option>
-							<option value="Xử lý khiếu nại">⚠️ Xử lý khiếu nại</option>
-							<option value="Thu nợ">💰 Thu nợ</option>
-						</select>
-					</div>
 					<div id="checkinHistoryBody" style="min-height: 200px; padding-right: 5px;">
 						<p style="text-align: center; color: var(--text-muted); padding: 20px;">Đang tải lịch sử...</p>
 					</div>
