@@ -2221,28 +2221,40 @@
 				}
 
 				if (data.success && data.area) {
-					// Check if area already exists in options
-					let found = false;
+					// Use full address if address field is empty
+					const addrInput = document.getElementById('cust_address');
+					if (addrInput && !addrInput.value && data.full_address) {
+						addrInput.value = data.full_address;
+					}
+
+					// Fuzzy matching with existing options
+					let matchedValue = "";
+					const detectedAreaLower = data.area.toLowerCase();
+
 					for (let i = 0; i < areaSelect.options.length; i++) {
-						if (areaSelect.options[i].value === data.area) {
+						const optVal = areaSelect.options[i].value.toLowerCase();
+						const optText = areaSelect.options[i].text.toLowerCase();
+
+						// Exact match or one contains the other
+						if (optVal && (detectedAreaLower.includes(optVal) || optVal.includes(detectedAreaLower))) {
+							matchedValue = areaSelect.options[i].value;
 							areaSelect.selectedIndex = i;
-							found = true;
 							break;
 						}
 					}
 
-					if (!found) {
-						// Add new area option
+					if (!matchedValue) {
+						// Add as new temporary option if not found
 						const newOpt = document.createElement('option');
 						newOpt.value = data.area;
-						newOpt.text = data.area + " (Tự động)";
+						newOpt.text = "📍 " + data.area + " (Tự động)";
 						areaSelect.add(newOpt);
 						areaSelect.value = data.area;
 					}
-					showToast("✅ Đã nhận diện: " + data.area);
+					showToast("✅ Nhận diện khu vực: " + data.area);
 				} else {
 					areaSelect.selectedIndex = originalIndex;
-					showToast("❌ Không thể xác định khu vực từ GPS: " + (data.message || "Lỗi không xác định"), true);
+					showToast("❌ Không thể xác định khu vực từ GPS", true);
 				}
 			} catch (e) {
 				console.error("Lỗi detectArea", e);

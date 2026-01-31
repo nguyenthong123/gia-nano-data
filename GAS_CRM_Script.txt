@@ -356,28 +356,32 @@ function getAreaFromCoords(data) {
     );
     if (response.status === 'OK' && response.results.length > 0) {
       const addr = response.results[0].address_components;
-      let ward = "";
-      let district = "";
       let province = "";
+      let district = "";
+      let ward = "";
       
       for (let i = 0; i < addr.length; i++) {
         const types = addr[i].types;
-        if (types.includes("sublocality_level_1") || types.includes("locality")) {
-           ward = addr[i].long_name;
+        // administrative_area_level_1 is usually Province/City in Vietnam
+        if (types.includes("administrative_area_level_1")) {
+           province = addr[i].long_name;
         }
         if (types.includes("administrative_area_level_2")) {
            district = addr[i].long_name;
         }
-        if (types.includes("administrative_area_level_1")) {
-           province = addr[i].long_name;
+        if (types.includes("sublocality_level_1") || types.includes("locality")) {
+           ward = addr[i].long_name;
         }
       }
-      // Ưu tiên định dạng: Phường/Xã, Quận/Huyện
-      let area = "";
-      if (ward && district) area = ward + ", " + district;
-      else area = district || province || "Khu vực mới";
+      
+      // Standardize Area as "Province/City" for better matching with CRM Areas
+      // If province is missing, fallback to district
+      let area = province || district || ward || "Khu vực mới";
+      
+      // Clean up common prefixes if any (e.g. "Thành phố ", "Tỉnh ") to match dropdowns better
+      const cleanArea = area.replace(/^(Thành phố|Tỉnh)\s+/i, '');
 
-      return { success: true, area: area };
+      return { success: true, area: cleanArea, full_address: response.results[0].formatted_address };
     }
     return { success: false, message: "Không tìm thấy địa danh" };
   } catch (e) {
